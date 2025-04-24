@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supermarket - Promoções em Tempo Real</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .promotion-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .promotion-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+        .department {
+            color: #e63946;
+        }
+        .status {
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .connected {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .disconnected {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .connecting {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        #reconnect-btn {
+            margin-top: 10px;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<h1>Promoções do Supermercado</h1>
+<div id="status" class="status disconnected">Desconectado</div>
+<button id="reconnect-btn" style="display:none;">Reconectar</button>
+
+<div id="promotions-container">
+    <!-- As promoções serão inseridas aqui dinamicamente -->
+</div>
+
+<!-- Carrega a biblioteca STOMP primeiro -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+<script>
+    // Configurações do WebSocket
+    const socketEndpoint = "ws://localhost:9090/ws-promotions";
+    const promotionsTopic = "/topic/promotions";
+
+    let stompClient = null;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 5;
+    const reconnectDelay = 3000; // 3 segundos
+
+    const statusElement = document.getElementById('status');
+    const promotionsContainer = document.getElementById('promotions-container');
+    const reconnectBtn = document.getElementById('reconnect-btn');
+
+    function setStatus(status, message) {
+        statusElement.textContent = message;
+        statusElement.className = `status ${status}`;
+        console.log(`Status: ${status} - ${message}`);
+    }
+
+    function connect() {
+        setStatus("connecting", "Conectando...");
+
+        // Fecha a conexão anterior se existir
+        if (stompClient !== null && stompClient.connected) {
+            stompClient.disconnect();
+        }
+
+        const socket = new WebSocket(socketEndpoint);
+        stompClient = Stomp.over(socket);
+
+        // Configuração importante para evitar problemas
+        stompClient.reconnect_delay = 5000;
+        stompClient.heartbeatIncoming = 4000;
+        stompClient.heartbeatOutgoing = 4000;
+
+        // Desabilita logging (opcional)
+        stompClient.debug = function(message) {
+            if (message && message.includes('ERROR')) {
+                console.error(message);
+            }
+        };
+
+        stompClient.connect({},
+            function(frame) {
+                reconnectAttempts = 0; // Reseta tentativas
+                setStatus("connected", `Conectado - ${new Date().toLocaleTimeString()}`);
+                reconnectBtn.style.display = 'none';
+
+                // Inscreve no tópico de promoções
+                const subscription = stompClient.subscribe(promotionsTopic, function(message) {
+                    try {
+                        const promotion = JSON.parse(message.body);
+                        showPromotion(promotion);
+                    } catch (e) {
+                        console.error("Erro ao processar mensagem:", e);
+                    }
+                });
+
+                console.log("Conectado com sucesso!", frame);
+                console.log("Subscription:", subscription);
+            },
+            function(error) {
+                console.error("Erro na conexão:", error);
+                setStatus("disconnected", "Falha na conexão");
+                reconnectBtn.style.display = 'block';
+                attemptReconnect();
+            }
+        );
+    }
+
+    function attemptReconnect() {
+        if (reconnectAttempts < maxReconnectAttempts) {
+            reconnectAttempts++;
+            setStatus("connecting", `Tentando reconectar (${reconnectAttempts}/${maxReconnectAttempts})...`);
+            setTimeout(connect, reconnectDelay);
+        } else {
+            setStatus("disconnected", "Desconectado - Máximo de tentativas atingido");
+            reconnectBtn.style.display = 'block';
+        }
+    }
+
+    function showPromotion(promotion) {
+        const promotionElement = document.createElement('div');
+        promotionElement.className = 'promotion-card';
+
+        promotionElement.innerHTML = `
+            <div class="promotion-header">
+                <span>${promotion.productName || 'Produto não especificado'}</span>
+                <span class="department">${promotion.departament || 'Departamento não especificado'}</span>
+            </div>
+            <div>
+                <p><strong>de:</strong> R$ ${(promotion.originalPrice || 0).toFixed(2)}</p>
+                <p><strong>por:</strong> R$ ${(promotion.promotionalPrice || 0).toFixed(2)}</p>
+                <p><strong>Promoção válida até:</strong> ${promotion.expirationDate ? new Date(promotion.expirationDate).toLocaleDateString('pt-BR') : 'N/A'} ou enquanto durar os estoques. </p>
+            </div>
+        `;
+
+        // Adiciona no topo da lista
+        promotionsContainer.insertBefore(promotionElement, promotionsContainer.firstChild);
+    }
+
+    // Configura o botão de reconexão
+    reconnectBtn.addEventListener('click', function() {
+        reconnectAttempts = 0;
+        connect();
+    });
+
+    // Inicia a conexão quando a página carrega
+    window.addEventListener('load', function() {
+        console.log("Página carregada, iniciando conexão...");
+        connect();
+    });
+
+    // Limpeza ao sair da página
+    window.addEventListener('beforeunload', function() {
+        if (stompClient !== null) {
+            stompClient.disconnect();
+            console.log("Conexão WebSocket fechada");
+        }
+    });
+</script>
+</body>
+</html>
