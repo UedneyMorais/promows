@@ -6,6 +6,8 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.supermarket.promows.dto.PromotionDTO;
+
 @Entity
 @Data
 public class Promotion {
@@ -36,7 +38,9 @@ public class Promotion {
 
     private String imageUrl;
     private boolean active;
-    private String departament;
-    private LocalDateTime createdAt;
 
+    @ManyToOne
+    @JoinColumn(name = "departament_id", nullable = false)
+    private Departament departament;
+    private LocalDateTime createdAt;
 }
