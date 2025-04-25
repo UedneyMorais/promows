@@ -7,6 +7,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PromotionService {
@@ -27,8 +28,22 @@ public class PromotionService {
         return savedPromotion;
     }
 
+    @Transactional
     public List<Promotion> getActivePromotions(){
         List<Promotion> promotions = promotionRepository.findAll();
+        List<Promotion> activePromotions = promotions.stream()
+                .filter(Promotion::isActive)
+                .collect(Collectors.toList());
+
+        if (!activePromotions.isEmpty()) {
+            // Envia cada promoção ativa individualmente (consistente com createPromotion)
+            activePromotions.forEach(promo ->
+                    messagingTemplate.convertAndSend("/topic/promotions", promo));
+
+            // Ou alternativamente, envie a lista completa uma vez
+            // messagingTemplate.convertAndSend("/topic/promotions", activePromotions);
+        }
+
         return promotions;
     }
 
