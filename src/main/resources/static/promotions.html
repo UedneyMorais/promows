@@ -5,112 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>PromoWS - Promoções em Slide</title>
     <link rel="stylesheet" href="./css/styles.css">
-    <!-- <style>
-        body {
-            margin: 0;
-            padding: 0;
-            font-family: Arial, sans-serif;
-            overflow: hidden;
-        }
-        
-        #status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 5px 10px;
-            border-radius: 4px;
-            color: white;
-            font-weight: bold;
-            z-index: 1000;
-        }
-        
-        .connected { background-color: #4CAF50; }
-        .disconnected { background-color: #f44336; }
-        .connecting { background-color: #FFC107; color: black; }
-        
-        #reconnect-btn {
-            position: fixed;
-            top: 50px;
-            right: 10px;
-            z-index: 1000;
-            padding: 5px 10px;
-        }
-        
-        #department-selector {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-        }
-        
-        #department-select {
-            padding: 5px;
-            font-size: 16px;
-        }
-        
-        #fullscreen-btn {
-            position: fixed;
-            bottom: 10px;
-            right: 10px;
-            z-index: 1000;
-            padding: 5px 10px;
-        }
-        
-        #welcome-message { 
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-            font-size: 3em; 
-            text-align: center; 
-            color: white; 
-            text-shadow: 2px 2px 4px #000000;
-            background-color: rgba(0,0,0,0.5);
-        }
-        
-        #slider {
-            width: 100%;
-            height: 100vh;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .slide {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            transition: opacity 1s;
-            background-size: cover;
-            background-position: center;
-        }
-        
-        .slide.active {
-            opacity: 1;
-        }
-        
-        .promotion-card {
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 20px;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
-        }
-        
-        .controls-hidden {
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-        
-        #department-loading {
-            color: white;
-            background: rgba(0,0,0,0.7);
-            padding: 5px 10px;
-            border-radius: 4px;
-            display: inline-block;
-        }
-    </style> -->
 </head>
 <body>
 
@@ -174,7 +68,7 @@
     // Funções de departamento
     async function loadDepartments() {
         try {
-            const response = await fetch('http://192.168.77.137:9090/api/departaments');
+            const response = await fetch('/api/departaments');
             if (!response.ok) throw new Error('Erro na API');
             const departments = await response.json();
 
@@ -309,7 +203,13 @@
             stompClient.disconnect();
         }
 
-        resetSlider();
+        // Modificação importante: só reseta se realmente não houver promoções
+        if (!hasExistingPromotions()) {
+            resetSlider();
+        } else {
+        // Se houver promoções, garante que a mensagem de boas-vindas fica oculta
+            welcomeMessage.style.display = 'none';
+        }
 
         const socket = new SockJS(`http://${serverAddress}:${serverPort}/ws-promotions`);
         stompClient = Stomp.over(socket);
@@ -340,6 +240,14 @@
             setTimeout(connect, 5000);
         });
     }
+
+    function hasExistingPromotions() {
+    const hasSlides = slider.querySelector('.slide') !== null;
+    const hasActivePromotions = activePromotionIds.size > 0;
+    
+    return hasSlides || hasActivePromotions;
+    }
+
 
     // Funções de fullscreen
     function toggleFullscreen() {
