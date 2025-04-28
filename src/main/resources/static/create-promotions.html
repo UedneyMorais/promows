@@ -4,81 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Promoções</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #f5f5f5;
-        }
-        h1 {
-            color: #2c3e50;
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .form-group {
-            margin-bottom: 20px;
-            background: white;
-            padding: 15px;
-            border-radius: 5px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            color: #34495e;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 16px;
-            box-sizing: border-box;
-            transition: border 0.3s;
-        }
-        input:focus, select:focus, textarea:focus {
-            border-color: #3498db;
-            outline: none;
-        }
-        button {
-            background: #3498db;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            transition: background 0.3s;
-        }
-        button:hover {
-            background: #2980b9;
-        }
-        #message {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-            text-align: center;
-            display: none;
-        }
-        .success {
-            background-color: #d4edda;
-            color: #155724;
-            display: block;
-        }
-        .error {
-            background-color: #f8d7da;
-            color: #721c24;
-            display: block;
-        }
-        .required:after {
-            content: " *";
-            color: red;
-        }
-    </style>
+    <link rel="stylesheet" href="./css/styles-create-promotions.css">
 </head>
 <body>
     <h1>Cadastrar Nova Promoção</h1>
@@ -116,7 +42,7 @@
 
         <div class="form-group">
             <label for="expirationDate" class="required">Data de Expiração:</label>
-            <input type="datetime-local" id="expirationDate" required>
+            <input type="text" id="expirationDate" required placeholder="dd/mm/yyyy hh:mm" maxlength="16">
         </div>
 
         <div class="form-group">
@@ -246,7 +172,23 @@
                 }
 
                 // Formata os dados do formulário
-                const expirationDateInput = document.getElementById('expirationDate').value;
+                const expirationDateInput = document.getElementById('expirationDate').value.trim();
+                let expirationDateISO = null;
+
+                if (expirationDateInput) {
+                    const parts = expirationDateInput.split(/[/ :]/);
+                        if (parts.length >= 5) {
+                        const day = parts[0];
+                        const month = parts[1];
+                        const year = parts[2];
+                        const hour = parts[3];
+                        const minute = parts[4];
+
+                        const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
+                        expirationDateISO = new Date(isoString).toISOString();
+                        }
+                }
+
                 const promotionData = {
                     productName: document.getElementById('productName').value.trim(),
                     productEan: document.getElementById('productEan').value.trim(),
@@ -254,7 +196,7 @@
                     productUnitTypeMessage: document.getElementById('productUnitTypeMessage').value.trim(),
                     originalPrice: parseFloat(document.getElementById('originalPrice').value),
                     promotionalPrice: parseFloat(document.getElementById('promotionalPrice').value),
-                    expirationDate: expirationDateInput ? new Date(expirationDateInput).toISOString() : null,
+                    expirationDate: expirationDateISO,
                     customerLimit: parseInt(document.getElementById('customerLimit').value),
                     imageUrl: document.getElementById('imageUrl').value.trim() || null,
                     active: document.getElementById('active').value === 'true',
@@ -297,6 +239,34 @@
             const date = new Date(dateTimeString);
             return date.toISOString();
         }
+
+        const expirationDate = document.getElementById('expirationDate');
+
+        expirationDate.addEventListener('input', function(e) {
+          let value = e.target.value;
+          // Remove tudo que não é número
+          value = value.replace(/\D/g, '');
+        
+          // Aplica a formatação
+          let formatted = '';
+          if (value.length > 0) {
+            formatted += value.substring(0, 2);
+          }
+          if (value.length >= 3) {
+            formatted += '/' + value.substring(2, 4);
+          }
+          if (value.length >= 5) {
+            formatted += '/' + value.substring(4, 8);
+          }
+          if (value.length >= 9) {
+            formatted += ' ' + value.substring(8, 10);
+          }
+          if (value.length >= 11) {
+            formatted += ':' + value.substring(10, 12);
+          }
+      
+          e.target.value = formatted;
+        });
     </script>
 </body>
 </html>
