@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>PromoWS - Promoções em Slide</title>
-    <link rel="stylesheet" href="./css/styles.css">
+    <link rel="stylesheet" href="./css/styles-promotions.css">
 </head>
 <body>
 
@@ -124,8 +124,8 @@
             slide.innerHTML = `
                 <div class="promotion-card">
                     <h2>${promotion.productName || 'Produto não especificado'}</h2>
-                    <p><strong>de R$:</strong> ${(promotion.originalPrice || 0).toFixed(2)}</p>
-                    <p><strong>por R$:</strong> ${(promotion.promotionalPrice || 0).toFixed(2)}</p>
+                    <p><strong>de R$:</strong> <originalPrice> ${(promotion.originalPrice || 0).toFixed(2)} </originalPrice></p>
+                    <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2)} </promotionalPrice> </p>
                     <p><strong>Promoção válida até:</strong> ${promotion.expirationDate ? new Date(promotion.expirationDate).toLocaleDateString('pt-BR') : 'N/A'}</p>
                 </div>
             `;

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Promoções</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+            box-sizing: border-box;
+            transition: border 0.3s;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #3498db;
+            outline: none;
+        }
+        button {
+            background: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #2980b9;
+        }
+        #message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            display: none;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            display: block;
+        }
+        .error {
+            background-color: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+        .required:after {
+            content: " *";
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cadastrar Nova Promoção</h1>
+    
+    <form id="promotionForm">
+        <div class="form-group">
+            <label for="productName" class="required">Nome do Produto:</label>
+            <input type="text" id="productName" required>
+        </div>
+
+        <div class="form-group">
+            <label for="productEan" class="required">EAN do Produto:</label>
+            <input type="number" id="productEan" required>
+        </div>
+
+        <div class="form-group">
+            <label for="productDescription" class="required">Descrição:</label>
+            <textarea id="productDescription" rows="3" required></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="productUnitTypeMessage" class="required">Unidade de Medida:</label>
+            <input type="text" id="productUnitTypeMessage" required>
+        </div>
+
+        <div class="form-group">
+            <label for="originalPrice" class="required">Preço Original (R$):</label>
+            <input type="number" id="originalPrice" step="0.01" min="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label for="promotionalPrice" class="required">Preço Promocional (R$):</label>
+            <input type="number" id="promotionalPrice" step="0.01" min="0.01" required>
+        </div>
+
+        <div class="form-group">
+            <label for="expirationDate" class="required">Data de Expiração:</label>
+            <input type="datetime-local" id="expirationDate" required>
+        </div>
+
+        <div class="form-group">
+            <label for="customerLimit" class="required">Limite por Cliente:</label>
+            <input type="number" id="customerLimit" min="1" required>
+        </div>
+
+        <div class="form-group">
+            <label for="imageUrl">URL da Imagem:</label>
+            <input type="url" id="imageUrl" placeholder="https://exemplo.com/imagem.jpg">
+            <small>Deixe em branco para usar imagem padrão</small>
+        </div>
+
+        <div class="form-group">
+            <label for="active">Status da Promoção:</label>
+            <select id="active">
+                <option value="true">Ativa</option>
+                <option value="false">Inativa</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="departamentId" class="required">Departamento:</label>
+            <select id="departamentId" required>
+                <option value="">Carregando departamentos...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <button type="submit">Cadastrar Promoção</button>
+        </div>
+    </form>
+
+    <div id="message"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Carrega departamentos ao iniciar
+            loadDepartments();
+            
+            // Configura o envio do formulário
+            document.getElementById('promotionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                createPromotion();
+            });
+
+            // Validação em tempo real para preço promocional
+            document.getElementById('promotionalPrice').addEventListener('change', validatePrices);
+            document.getElementById('originalPrice').addEventListener('change', validatePrices);
+        });
+
+        // Valida se preço promocional é menor que original
+        function validatePrices() {
+            const originalPrice = parseFloat(document.getElementById('originalPrice').value);
+            const promotionalPrice = parseFloat(document.getElementById('promotionalPrice').value);
+            
+            if (originalPrice && promotionalPrice && promotionalPrice >= originalPrice) {
+                document.getElementById('promotionalPrice').setCustomValidity('O preço promocional deve ser menor que o original');
+            } else {
+                document.getElementById('promotionalPrice').setCustomValidity('');
+            }
+        }
+
+        // Carrega a lista de departamentos
+        async function loadDepartments() {
+            try {
+                const response = await fetch('/api/departaments');
+                if (!response.ok) throw new Error('Erro ao carregar departamentos');
+                
+                const departments = await response.json();
+                const select = document.getElementById('departamentId');
+                
+                select.innerHTML = '';
+                
+                // Adiciona opção padrão
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Selecione um departamento';
+                select.appendChild(defaultOption);
+                
+                // Adiciona departamentos
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.departamentName;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao carregar departamentos. Recarregue a página.', 'error');
+                
+                // Opções de fallback
+                const select = document.getElementById('departamentId');
+                select.innerHTML = `
+                    <option value="1">Padaria</option>
+                    <option value="2">Açougue</option>
+                    <option value="3">Hortifruti</option>
+                `;
+            }
+        }
+
+        // Exibe mensagens para o usuário
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+            
+            // Remove a mensagem após 5 segundos
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Envia os dados da promoção para a API
+        async function createPromotion() {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+            
+            try {
+                // Validação adicional
+                validatePrices();
+                if (!document.getElementById('promotionForm').checkValidity()) {
+                    throw new Error('Preencha todos os campos obrigatórios corretamente');
+                }
+
+                // Formata os dados do formulário
+                const expirationDateInput = document.getElementById('expirationDate').value;
+                const promotionData = {
+                    productName: document.getElementById('productName').value.trim(),
+                    productEan: document.getElementById('productEan').value.trim(),
+                    productDescription: document.getElementById('productDescription').value.trim(),
+                    productUnitTypeMessage: document.getElementById('productUnitTypeMessage').value.trim(),
+                    originalPrice: parseFloat(document.getElementById('originalPrice').value),
+                    promotionalPrice: parseFloat(document.getElementById('promotionalPrice').value),
+                    expirationDate: expirationDateInput ? new Date(expirationDateInput).toISOString() : null,
+                    customerLimit: parseInt(document.getElementById('customerLimit').value),
+                    imageUrl: document.getElementById('imageUrl').value.trim() || null,
+                    active: document.getElementById('active').value === 'true',
+                    departamentId: parseInt(document.getElementById('departamentId').value)
+                };
+
+                // Validação de preço
+                if (promotionData.promotionalPrice >= promotionData.originalPrice) {
+                    throw new Error('O preço promocional deve ser menor que o original');
+                }
+                //console.log(promotionData);
+
+                // Envia para a API
+                const response = await fetch('/api/promotions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(promotionData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao cadastrar promoção');
+                }
+
+                // Sucesso
+                showMessage('Promoção cadastrada com sucesso!', 'success');
+                document.getElementById('promotionForm').reset();
+                
+            } catch (error) {
+                console.error('Erro ao cadastrar promoção:', error);
+                showMessage('Erro: ' + error.message, 'error');
+            }
+        }
+
+        // Formata a data para o padrão ISO 8601
+        function formatDateTime(dateTimeString) {
+            if (!dateTimeString) return null;
+            const date = new Date(dateTimeString);
+            return date.toISOString();
+        }
+    </script>
+</body>
+</html>
