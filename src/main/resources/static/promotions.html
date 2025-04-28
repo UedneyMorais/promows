@@ -5,6 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>PromoWS - Promoções em Slide</title>
     <link rel="stylesheet" href="./css/styles-promotions.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins&display=swap" rel="stylesheet">
 </head>
 <body>
 
@@ -124,8 +127,8 @@
             slide.innerHTML = `
                 <div class="promotion-card">
                     <h2>${promotion.productName || 'Produto não especificado'}</h2>
-                    <p><strong>de R$:</strong> <originalPrice> ${(promotion.originalPrice || 0).toFixed(2)} </originalPrice></p>
-                    <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2)} </promotionalPrice> </p>
+                    <p><strong>de R$:</strong> <originalPrice> ${(promotion.originalPrice || 0).toFixed(2).replaceAll('.', ',')} </originalPrice></p>
+                    <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replaceAll('.', ',')} </promotionalPrice> </p>
                     <p><strong>Promoção válida até:</strong> ${promotion.expirationDate ? new Date(promotion.expirationDate).toLocaleDateString('pt-BR') : 'N/A'}</p>
                 </div>
             `;

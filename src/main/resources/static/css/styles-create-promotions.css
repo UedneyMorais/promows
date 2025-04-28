@@ -5,11 +5,13 @@ body {
   padding: 20px;
   background-color: #f5f5f5;
 }
+
 h1 {
   color: #2c3e50;
   text-align: center;
   margin-bottom: 30px;
 }
+
 .form-group {
   margin-bottom: 20px;
   background: white;
@@ -17,12 +19,14 @@ h1 {
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
 label {
   display: block;
   margin-bottom: 8px;
   font-weight: bold;
   color: #34495e;
 }
+
 input, select, textarea {
   width: 100%;
   padding: 10px;
@@ -32,10 +36,12 @@ input, select, textarea {
   box-sizing: border-box;
   transition: border 0.3s;
 }
+
 input:focus, select:focus, textarea:focus {
   border-color: #3498db;
   outline: none;
 }
+
 button {
   background: #3498db;
   color: white;
@@ -47,9 +53,11 @@ button {
   width: 100%;
   transition: background 0.3s;
 }
+
 button:hover {
   background: #2980b9;
 }
+
 #message {
   margin-top: 20px;
   padding: 10px;
@@ -57,16 +65,19 @@ button:hover {
   text-align: center;
   display: none;
 }
+
 .success {
   background-color: #d4edda;
   color: #155724;
   display: block;
 }
+
 .error {
   background-color: #f8d7da;
   color: #721c24;
   display: block;
 }
+
 .required:after {
   content: " *";
   color: red;

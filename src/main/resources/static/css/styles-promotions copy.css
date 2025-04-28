@@ -1,3 +1,4 @@
+
 html, body {
   margin: 0;
   padding: 0;
@@ -34,7 +35,7 @@ html, body {
     border: none;
     border-radius: 5px;
     z-index: 1000;
-    display: none;
+    display: none; /* Inicialmente escondido */
     transition: opacity 0.5s ease;
 }
 
@@ -83,64 +84,59 @@ html, body {
 }
 
 .promotion-card {
-  width: 90%;
-  height: 90%;
+  width: 100%;
+  height: 100%;
   box-sizing: border-box;
-  padding: 2vh 5vw;
+  padding: 5vh 5vw;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   background-color: rgba(0, 0, 0, 0.6);
   text-align: center;
-  overflow: hidden;
 }
 
 .promotion-card h2 {
-  font-size: 15vmin; /* Usando vmin para melhor responsividade */
+  font-size: 24vh;
   margin: 1vh 0;
   color: #fca311;
   font-family: "Poppins", sans-serif;
   font-weight: 400;
-  max-width: 100%;
-  word-break: break-word;
-  line-height: 1.2;
+  font-style: normal;
 }
 
 .promotion-card originalPrice {
-  font-size: 5vmin;
-  margin: 1vh 0;
-  color: #fff;
-  text-decoration: line-through;
-  text-decoration-thickness: 0.3vmin;
-  opacity: 0.8;
-  font-family: "Poppins", sans-serif;
-  font-weight: 400;
+   font-size: 12vh;
+   margin: 1vh 0;
+   color: #fff;
+   text-decoration: line-through;
+   text-decoration-thickness: 0.5vh;
+   opacity: 0.8;
+   font-family: "Poppins", sans-serif;
+   font-weight: 400;
+   font-style: normal;
 }
 
 .promotion-card promotionalPrice {
-  font-size: 18vmin;
+  font-size: 48vh;
   margin: 1vh 0;
   font-weight: bold;
   color: #fca311;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
   font-family: "Poppins", sans-serif;
   font-weight: 400;
-  line-height: 1;
-  max-width: 100%;
+  font-style: normal;
 }
 
 .promotion-card .department {
-  font-size: 4vmin;
+  font-size: 6vh;
   color: #e63946;
   margin-bottom: 2vh;
 }
 
 .promotion-card p {
-  font-size: 4vmin;
+  font-size: 5vh;
   margin: 1vh 0;
-  max-width: 100%;
-  word-break: break-word;
 }
 
 #fullscreen-btn {
@@ -179,9 +175,9 @@ html, body {
   align-items: center;
   background-color: rgba(0, 0, 0, 0.7);
   z-index: 10;
-  font-size: 10vmin;
+  font-size: 10vh;
   color: #fca311;
   text-align: center;
   padding: 20px;
-  word-break: break-word;
 }
+
