@@ -30,6 +30,7 @@
             </div>
         </nav>
         <h1>Departamentos Cadastrados</h1>
+        <button id="create-department" class="retry-btn">Novo Departamento</a></button>
         
         <div id="loading" class="loading">
             <div class="spinner"></div>
@@ -53,6 +54,13 @@
     </div>
 
     <script>
+
+        document.getElementById('create-department').addEventListener('click', function() {
+            if (confirm('Deseja criar um novo departamento?')) {
+                window.location.href = '/departments/edit-departments.html';
+            }
+        });
+
         async function loadDepartments() {
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error-message');

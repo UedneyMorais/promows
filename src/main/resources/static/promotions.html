@@ -60,6 +60,19 @@
             left: 10px;
             z-index: 1000;
         }
+
+        #goto-menu {
+            position: fixed;
+            top: 10px;
+            left: 200px;
+            z-index: 1000;
+            padding: 8px 15px;
+            background-color: rgb(48, 47, 47);
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+        }
         
         #reconnect-btn {
             position: fixed;
@@ -73,16 +86,20 @@
             cursor: pointer;
             z-index: 1000;
         }
+        
     </style>
 </head>
 <body>
 
 <div id="status" class="status disconnected">Desconectado</div>
 <button id="reconnect-btn">Reconectar</button>
+
 <div id="department-selector">
     <div id="department-loading">Carregando departamentos...</div>
     <select id="department-select" style="display: none;"></select>
 </div>
+<button id="goto-menu" >Menu</button>
+
 <button id="fullscreen-btn">TELA CHEIA</button>
 
 <div id="welcome-message">Seja bem-vindo!<br>Fique atento às nossas promoções</div>
@@ -103,6 +120,7 @@
 
     // Elementos DOM
     const statusElement = document.getElementById('status');
+    const menuBtn = document.getElementById('goto-menu');
     const slider = document.getElementById('slider');
     const reconnectBtn = document.getElementById('reconnect-btn');
     const fullscreenBtn = document.getElementById('fullscreen-btn');
@@ -203,6 +221,12 @@
 
     // Funções de slide
     function showPromotionSlide(promotion) {
+
+        // Verifica se a promoção está ativa
+        if (!promotion.active) {
+            return; 
+        }
+
         const promoDeptFormatted = formatDepartmentName(promotion.department.departmentName);
         
         // Verifica se a promoção já existe no slider
@@ -252,6 +276,12 @@
     }
 
     function updateExistingSlide(slideElement, promotion) {
+
+        // Verifica se a promoção está ativa
+        if (!promotion.active) {
+            return; 
+        }
+
         // Atualiza a imagem se necessário
         if (promotion.imageUrl && slideElement.style.backgroundImage !== `url('${promotion.imageUrl}')`) {
             const img = new Image();
@@ -366,6 +396,9 @@
             const response = await fetch('/api/promotions');
             if (!response.ok) throw new Error('Erro ao carregar promoções');
             const promotions = await response.json();
+
+            // Filtra apenas promoções ativas
+            const activePromotions = promotions.filter(promotion => promotion.active);
             
             // Limpa apenas promoções expiradas
             clearExpiredPromotions();
@@ -406,6 +439,12 @@
             stompClient.subscribe(promotionsTopic, function(message) {
                 try {
                     const promotion = JSON.parse(message.body);
+
+                    if (!promotion.active) {
+                        removePromotionSlide(promotion.id);
+                        return;
+                    }
+
                     const existingSlide = document.querySelector(`.slide[data-promotion-id="${promotion.id}"]`);
         
                     if (existingSlide) {
@@ -483,12 +522,14 @@
         statusElement.classList.add('controls-hidden');
         reconnectBtn.classList.add('controls-hidden');
         fullscreenBtn.classList.add('controls-hidden');
+        menuBtn.classList.add('controls-hidden');
         document.getElementById('department-selector').classList.add('controls-hidden');
     }
 
     function showControls() {
         statusElement.classList.remove('controls-hidden');
         reconnectBtn.classList.remove('controls-hidden');
+        menuBtn.classList.remove('controls-hidden');
         fullscreenBtn.classList.remove('controls-hidden');
         document.getElementById('department-selector').classList.remove('controls-hidden');
     }
@@ -534,7 +575,7 @@
         connect();
         
         // Verifica promoções expiradas periodicamente
-        setInterval(clearExpiredPromotions, 60000); // Verifica a cada minuto
+        setInterval(clearExpiredPromotions, 60000);
     });
 
     // Event listeners
@@ -542,8 +583,13 @@
         if (stompClient) stompClient.disconnect();
     });
 
+    function gotoMenu() {
+        window.location.href = '/promotions/list-promotions.html';
+    }
+
     reconnectBtn.addEventListener('click', connect);
     fullscreenBtn.addEventListener('click', toggleFullscreen);
+    menuBtn.addEventListener('click', gotoMenu);
     document.addEventListener('fullscreenchange', () => {
         isFullscreen = !!document.fullscreenElement;
         if (isFullscreen) {

@@ -28,9 +28,11 @@
                 </a>
               </div>
             </div>
-          </nav>
+        </nav>
 
         <h1>Promoções cadastradas</h1>
+
+        <button id="create-promotion" class="retry-btn">Nova Promoção</a></button>
         
         <div id="loading" class="loading">
             <div class="spinner"></div>
@@ -53,55 +55,61 @@
                     </tr>
                 </thead>
                 <tbody id="promotions-body">
-                    <!-- Os dados serão inseridos aqui pelo JavaScript -->
                 </tbody>
             </table>
         </div>
     </div>
 
     <script>
+
+        document.getElementById('create-promotion').addEventListener('click', function() {
+            if (confirm('Deseja criar uma nova promoção?')) {
+                window.location.href = '/promotions/edit-promotions.html';
+            }
+        });
+
         // Função para formatar data no padrão brasileiro
         function formatDate(dateInput) {
-    // Se for um array no formato [ano, mês, dia, hora, minuto]
-    if (Array.isArray(dateInput) && dateInput.length >= 5) {
-        const [year, month, day, hours, minutes] = dateInput;
-        // Mês no JavaScript é 0-based (janeiro = 0), então subtraímos 1
-        const date = new Date(year, month - 1, day, hours, minutes);
-        return date.toLocaleString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-    // Se for uma string de data ISO
-    else if (typeof dateInput === 'string') {
-        const date = new Date(dateInput);
-        if (isNaN(date.getTime())) return 'Data inválida';
-        
-        return date.toLocaleString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-    // Se for um timestamp ou objeto Date
-    else if (dateInput instanceof Date || typeof dateInput === 'number') {
-        const date = new Date(dateInput);
-        return date.toLocaleString('pt-BR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-    }
-    
-    return 'Sem data';
-}
+            // Se for um array no formato [ano, mês, dia, hora, minuto]
+            if (Array.isArray(dateInput) && dateInput.length >= 5) {
+                const [year, month, day, hours, minutes] = dateInput;
+                // Mês no JavaScript é 0-based (janeiro = 0), então subtraímos 1
+                const date = new Date(year, month - 1, day, hours, minutes);
+                return date.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            // Se for uma string de data ISO
+            else if (typeof dateInput === 'string') {
+                const date = new Date(dateInput);
+                if (isNaN(date.getTime())) return 'Data inválida';
+
+                return date.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            // Se for um timestamp ou objeto Date
+            else if (dateInput instanceof Date || typeof dateInput === 'number') {
+                const date = new Date(dateInput);
+                return date.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            return 'Sem data';
+        }
 
         // Função para formatar moeda
         function formatCurrency(value) {
