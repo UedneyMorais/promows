@@ -4,59 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromoWS - Lista de Departamentos</title>
-    <link rel="stylesheet" href="../css/menu/styles-menu.css">
+    <link rel="stylesheet" href="../css/menu/styles-nav.css">
     <link rel="stylesheet" href="../css/departments/styles-list-departments.css">
-    <style>
-        .department-table td, .department-table th{
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-            text-align: left;
-        }
-        .department-table tr:last-child td{
-            border-bottom: none;
-        }
-        .actions {
-            white-space: nowrap; /* Evita que os botões quebrem para a próxima linha */
-        }
 
-        .edit-btn, .delete-btn {
-            padding: 8px 12px;
-            margin-right: 5px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-
-        .edit-btn {
-            background-color: #007bff;
-            color: white;
-        }
-
-        .delete-btn {
-            background-color: #dc3545;
-            color: white;
-        }
-
-        .edit-btn:hover {
-            background-color: #0056b3;
-        }
-
-        .delete-btn:hover {
-            background-color: #c82333;
-        }
-    </style>
 </head>
 <body>
     <div class="container">
-        <div class="menu">
-            <ul>
-                <li><a href="/promotions/edit-promotions.html">Nova Promoção</a></li>
-                <li><a href="/departments/list-departments.html">Listar Departamentos</a></li>
-                <li><a href="/departments/edit-departments.html">Novo Departamento</a></li>
-            </ul>
-        </div>
+        <nav class="navbar">
+            <div class="nav-container">
+              <a href="../promotions.html" class="logo">
+                <span class="logo-icon">🏷️</span>
+                <span>PromoWS</span>
+              </a>
+              
+              <div class="nav-links">
+                <a href="../promotions/list-promotions.html" class="nav-link">
+                  <i>🎯</i>
+                  <span>Promoções</span>
+                </a>
+                <a href="../departments/list-departments.html" class="nav-link">
+                  <i>📦</i>
+                  <span>Departamentos</span>
+                </a>
+              </div>
+            </div>
+        </nav>
         <h1>Departamentos Cadastrados</h1>
         
         <div id="loading" class="loading">
@@ -167,6 +139,7 @@
                 
                 row.innerHTML = `
                     <td data-label="Nome">${department.departmentName}</td>
+         
                     <td data-label="Ações" class="actions">
                         <button class="edit-btn" data-id="${department.id}">Editar</button>
                         <button class="delete-btn" data-id="${department.id}">Excluir</button>
@@ -199,6 +172,7 @@
         function editDepartment(id) {
             window.location.href = `/departments/edit-departments.html?id=${id}`;
         }
+        
         async function deleteDepartment(id) {
             if (!confirm('Tem certeza que deseja excluir este departamento?')) return;
             

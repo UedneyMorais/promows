@@ -94,17 +94,19 @@
             display: none;
         }
     </style>
+    
     <link rel="stylesheet" href="../css/departments/styles-edit-departments.css">
 </head>
 <body>
+
     <h1>Editar/Criar Departamento</h1>
 
     <form id="departmentForm">
         <input type="hidden" id="departmentId">
 
         <div class="form-group">
-            <label for="mentName" class="required">Nome do Departamento:</label>
-            <input type="text" id="productName">
+            <label for="departmentName" class="required">Nome do Departamento:</label>
+            <input type="text" id="departmentName">
         </div>
 
         <div class="form-group">
@@ -123,26 +125,21 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-
             const urlParams = new URLSearchParams(window.location.search);
             const departmentId = urlParams.get('id');
 
             document.getElementById('departmentId').value = departmentId || '';
 
-            loadDepartments();
-
             if (departmentId) {
                 loadDepartment(departmentId)
                     .catch(error => {
                         console.error('Erro ao carregar dados do departamento:', error);
-                        showMessage('Erro ao carregar dados da departamento', 'error');
+                        showMessage('Erro ao carregar dados do departamento', 'error');
                     });
             } else {
-                // Se não houver ID, é uma nova criação, então limpa os campos (opcional)
                 document.getElementById('departmentForm').reset();
             }
 
-            // Configura o envio do formulário
             document.getElementById('departmentForm').addEventListener('submit', function(e) {
                 e.preventDefault();
                 if (departmentId) {
@@ -152,14 +149,9 @@
                 }
             });
 
-            // Configura o botão de cancelar
             document.getElementById('cancelButton').addEventListener('click', function() {
                 window.location.href = 'list-departments.html';
             });
-
-            // Validação em tempo real para preço promocional
-            document.getElementById('departmentalPrice').addEventListener('change', validatePrices);
-            document.getElementById('originalPrice').addEventListener('change', validatePrices);
         });
 
         function showLoading() {
@@ -170,40 +162,6 @@
         function hideLoading() {
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('loading-container').style.display = 'none';
-        }
-
-        async function loadDepartments() {
-            try {
-                const response = await fetch('/api/departments');
-                if (!response.ok) throw new Error('Erro ao carregar departamentos');
-
-                const departments = await response.json();
-                const select = document.getElementById('departmentId');
-
-                select.innerHTML = '';
-
-                const defaultOption = document.createElement('option');
-                defaultOption.value = '';
-                defaultOption.textContent = 'Selecione um departamento';
-                select.appendChild(defaultOption);
-
-                departments.forEach(dept => {
-                    const option = document.createElement('option');
-                    option.value = dept.id;
-                    option.textContent = dept.departmentName;
-                    select.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Erro:', error);
-                showMessage('Erro ao carregar departamentos. Recarregue a página.', 'error');
-
-                const select = document.getElementById('departmentId');
-                select.innerHTML = `
-                    <option value="1">Padaria</option>
-                    <option value="2">Açougue</option>
-                    <option value="3">Hortifruti</option>
-                `;
-            }
         }
 
         async function loadDepartment(departmentId) {
@@ -231,33 +189,14 @@
             const departmentId = document.getElementById('departmentId').value;
 
             try {
-                validatePrices();
                 if (!document.getElementById('departmentForm').checkValidity()) {
                     throw new Error('Preencha todos os campos obrigatórios corretamente');
-                }
-
-                const expirationDateInput = document.getElementById('expirationDate').value.trim();
-                let expirationDateISO = null;
-
-                if (expirationDateInput) {
-                    const parts = expirationDateInput.split(/[/ :]/);
-                    if (parts.length >= 5) {
-                        const day = parts[0];
-                        const month = parts[1];
-                        const year = parts[2];
-                        const hour = parts[3];
-                        const minute = parts[4];
-
-                        const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
-                        expirationDateISO = new Date(isoString).toISOString();
-                    }
                 }
 
                 const departmentData = {
                     id: departmentId,
                     departmentName: document.getElementById('departmentName').value.trim(),
                 };
-
 
                 const response = await fetch(`/api/departments/${departmentId}`, {
                     method: 'PUT',
@@ -272,7 +211,7 @@
                     throw new Error(errorData.message || 'Erro ao atualizar departamento');
                 }
 
-                showMessage('Promoção atualizada com sucesso!', 'success');
+                showMessage('Departamento atualizado com sucesso!', 'success');
 
             } catch (error) {
                 console.error('Erro ao atualizar departamento:', error);
@@ -288,27 +227,9 @@
             showLoading();
 
             try {
-               // validatePrices();
                 if (!document.getElementById('departmentForm').checkValidity()) {
                     throw new Error('Preencha todos os campos obrigatórios corretamente');
                 }
-
-                // const expirationDateInput = document.getElementById('expirationDate').value.trim();
-                // let expirationDateISO = null;
-
-                // if (expirationDateInput) {
-                //     const parts = expirationDateInput.split(/[/ :]/);
-                //     if (parts.length >= 5) {
-                //         const day = parts[0];
-                //         const month = parts[1];
-                //         const year = parts[2];
-                //         const hour = parts[3];
-                //         const minute = parts[4];
-
-                //         const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
-                //         expirationDateISO = new Date(isoString).toISOString();
-                //     }
-                // }
 
                 const departmentData = {
                     departmentName: document.getElementById('departmentName').value.trim(),
@@ -327,8 +248,12 @@
                     throw new Error(errorData.message || 'Erro ao cadastrar departamento');
                 }
 
-                showMessage('Promoção cadastrada com sucesso!', 'success');
+                showMessage('Departamento cadastrado com sucesso!', 'success');
                 document.getElementById('departmentForm').reset();
+                
+                // Redireciona após 1 segundo
+                setTimeout(() => window.location.href = 'list-departments.html', 1000);
+
             } catch (error) {
                 console.error('Erro ao cadastrar departamento:', error);
                 showMessage('Erro: ' + error.message, 'error');
@@ -348,6 +273,7 @@
             if (type === 'success') {
                 setTimeout(() => {
                     messageDiv.style.display = 'none';
+                    // Redireciona após sucesso tanto para criação quanto edição
                     if (document.getElementById('departmentId').value) {
                         window.location.href = 'list-departments.html';
                     }

@@ -4,17 +4,32 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromoWS - Lista de Promoções</title>
-    <link rel="stylesheet" href="../css/menu/styles-menu.css">
+    <link rel="stylesheet" href="../css/menu/styles-nav.css">
     <link rel="stylesheet" href="../css/promotions/styles-list-promotions.css">
 </head>
 <body>
     <div class="container">
-        <div class="menu">
-            <ul>
-                <li><a href="/promotions/edit-promotions.html">Nova Promoção</a></li>
-                <li><a href="/departments/list-departments.html">Listar Departamentos</a></li>
-            </ul>
-        </div>
+
+        <nav class="navbar">
+            <div class="nav-container">
+              <a href="../promotions.html" class="logo">
+                <span class="logo-icon">🏷️</span>
+                <span>PromoWS</span>
+              </a>
+              
+              <div class="nav-links">
+                <a href="../promotions/list-promotions.html" class="nav-link">
+                  <i>🎯</i>
+                  <span>Promoções</span>
+                </a>
+                <a href="../departments/list-departments.html" class="nav-link">
+                  <i>📦</i>
+                  <span>Departamentos</span>
+                </a>
+              </div>
+            </div>
+          </nav>
+
         <h1>Promoções cadastradas</h1>
         
         <div id="loading" class="loading">
