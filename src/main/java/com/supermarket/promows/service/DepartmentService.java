@@ -1,14 +1,9 @@
 package com.supermarket.promows.service;
 
-import com.supermarket.promows.dto.DepartmentDeleteDTO;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
-import com.supermarket.promows.exception.DepartmentNotFoundException;
-import com.supermarket.promows.model.Department;
 import com.supermarket.promows.model.Department;
 import com.supermarket.promows.repository.DepartmentRepository;
-
 import jakarta.transaction.Transactional;
-
 import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
@@ -79,9 +74,4 @@ public class DepartmentService {
         
         //messagingTemplate.convertAndSend("/topic/deleted-promotions", deletedDepartment);
     }
-
-
-
-
-
 }

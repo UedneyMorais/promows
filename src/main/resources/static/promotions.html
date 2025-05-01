@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins&display=swap" rel="stylesheet">
     <style>
-        /* Estilos adicionais para garantir visibilidade */
+        /* Estilos para o status da conexão */
         .status {
             position: fixed;
             top: 10px;
@@ -36,11 +36,13 @@
             color: black;
         }
         
+        /* Efeito de fade para os controles */
         .controls-hidden {
             opacity: 0;
             transition: opacity 0.5s;
         }
         
+        /* Estilo do botão de tela cheia */
         #fullscreen-btn {
             position: fixed;
             bottom: 20px;
@@ -54,6 +56,7 @@
             z-index: 1000;
         }
         
+        /* Seletor de departamentos */
         #department-selector {
             position: fixed;
             top: 50px;
@@ -61,6 +64,7 @@
             z-index: 1000;
         }
 
+        /* Botão do menu */
         #goto-menu {
             position: fixed;
             top: 10px;
@@ -74,6 +78,7 @@
             cursor: pointer;
         }
         
+        /* Botão de reconexão */
         #reconnect-btn {
             position: fixed;
             top: 10px;
@@ -86,11 +91,11 @@
             cursor: pointer;
             z-index: 1000;
         }
-        
     </style>
 </head>
 <body>
 
+<!-- Elementos da interface -->
 <div id="status" class="status disconnected">Desconectado</div>
 <button id="reconnect-btn">Reconectar</button>
 
@@ -98,19 +103,21 @@
     <div id="department-loading">Carregando departamentos...</div>
     <select id="department-select" style="display: none;"></select>
 </div>
-<button id="goto-menu" >Menu</button>
-
+<button id="goto-menu">Menu</button>
 <button id="fullscreen-btn">TELA CHEIA</button>
 
+<!-- Mensagem de boas-vindas quando não há promoções -->
 <div id="welcome-message">Seja bem-vindo!<br>Fique atento às nossas promoções</div>
 
+<!-- Container principal do slider -->
 <div id="slider"></div>
 
+<!-- Bibliotecas externas -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
 
 <script>
-    // Configurações
+    // ============= CONFIGURAÇÕES GLOBAIS =============
     const serverAddress = window.location.hostname;
     const serverPort = window.location.port || '9090';
     let socketEndpoint = `ws://${serverAddress}:${serverPort}/ws-promotions`;
@@ -118,7 +125,7 @@
     const deletedPromotionsTopic = "/topic/deleted-promotions";
     const defaultImage = "https://cdn.pixabay.com/photo/2018/08/30/14/46/food-3642376_1280.jpg";
 
-    // Elementos DOM
+    // ============= ELEMENTOS DOM =============
     const statusElement = document.getElementById('status');
     const menuBtn = document.getElementById('goto-menu');
     const slider = document.getElementById('slider');
@@ -128,25 +135,46 @@
     const departmentSelect = document.getElementById('department-select');
     const departmentLoading = document.getElementById('department-loading');
 
-    // Variáveis globais
+    // ============= VARIÁVEIS GLOBAIS =============
     let stompClient = null;
     let currentSlide = 0;
-    const slideInterval = 8000;
+    const slideInterval = 8000; // Intervalo entre slides (8 segundos)
     let mouseTimeout;
-    const hideDelay = 3000;
+    const hideDelay = 3000; // Tempo para esconder controles em tela cheia
     let isFullscreen = false;
     let selectedDepartment = null;
-    let activePromotionIds = new Set();
+    let activePromotionIds = new Set(); // Armazena IDs de promoções ativas
     let slideIntervalId = null;
 
-    // Funções auxiliares
+    // ============= FUNÇÕES AUXILIARES =============
+
+    /** Formata nomes de departamento para comparação */
     function formatDepartmentName(name) {
         return name
-            .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-            .replace(/[^a-zA-Z\s]/g, '')
-            .toUpperCase();
+            .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+            .replace(/[^a-zA-Z\s]/g, '') // Remove caracteres especiais
+            .toUpperCase(); // Padroniza para maiúsculas
     }
 
+    /** Verifica se uma promoção é válida (ativa e dentro do prazo) */
+    function isPromotionValid(promotion) {
+        // Verifica status ativo
+        if (!promotion.active) {
+            return false;
+        }
+        
+        // Se não tem data de expiração, considera válida
+        if (!promotion.expirationDate) {
+            return true;
+        }
+        
+        // Compara datas
+        const now = new Date();
+        const expirationDate = new Date(promotion.expirationDate);
+        return now <= expirationDate;
+    }
+
+    /** Reseta o slider para o estado inicial */
     function resetSlider() {
         const slides = document.querySelectorAll('.slide');
         slides.forEach(slide => slide.remove());
@@ -156,6 +184,7 @@
         stopSlideShow();
     }
 
+    /** Carrega a lista de departamentos da API */
     async function loadDepartments() {
         try {
             const response = await fetch('/api/departments');
@@ -164,10 +193,11 @@
 
             departmentSelect.innerHTML = '';
             
-            // Adiciona opção "Todos os Departamentos"
+            // Opção padrão para todos os departamentos
             const allOption = new Option('Todos os Departamentos', 'ALL');
             departmentSelect.add(allOption);
             
+            // Adiciona cada departamento como opção
             departments.forEach(dept => {
                 const formattedValue = formatDepartmentName(dept.departmentName);
                 const option = new Option(dept.departmentName, formattedValue);
@@ -180,6 +210,7 @@
 
         } catch (error) {
             console.error('Erro ao carregar departamentos:', error);
+            // Fallback caso a API falhe
             departmentSelect.innerHTML = `
                 <option value="ALL">Todos os Departamentos</option>
                 <option value="PADARIA">Padaria</option>
@@ -192,24 +223,21 @@
         }
     }
 
+    /** Remove um slide de promoção pelo ID */
     function removePromotionSlide(promotionId) {
-    const slideToRemove = document.querySelector(`.slide[data-promotion-id="${promotionId}"]`);
-    
-    if (slideToRemove) {
-        // Verifica se o slide sendo removido é o ativo
-        const isActive = slideToRemove.classList.contains('active');
+        const slideToRemove = document.querySelector(`.slide[data-promotion-id="${promotionId}"]`);
         
-        slideToRemove.remove();
-        activePromotionIds.delete(promotionId);
-        
-        const slides = document.querySelectorAll('.slide');
-        
-        if (slides.length === 0) {
-            welcomeMessage.style.display = 'flex';
-            stopSlideShow();
-        } else {
-            // Se o slide removido era o ativo, ajusta o currentSlide
-            if (isActive) {
+        if (slideToRemove) {
+            const isActive = slideToRemove.classList.contains('active');
+            slideToRemove.remove();
+            activePromotionIds.delete(promotionId);
+            
+            const slides = document.querySelectorAll('.slide');
+            
+            if (slides.length === 0) {
+                welcomeMessage.style.display = 'flex';
+                stopSlideShow();
+            } else if (isActive) {
                 currentSlide = Math.max(0, currentSlide - 1);
                 if (slides.length > 0) {
                     slides[currentSlide % slides.length].classList.add('active');
@@ -217,33 +245,31 @@
             }
         }
     }
-    }
 
-    // Funções de slide
+    // ============= FUNÇÕES DO SLIDER =============
+
+    /** Exibe um novo slide de promoção */
     function showPromotionSlide(promotion) {
-
-        // Verifica se a promoção está ativa
-        if (!promotion.active) {
-            return; 
+        // Verifica se a promoção é válida antes de exibir
+        if (!isPromotionValid(promotion)) {
+            return;
         }
 
         const promoDeptFormatted = formatDepartmentName(promotion.department.departmentName);
-        
-        // Verifica se a promoção já existe no slider
         const existingSlide = document.querySelector(`.slide[data-promotion-id="${promotion.id}"]`);
-        
-        // Verifica se a promoção pertence ao departamento selecionado ou se "Todos" está selecionado
         const departmentMatch = (selectedDepartment === 'ALL') || (promoDeptFormatted === selectedDepartment);
         
         if (departmentMatch && !existingSlide) {
             activePromotionIds.add(promotion.id);
             welcomeMessage.style.display = 'none';
 
+            // Cria o elemento do slide
             const slide = document.createElement('div');
             slide.className = 'slide promotion-slide';
             slide.dataset.promotionId = promotion.id;
             slide.style.backgroundImage = `url('${defaultImage}')`;
 
+            // Carrega a imagem da promoção (se existir)
             if (promotion.imageUrl) {
                 const img = new Image();
                 img.src = promotion.imageUrl;
@@ -255,6 +281,7 @@
                 };
             }
 
+            // Estrutura HTML do slide
             slide.innerHTML = `
                 <div class="promotion-card">
                     <h2>${promotion.productName || 'Produto não especificado'}</h2>
@@ -266,7 +293,7 @@
 
             slider.appendChild(slide);
 
-            // Se for a primeira promoção, inicia o slideshow
+            // Inicia o slideshow se for a primeira promoção
             if (document.querySelectorAll('.slide').length === 1) {
                 startSlideShow();
                 slide.classList.add('active');
@@ -275,14 +302,15 @@
         }
     }
 
+    /** Atualiza um slide existente */
     function updateExistingSlide(slideElement, promotion) {
-
-        // Verifica se a promoção está ativa
-        if (!promotion.active) {
-            return; 
+        // Verifica se a promoção ainda é válida
+        if (!isPromotionValid(promotion)) {
+            removePromotionSlide(promotion.id);
+            return;
         }
 
-        // Atualiza a imagem se necessário
+        // Atualiza a imagem
         if (promotion.imageUrl && slideElement.style.backgroundImage !== `url('${promotion.imageUrl}')`) {
             const img = new Image();
             img.src = promotion.imageUrl;
@@ -297,7 +325,7 @@
             slideElement.style.backgroundImage = `url('${defaultImage}')`;
         }
 
-        // Atualiza o conteúdo do slide
+        // Atualiza o conteúdo
         slideElement.innerHTML = `
             <div class="promotion-card">
                 <h2>${promotion.productName || 'Produto não especificado'}</h2>
@@ -307,19 +335,21 @@
             </div>
         `;
         
-        // Se o slide estiver ativo, força uma atualização visual
+        // Força atualização visual se o slide estiver ativo
         if (slideElement.classList.contains('active')) {
             slideElement.classList.remove('active');
             setTimeout(() => slideElement.classList.add('active'), 10);
         }
     }
 
+    /** Inicia o slideshow automático */
     function startSlideShow() {
         if (!slideIntervalId) {
             slideIntervalId = setInterval(updateSlideShow, slideInterval);
         }
     }
 
+    /** Para o slideshow automático */
     function stopSlideShow() {
         if (slideIntervalId) {
             clearInterval(slideIntervalId);
@@ -327,27 +357,22 @@
         }
     }
 
+    /** Avança para o próximo slide */
     function updateSlideShow() {
         const slides = document.querySelectorAll('.slide');
         
-        // Se não houver slides, mostra mensagem de boas-vindas
         if (slides.length === 0) {
             welcomeMessage.style.display = 'flex';
             stopSlideShow();
             return;
         }
 
-        // Remove classe 'active' de todos os slides
         slides.forEach(slide => slide.classList.remove('active'));
-        
-        // Avança para o próximo slide
         currentSlide = (currentSlide + 1) % slides.length;
-        
-        // Adiciona classe 'active' ao slide atual
         slides[currentSlide].classList.add('active');
     }
 
-    // Função para limpar promoções expiradas
+    /** Remove promoções expiradas */
     function clearExpiredPromotions() {
         const now = new Date();
         const slides = document.querySelectorAll('.slide');
@@ -370,7 +395,6 @@
             }
         });
         
-        // Se removeu algum slide, ajusta o índice atual
         if (removedAny) {
             const remainingSlides = document.querySelectorAll('.slide');
             if (remainingSlides.length === 0) {
@@ -385,26 +409,27 @@
         }
     }
 
-    // Funções de conexão
+    // ============= FUNÇÕES DE CONEXÃO =============
+
+    /** Atualiza o status da conexão na interface */
     function setStatus(status, message) {
         statusElement.textContent = message;
         statusElement.className = `status ${status}`;
     }
 
+    /** Carrega as promoções existentes da API */
     async function loadExistingPromotions() {
         try {
             const response = await fetch('/api/promotions');
             if (!response.ok) throw new Error('Erro ao carregar promoções');
             const promotions = await response.json();
-
-            // Filtra apenas promoções ativas
-            const activePromotions = promotions.filter(promotion => promotion.active);
             
-            // Limpa apenas promoções expiradas
+            // Filtra apenas promoções válidas
+            const validPromotions = promotions.filter(promotion => isPromotionValid(promotion));
+            
             clearExpiredPromotions();
             
-            // Adiciona novas promoções
-            promotions.forEach(promotion => {
+            validPromotions.forEach(promotion => {
                 showPromotionSlide(promotion);
             });
         } catch (error) {
@@ -412,6 +437,7 @@
         }
     }
 
+    /** Estabelece conexão WebSocket com o servidor */
     function connect() {
         setStatus("connecting", "Conectando...");
         reconnectBtn.style.display = 'none';
@@ -420,12 +446,12 @@
             stompClient.disconnect();
         }
 
-        // Não reseta o slider automaticamente - mantém as promoções existentes
         welcomeMessage.style.display = document.querySelectorAll('.slide').length === 0 ? 'flex' : 'none';
 
         const socket = new SockJS(`http://${serverAddress}:${serverPort}/ws-promotions`);
         stompClient = Stomp.over(socket);
 
+        // Configurações de reconexão automática
         stompClient.reconnect_delay = 5000;
         stompClient.heartbeatIncoming = 4000;
         stompClient.heartbeatOutgoing = 4000;
@@ -436,11 +462,12 @@
             reconnectBtn.style.display = 'none';
             loadExistingPromotions();
 
+            // Assina o tópico de novas/atualizações de promoções
             stompClient.subscribe(promotionsTopic, function(message) {
                 try {
                     const promotion = JSON.parse(message.body);
-
-                    if (!promotion.active) {
+                    
+                    if (!isPromotionValid(promotion)) {
                         removePromotionSlide(promotion.id);
                         return;
                     }
@@ -448,10 +475,8 @@
                     const existingSlide = document.querySelector(`.slide[data-promotion-id="${promotion.id}"]`);
         
                     if (existingSlide) {
-                        // Atualiza o slide existente
                         updateExistingSlide(existingSlide, promotion);
                     } else {
-                        // Cria um novo slide se for uma promoção nova
                         showPromotionSlide(promotion);
                     }
                 } catch (e) {
@@ -459,7 +484,7 @@
                 }
             });
 
-                    // Assina o tópico de promoções deletadas
+            // Assina o tópico de promoções deletadas
             stompClient.subscribe(deletedPromotionsTopic, function(message) {
                 try {
                     const deletedPromotion = JSON.parse(message.body);
@@ -473,11 +498,13 @@
             console.error("Erro na conexão:", error);
             setStatus("disconnected", "Falha na conexão");
             reconnectBtn.style.display = 'block';
-            setTimeout(connect, 5000);
+            setTimeout(connect, 5000); // Tenta reconectar após 5 segundos
         });
     }
 
-    // Funções de fullscreen
+    // ============= FUNÇÕES DE TELA CHEIA =============
+
+    /** Alterna entre tela cheia e normal */
     function toggleFullscreen() {
         if (!isFullscreen) {
             enterFullscreen();
@@ -486,6 +513,7 @@
         }
     }
 
+    /** Entra em modo tela cheia */
     function enterFullscreen() {
         const element = document.documentElement;
         if (element.requestFullscreen) {
@@ -501,6 +529,7 @@
         }
     }
 
+    /** Sai do modo tela cheia */
     function exitFullscreen() {
         if (document.exitFullscreen) {
             document.exitFullscreen();
@@ -509,15 +538,18 @@
         showControls();
     }
 
+    /** Mostra o botão de tela cheia */
     function showFullscreenButton() {
         fullscreenBtn.style.display = 'block';
         fullscreenBtn.textContent = 'TELA CHEIA';
     }
 
+    /** Esconde o botão de tela cheia */
     function hideFullscreenButton() {
         fullscreenBtn.style.display = 'none';
     }
 
+    /** Esconde os controles na tela cheia */
     function hideControls() {
         statusElement.classList.add('controls-hidden');
         reconnectBtn.classList.add('controls-hidden');
@@ -526,6 +558,7 @@
         document.getElementById('department-selector').classList.add('controls-hidden');
     }
 
+    /** Mostra os controles na tela cheia */
     function showControls() {
         statusElement.classList.remove('controls-hidden');
         reconnectBtn.classList.remove('controls-hidden');
@@ -534,6 +567,7 @@
         document.getElementById('department-selector').classList.remove('controls-hidden');
     }
 
+    /** Manipula o movimento do mouse para mostrar/ocultar controles */
     function handleMouseMove() {
         if (isFullscreen) {
             showControls();
@@ -541,6 +575,7 @@
         }
     }
 
+    /** Reinicia o timeout para esconder controles */
     function resetHideTimeout() {
         clearTimeout(mouseTimeout);
         mouseTimeout = setTimeout(() => {
@@ -550,10 +585,13 @@
         }, hideDelay);
     }
 
-    // Inicialização
+    // ============= INICIALIZAÇÃO =============
+
     window.addEventListener('load', async function() {
+        // Carrega departamentos
         await loadDepartments();
         
+        // Configura o listener do seletor de departamentos
         departmentSelect.addEventListener('change', function() {
             selectedDepartment = this.value;
             resetSlider();
@@ -563,7 +601,7 @@
             }
         });
 
-        // Configura controles
+        // Configura controles de tela cheia
         showFullscreenButton();
         setTimeout(() => {
             if (!document.fullscreenElement) {
@@ -571,25 +609,30 @@
             }
         }, 1000);
 
-        // Inicia conexão
+        // Inicia a conexão WebSocket
         connect();
         
-        // Verifica promoções expiradas periodicamente
+        // Verifica promoções expiradas periodicamente (1 minuto)
         setInterval(clearExpiredPromotions, 60000);
     });
 
-    // Event listeners
+    // ============= EVENT LISTENERS =============
+
     window.addEventListener('beforeunload', function() {
         if (stompClient) stompClient.disconnect();
     });
 
+    /** Redireciona para o menu */
     function gotoMenu() {
         window.location.href = '/promotions/list-promotions.html';
     }
 
+    // Associa funções aos botões
     reconnectBtn.addEventListener('click', connect);
     fullscreenBtn.addEventListener('click', toggleFullscreen);
     menuBtn.addEventListener('click', gotoMenu);
+
+    // Listener para mudanças no modo tela cheia
     document.addEventListener('fullscreenchange', () => {
         isFullscreen = !!document.fullscreenElement;
         if (isFullscreen) {
