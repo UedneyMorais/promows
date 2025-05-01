@@ -98,6 +98,7 @@
     const serverPort = window.location.port || '9090';
     let socketEndpoint = `ws://${serverAddress}:${serverPort}/ws-promotions`;
     const promotionsTopic = "/topic/promotions";
+    const deletedPromotionsTopic = "/topic/deleted-promotions";
     const defaultImage = "https://cdn.pixabay.com/photo/2018/08/30/14/46/food-3642376_1280.jpg";
 
     // Elementos DOM
@@ -171,6 +172,33 @@
             departmentSelect.style.display = 'block';
             selectedDepartment = "ALL";
         }
+    }
+
+    function removePromotionSlide(promotionId) {
+    const slideToRemove = document.querySelector(`.slide[data-promotion-id="${promotionId}"]`);
+    
+    if (slideToRemove) {
+        // Verifica se o slide sendo removido é o ativo
+        const isActive = slideToRemove.classList.contains('active');
+        
+        slideToRemove.remove();
+        activePromotionIds.delete(promotionId);
+        
+        const slides = document.querySelectorAll('.slide');
+        
+        if (slides.length === 0) {
+            welcomeMessage.style.display = 'flex';
+            stopSlideShow();
+        } else {
+            // Se o slide removido era o ativo, ajusta o currentSlide
+            if (isActive) {
+                currentSlide = Math.max(0, currentSlide - 1);
+                if (slides.length > 0) {
+                    slides[currentSlide % slides.length].classList.add('active');
+                }
+            }
+        }
+    }
     }
 
     // Funções de slide
@@ -389,6 +417,16 @@
                     }
                 } catch (e) {
                     console.error("Erro ao processar mensagem:", e);
+                }
+            });
+
+                    // Assina o tópico de promoções deletadas
+            stompClient.subscribe(deletedPromotionsTopic, function(message) {
+                try {
+                    const deletedPromotion = JSON.parse(message.body);
+                    removePromotionSlide(deletedPromotion.id);
+                } catch (e) {
+                    console.error("Erro ao processar mensagem de deleção:", e);
                 }
             });
 

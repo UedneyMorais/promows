@@ -1,6 +1,7 @@
 package com.supermarket.promows.service;
 
 import com.supermarket.promows.dto.PromotionDTO;
+import com.supermarket.promows.dto.PromotionDeleteDTO;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
 import com.supermarket.promows.exception.PromotionNotFoundException;
 import com.supermarket.promows.model.Department;
@@ -112,6 +113,18 @@ public class PromotionService {
         messagingTemplate.convertAndSend("/topic/promotions", updatedPromotion);
         
         return updatedPromotion;
+    }
+
+    @Transactional
+    public void deletePromotionById(Long id) {
+        Promotion loadedPromotion = promotionRepository.findById(id)
+            .orElseThrow(() -> new PromotionNotFoundException(id));
+    
+        PromotionDeleteDTO deletedPromotion = new PromotionDeleteDTO(loadedPromotion.getId());
+        
+        promotionRepository.delete(loadedPromotion);
+        
+        messagingTemplate.convertAndSend("/topic/deleted-promotions", deletedPromotion);
     }
 
     public void broadcastPromotion(Promotion promotion){

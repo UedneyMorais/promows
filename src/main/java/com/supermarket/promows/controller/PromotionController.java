@@ -1,6 +1,7 @@
 package com.supermarket.promows.controller;
 
 import com.supermarket.promows.dto.PromotionDTO;
+import com.supermarket.promows.exception.PromotionNotFoundException;
 import com.supermarket.promows.model.Promotion;
 import com.supermarket.promows.service.PromotionService;
 import org.springframework.http.HttpStatus;
@@ -52,6 +53,16 @@ public class PromotionController {
         if (updatedPromotion != null) {
             return new ResponseEntity<>(updatedPromotion, HttpStatus.OK);
         } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePromotionById(@PathVariable Long id) {
+        try {
+            promotionService.deletePromotionById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (PromotionNotFoundException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
