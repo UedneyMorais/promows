@@ -1,0 +1,286 @@
+/* Reset e Estilos Gerais */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f5f7fa;
+  color: #333;
+  line-height: 1.6;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 30px;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+/* Loading */
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+}
+
+.spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Mensagens de erro */
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 5px;
+  margin-bottom: 20px;
+  text-align: center;
+  border: 1px solid #f5c6cb;
+}
+
+.error-message strong {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.error-message small {
+  display: block;
+  margin: 10px 0;
+  font-size: 0.9em;
+}
+
+/* Estilos da Tabela */
+.table-container {
+  overflow-x: auto;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 10px;
+  background: white;
+  margin-top: 20px;
+}
+
+.promotion-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.promotion-table thead {
+  background-color: #3498db;
+  color: white;
+}
+
+.promotion-table th {
+  padding: 15px;
+  text-align: left;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-size: 14px;
+}
+
+.promotion-table tbody tr {
+  border-bottom: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+
+.promotion-table tbody tr:last-child {
+  border-bottom: none;
+}
+
+.promotion-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+.promotion-table td {
+  padding: 15px;
+  color: #555;
+  vertical-align: top;
+}
+
+.promotion-table td small {
+  display: block;
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+}
+
+/* Badges */
+.discount-badge {
+  display: inline-block;
+  background-color: #2ecc71;
+  color: white;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  margin-left: 8px;
+  font-weight: bold;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.status-badge.active {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.status-badge.inactive {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+/* Estilos para os botões */
+.retry-btn {
+  padding: 8px 16px;
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 10px;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.retry-btn:hover {
+  background-color: #2980b9;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-btn, .delete-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.edit-btn {
+  background-color: #f39c12;
+  color: white;
+}
+
+.edit-btn:hover {
+  background-color: #e67e22;
+}
+
+.delete-btn {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.delete-btn:hover {
+  background-color: #c0392b;
+}
+
+/* Responsividade */
+@media screen and (max-width: 768px) {
+  .container {
+      padding: 10px;
+  }
+  
+  .promotion-table {
+      display: block;
+  }
+  
+  .promotion-table thead {
+      display: none;
+  }
+  
+  .promotion-table tbody, .promotion-table tr, .promotion-table td {
+      display: block;
+      width: 100%;
+  }
+  
+  .promotion-table tr {
+      margin-bottom: 15px;
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+  }
+  
+  .promotion-table td {
+      text-align: right;
+      padding-left: 50%;
+      position: relative;
+      padding-top: 12px;
+      padding-bottom: 12px;
+  }
+  
+  .promotion-table td::before {
+      content: attr(data-label);
+      position: absolute;
+      left: 15px;
+      width: 45%;
+      padding-right: 10px;
+      font-weight: bold;
+      text-align: left;
+      color: #2c3e50;
+  }
+  
+  .actions {
+      justify-content: flex-end;
+  }
+  
+  .discount-badge {
+      margin-left: 0;
+      margin-top: 5px;
+      display: block;
+  }
+
+  .debug-info {
+    background: #f8f9fa;
+    padding: 12px;
+    border-radius: 5px;
+    margin: 10px 0;
+    font-size: 14px;
+}
+
+.debug-info code {
+    background: #e9ecef;
+    padding: 2px 4px;
+    border-radius: 3px;
+    font-family: monospace;
+}
+
+.debug-info ol {
+    margin-top: 8px;
+    padding-left: 20px;
+}
+}

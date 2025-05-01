@@ -218,8 +218,8 @@
         stompClient = Stomp.over(socket);
 
         stompClient.reconnect_delay = 5000;
-        stompClient.heartbeatIncoming = 4000;
-        stompClient.heartbeatOutgoing = 4000;
+        // stompClient.heartbeatIncoming = 4000;
+        // stompClient.heartbeatOutgoing = 4000;
         stompClient.debug = () => {};
 
         stompClient.connect({}, function(frame) {
