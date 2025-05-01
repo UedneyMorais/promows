@@ -8,6 +8,8 @@ import java.time.LocalDateTime;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 @Entity
 @Data
 @EntityListeners(AuditingEntityListener.class)
@@ -35,6 +37,7 @@ public class Promotion {
     @Column(nullable = false)
     private BigDecimal promotionalPrice;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private LocalDateTime expirationDate;
 
     @Column(nullable = false)
@@ -49,9 +52,10 @@ public class Promotion {
     private boolean active;
 
     @ManyToOne
-    @JoinColumn(name = "departament_id", nullable = false)
-    private Departament departament;
+    @JoinColumn(name = "department_id", nullable = false)
+    private Department department;
 
     @CreatedDate
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private LocalDateTime createdAt;
 }

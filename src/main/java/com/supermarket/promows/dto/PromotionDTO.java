@@ -18,6 +18,6 @@ public class PromotionDTO {
     private int customerLimit;
     private String imageUrl;
     private boolean active;
-    private Long departamentId;
+    private Long departmentId;
     private LocalDateTime createdAt;
 }

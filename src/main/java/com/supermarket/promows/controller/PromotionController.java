@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api/promotions")
 public class PromotionController {
@@ -29,6 +30,30 @@ public class PromotionController {
     public List<Promotion> getActivePromotions() {
         List<Promotion> promotions = promotionService.getActivePromotions();
         return promotions;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Promotion> getPromotionById(@PathVariable Long id) {
+        
+        Promotion loadedPromotion = promotionService.getPromotionById(id);
+
+        if (loadedPromotion != null) {
+            return new ResponseEntity<>(loadedPromotion, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Promotion> updatePromotionById(@RequestBody Promotion promotion, @PathVariable Long id) {
+        
+        Promotion updatedPromotion = promotionService.updatePromotionById(promotion, id);
+
+        if (updatedPromotion != null) {
+            return new ResponseEntity<>(updatedPromotion, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
     }
 
 //    @PostMapping("/upload")

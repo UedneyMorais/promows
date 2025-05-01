@@ -15,16 +15,16 @@ import lombok.Data;
 
 @Entity
 @Data
-public class Departament {
+public class Department {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
-    private String departamentName;
+    private String departmentName;
 
-    @OneToMany(mappedBy = "departament")
+    @OneToMany(mappedBy = "department")
     @JsonIgnore // Isso evita a serialização da lista de promoções
     private List<Promotion> promotions = new ArrayList<Promotion>();
     

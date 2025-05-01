@@ -8,79 +8,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins&display=swap" rel="stylesheet">
-    <style>
-        /* Estilos adicionais para garantir visibilidade */
-        .status {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            z-index: 1000;
-        }
-        
-        .connected {
-            background-color: #4CAF50;
-            color: white;
-        }
-        
-        .disconnected {
-            background-color: #f44336;
-            color: white;
-        }
-        
-        .connecting {
-            background-color: #FFC107;
-            color: black;
-        }
-        
-        .controls-hidden {
-            opacity: 0;
-            transition: opacity 0.5s;
-        }
-        
-        #fullscreen-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #2196F3;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-        
-        #department-selector {
-            position: fixed;
-            top: 50px;
-            left: 10px;
-            z-index: 1000;
-        }
-        
-        #reconnect-btn {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px 15px;
-            background-color: #9E9E9E;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-    </style>
 </head>
 <body>
 
 <div id="status" class="status disconnected">Desconectado</div>
 <button id="reconnect-btn">Reconectar</button>
 <div id="department-selector">
-    <div id="department-loading">Carregando departamentos...</div>
+    <div id="department-loading">Carregando departmentos...</div>
     <select id="department-select" style="display: none;"></select>
 </div>
 <button id="fullscreen-btn">TELA CHEIA</button>
@@ -129,12 +63,9 @@
     }
 
     function resetSlider() {
-        const slides = document.querySelectorAll('.slide');
-        slides.forEach(slide => slide.remove());
+        slider.innerHTML = '';
         activePromotionIds.clear();
         welcomeMessage.style.display = 'flex';
-        currentSlide = 0;
-        stopSlideShow();
     }
 
     async function loadDepartments() {
@@ -144,10 +75,6 @@
             const departments = await response.json();
 
             departmentSelect.innerHTML = '';
-            
-            // Adiciona opção "Todos os Departamentos"
-            const allOption = new Option('Todos os Departamentos', 'ALL');
-            departmentSelect.add(allOption);
             
             departments.forEach(dept => {
                 const formattedValue = formatDepartmentName(dept.departmentName);
@@ -160,16 +87,15 @@
             selectedDepartment = departmentSelect.value;
 
         } catch (error) {
-            console.error('Erro ao carregar departamentos:', error);
+            console.error('Erro ao carregar departmentos:', error);
             departmentSelect.innerHTML = `
-                <option value="ALL">Todos os Departamentos</option>
                 <option value="PADARIA">Padaria</option>
                 <option value="ACOUGUE">Açougue</option>
                 <option value="HORTIFRUTI">Hortifruti</option>
             `;
             departmentLoading.style.display = 'none';
             departmentSelect.style.display = 'block';
-            selectedDepartment = "ALL";
+            selectedDepartment = "PADARIA";
         }
     }
 
@@ -177,13 +103,7 @@
     function showPromotionSlide(promotion) {
         const promoDeptFormatted = formatDepartmentName(promotion.department.departmentName);
         
-        // Verifica se a promoção já existe no slider
-        const existingSlide = document.querySelector(`.slide[data-promotion-id="${promotion.id}"]`);
-        
-        // Verifica se a promoção pertence ao departamento selecionado ou se "Todos" está selecionado
-        const departmentMatch = (selectedDepartment === 'ALL') || (promoDeptFormatted === selectedDepartment);
-        
-        if (departmentMatch && !existingSlide) {
+        if (promoDeptFormatted === selectedDepartment && !activePromotionIds.has(promotion.id)) {
             activePromotionIds.add(promotion.id);
             welcomeMessage.style.display = 'none';
 
@@ -206,53 +126,19 @@
             slide.innerHTML = `
                 <div class="promotion-card">
                     <h2>${promotion.productName || 'Produto não especificado'}</h2>
-                    <p><strong>de R$:</strong> <originalPrice> ${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
-                    <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',')} </promotionalPrice> </p>
+                    <p><strong>de R$:</strong> <originalPrice> ${(promotion.originalPrice || 0).toFixed(2).replaceAll('.', ',')} </originalPrice></p>
+                    <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replaceAll('.', ',')} </promotionalPrice> </p>
                     <p><strong>Promoção válida até:</strong> ${promotion.expirationDate ? new Date(promotion.expirationDate).toLocaleDateString('pt-BR') : 'N/A'}</p>
                 </div>
             `;
 
             slider.appendChild(slide);
 
-            // Se for a primeira promoção, inicia o slideshow
             if (document.querySelectorAll('.slide').length === 1) {
                 startSlideShow();
                 slide.classList.add('active');
                 currentSlide = 0;
             }
-        }
-    }
-
-    function updateExistingSlide(slideElement, promotion) {
-        // Atualiza a imagem se necessário
-        if (promotion.imageUrl && slideElement.style.backgroundImage !== `url('${promotion.imageUrl}')`) {
-            const img = new Image();
-            img.src = promotion.imageUrl;
-            img.onload = function() {
-                slideElement.style.backgroundImage = `url('${promotion.imageUrl}')`;
-            };
-            img.onerror = function() {
-                console.error("Erro ao carregar imagem:", promotion.imageUrl);
-                slideElement.style.backgroundImage = `url('${defaultImage}')`;
-            };
-        } else if (!promotion.imageUrl) {
-            slideElement.style.backgroundImage = `url('${defaultImage}')`;
-        }
-
-        // Atualiza o conteúdo do slide
-        slideElement.innerHTML = `
-            <div class="promotion-card">
-                <h2>${promotion.productName || 'Produto não especificado'}</h2>
-                <p><strong>de R$:</strong> <originalPrice> ${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
-                <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',')} </promotionalPrice> </p>
-                <p><strong>Promoção válida até:</strong> ${promotion.expirationDate ? new Date(promotion.expirationDate).toLocaleDateString('pt-BR') : 'N/A'}</p>
-            </div>
-        `;
-        
-        // Se o slide estiver ativo, força uma atualização visual
-        if (slideElement.classList.contains('active')) {
-            slideElement.classList.remove('active');
-            setTimeout(() => slideElement.classList.add('active'), 10);
         }
     }
 
@@ -271,60 +157,27 @@
 
     function updateSlideShow() {
         const slides = document.querySelectorAll('.slide');
-        
-        // Se não houver slides, mostra mensagem de boas-vindas
         if (slides.length === 0) {
             welcomeMessage.style.display = 'flex';
+            activePromotionIds.clear();
             stopSlideShow();
             return;
         }
 
-        // Remove classe 'active' de todos os slides
-        slides.forEach(slide => slide.classList.remove('active'));
-        
-        // Avança para o próximo slide
-        currentSlide = (currentSlide + 1) % slides.length;
-        
-        // Adiciona classe 'active' ao slide atual
-        slides[currentSlide].classList.add('active');
-    }
+        welcomeMessage.style.display = 'none';
+        const currentIds = new Set();
+        slides.forEach(slide => currentIds.add(slide.dataset.promotionId));
 
-    // Função para limpar promoções expiradas
-    function clearExpiredPromotions() {
-        const now = new Date();
-        const slides = document.querySelectorAll('.slide');
-        let removedAny = false;
-        
-        slides.forEach(slide => {
-            const expirationText = slide.querySelector('p:last-child').textContent;
-            const expirationDateMatch = expirationText.match(/\d{2}\/\d{2}\/\d{4}/);
-            
-            if (expirationDateMatch) {
-                const [day, month, year] = expirationDateMatch[0].split('/');
-                const expirationDate = new Date(`${year}-${month}-${day}`);
-                
-                if (expirationDate < now) {
-                    const promotionId = slide.dataset.promotionId;
-                    activePromotionIds.delete(promotionId);
-                    slide.remove();
-                    removedAny = true;
-                }
-            }
+        activePromotionIds.forEach(id => {
+            if (!currentIds.has(id)) activePromotionIds.delete(id);
         });
-        
-        // Se removeu algum slide, ajusta o índice atual
-        if (removedAny) {
-            const remainingSlides = document.querySelectorAll('.slide');
-            if (remainingSlides.length === 0) {
-                welcomeMessage.style.display = 'flex';
-                stopSlideShow();
-            } else if (currentSlide >= remainingSlides.length) {
-                currentSlide = 0;
-                if (remainingSlides.length > 0) {
-                    remainingSlides[currentSlide].classList.add('active');
-                }
-            }
-        }
+
+        slides.forEach((slide, index) => {
+            slide.classList.remove('active');
+            if (index === currentSlide) slide.classList.add('active');
+        });
+
+        currentSlide = (currentSlide + 1) % slides.length;
     }
 
     // Funções de conexão
@@ -338,14 +191,7 @@
             const response = await fetch('/api/promotions');
             if (!response.ok) throw new Error('Erro ao carregar promoções');
             const promotions = await response.json();
-            
-            // Limpa apenas promoções expiradas
-            clearExpiredPromotions();
-            
-            // Adiciona novas promoções
-            promotions.forEach(promotion => {
-                showPromotionSlide(promotion);
-            });
+            promotions.forEach(promotion => showPromotionSlide(promotion));
         } catch (error) {
             console.error('Erro ao carregar promoções:', error);
         }
@@ -359,8 +205,13 @@
             stompClient.disconnect();
         }
 
-        // Não reseta o slider automaticamente - mantém as promoções existentes
-        welcomeMessage.style.display = document.querySelectorAll('.slide').length === 0 ? 'flex' : 'none';
+        // Modificação importante: só reseta se realmente não houver promoções
+        if (!hasExistingPromotions()) {
+            resetSlider();
+        } else {
+        // Se houver promoções, garante que a mensagem de boas-vindas fica oculta
+            welcomeMessage.style.display = 'none';
+        }
 
         const socket = new SockJS(`http://${serverAddress}:${serverPort}/ws-promotions`);
         stompClient = Stomp.over(socket);
@@ -378,15 +229,7 @@
             stompClient.subscribe(promotionsTopic, function(message) {
                 try {
                     const promotion = JSON.parse(message.body);
-                    const existingSlide = document.querySelector(`.slide[data-promotion-id="${promotion.id}"]`);
-        
-                    if (existingSlide) {
-                        // Atualiza o slide existente
-                        updateExistingSlide(existingSlide, promotion);
-                    } else {
-                        // Cria um novo slide se for uma promoção nova
-                        showPromotionSlide(promotion);
-                    }
+                    showPromotionSlide(promotion);
                 } catch (e) {
                     console.error("Erro ao processar mensagem:", e);
                 }
@@ -399,6 +242,14 @@
             setTimeout(connect, 5000);
         });
     }
+
+    function hasExistingPromotions() {
+    const hasSlides = slider.querySelector('.slide') !== null;
+    const hasActivePromotions = activePromotionIds.size > 0;
+    
+    return hasSlides || hasActivePromotions;
+    }
+
 
     // Funções de fullscreen
     function toggleFullscreen() {
@@ -494,9 +345,6 @@
 
         // Inicia conexão
         connect();
-        
-        // Verifica promoções expiradas periodicamente
-        setInterval(clearExpiredPromotions, 60000); // Verifica a cada minuto
     });
 
     // Event listeners

@@ -72,6 +72,27 @@ h1 {
   font-size: 0.9em;
 }
 
+/* Debug Info */
+.debug-info {
+  background: #f8f9fa;
+  padding: 12px;
+  border-radius: 5px;
+  margin: 10px 0;
+  font-size: 14px;
+}
+
+.debug-info code {
+  background: #e9ecef;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.debug-info ol {
+  margin-top: 8px;
+  padding-left: 20px;
+}
+
 /* Estilos da Tabela */
 .table-container {
   overflow-x: auto;
@@ -81,7 +102,7 @@ h1 {
   margin-top: 20px;
 }
 
-.promotion-table {
+.department-table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
@@ -90,12 +111,12 @@ h1 {
   overflow: hidden;
 }
 
-.promotion-table thead {
+.department-table thead {
   background-color: #3498db;
   color: white;
 }
 
-.promotion-table th {
+.department-table th {
   padding: 15px;
   text-align: left;
   font-weight: 500;
@@ -104,26 +125,26 @@ h1 {
   font-size: 14px;
 }
 
-.promotion-table tbody tr {
+.department-table tbody tr {
   border-bottom: 1px solid #e0e0e0;
   transition: all 0.3s ease;
 }
 
-.promotion-table tbody tr:last-child {
+.department-table tbody tr:last-child {
   border-bottom: none;
 }
 
-.promotion-table tbody tr:hover {
+.department-table tbody tr:hover {
   background-color: #f8f9fa;
 }
 
-.promotion-table td {
+.department-table td {
   padding: 15px;
   color: #555;
   vertical-align: top;
 }
 
-.promotion-table td small {
+.department-table td small {
   display: block;
   font-size: 12px;
   color: #777;
@@ -216,26 +237,26 @@ h1 {
       padding: 10px;
   }
   
-  .promotion-table {
+  .department-table {
       display: block;
   }
   
-  .promotion-table thead {
+  .department-table thead {
       display: none;
   }
   
-  .promotion-table tbody, .promotion-table tr, .promotion-table td {
+  .department-table tbody, .department-table tr, .department-table td {
       display: block;
       width: 100%;
   }
   
-  .promotion-table tr {
+  .department-table tr {
       margin-bottom: 15px;
       border: 1px solid #e0e0e0;
       border-radius: 5px;
   }
   
-  .promotion-table td {
+  .department-table td {
       text-align: right;
       padding-left: 50%;
       position: relative;
@@ -243,7 +264,7 @@ h1 {
       padding-bottom: 12px;
   }
   
-  .promotion-table td::before {
+  .department-table td::before {
       content: attr(data-label);
       position: absolute;
       left: 15px;
@@ -264,23 +285,69 @@ h1 {
       display: block;
   }
 
-  .debug-info {
-    background: #f8f9fa;
-    padding: 12px;
-    border-radius: 5px;
-    margin: 10px 0;
-    font-size: 14px;
+/* Estilo para o container de loading */
+#loading-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px 30px;
+  border-radius: 8px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
 }
 
-.debug-info code {
-    background: #e9ecef;
-    padding: 2px 4px;
-    border-radius: 3px;
-    font-family: monospace;
+/* Estilo para o spinner de loading */
+#loading-spinner {
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
 }
 
-.debug-info ol {
-    margin-top: 8px;
-    padding-left: 20px;
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Estilo para o texto de loading */
+#loading-text {
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+}
+
+/* Estilo para as mensagens de confirmação/erro */
+#message {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 15px 30px;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  text-align: center;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  display: none;
+}
+
+#message.success {
+  background-color: #4CAF50;
+  color: white;
+}
+
+#message.error {
+  background-color: #f44336;
+  color: white;
 }
 }

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS - Lista de Departamentos</title>
+    <link rel="stylesheet" href="../css/menu/styles-menu.css">
+    <link rel="stylesheet" href="../css/departments/styles-list-departments.css">
+    <style>
+        .department-table td, .department-table th{
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+        .department-table tr:last-child td{
+            border-bottom: none;
+        }
+        .actions {
+            white-space: nowrap; /* Evita que os botões quebrem para a próxima linha */
+        }
+
+        .edit-btn, .delete-btn {
+            padding: 8px 12px;
+            margin-right: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .edit-btn {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .delete-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background-color: #0056b3;
+        }
+
+        .delete-btn:hover {
+            background-color: #c82333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="menu">
+            <ul>
+                <li><a href="/promotions/edit-promotions.html">Nova Promoção</a></li>
+                <li><a href="/departments/list-departments.html">Listar Departamentos</a></li>
+                <li><a href="/departments/edit-departments.html">Novo Departamento</a></li>
+            </ul>
+        </div>
+        <h1>Departamentos Cadastrados</h1>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando departamentos...</p>
+        </div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <div class="table-container" id="table-container" style="display: none;">
+            <table class="department-table">
+                <thead>
+                    <tr>
+                        <th>Nome do Departamento</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="departments-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        async function loadDepartments() {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error-message');
+            const tableContainer = document.getElementById('table-container');
+            const departmentsBody = document.getElementById('departments-body');
+            
+            // URL da API
+            const API_URL = '/api/departments';
+            
+            try {
+                // Mostra o estado de carregamento
+                loadingElement.style.display = 'flex';
+                errorElement.style.display = 'none';
+                tableContainer.style.display = 'none';
+                departmentsBody.innerHTML = '';
+
+                console.log('[DEBUG] Fazendo requisição para:', API_URL);
+                
+                // Faz a requisição à API
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                console.log('[DEBUG] Resposta recebida:', {
+                    status: response.status,
+                    ok: response.ok,
+                    url: response.url
+                });
+
+                // Verifica se a resposta foi bem sucedida
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('[DEBUG] Conteúdo do erro:', errorText);
+                    
+                    throw new Error(`Erro ${response.status}: ${response.statusText || 'Falha na requisição'}`);
+                }
+
+                // Processa os dados JSON
+                const departments = await response.json();
+                console.log('[DEBUG] Dados recebidos:', departments);
+
+                if (!departments || departments.length === 0) {
+                    errorElement.textContent = 'Nenhum departamento cadastrado.';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                renderDepartments(departments);
+                tableContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Erro completo:', error);
+                
+                errorElement.innerHTML = `
+                    <strong>Falha ao carregar departamentos</strong>
+                    <p>${error.message}</p>
+                    <div class="debug-info">
+                        <p>Endpoint chamado: <code>${API_URL}</code></p>
+                        <p>Verifique:</p>
+                        <ol>
+                            <li>Se o servidor está online</li>
+                            <li>Se a URL está exatamente igual ao Postman</li>
+                            <li>Se há necessidade de headers adicionais</li>
+                            <li>O console do navegador (F12) para detalhes</li>
+                        </ol>
+                    </div>
+                    <button id="retry-button" class="retry-btn">Tentar Novamente</button>
+                `;
+                errorElement.style.display = 'block';
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        function renderDepartments(departments) {
+            const tbody = document.getElementById('departments-body');
+            tbody.innerHTML = '';
+
+            departments.forEach(department => {
+                const row = document.createElement('tr');
+                
+                row.innerHTML = `
+                    <td data-label="Nome">${department.departmentName}</td>
+                    <td data-label="Ações" class="actions">
+                        <button class="edit-btn" data-id="${department.id}">Editar</button>
+                        <button class="delete-btn" data-id="${department.id}">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            // Configura os eventos dos botões
+            setupActionButtons();
+        }
+
+        // Configura os eventos dos botões de ação
+        function setupActionButtons() {
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const departmentId = btn.getAttribute('data-id');
+                    editDepartment(departmentId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const departmentId = btn.getAttribute('data-id');
+                    deleteDepartment(departmentId);
+                });
+            });
+        }
+
+        function editDepartment(id) {
+            window.location.href = `/departments/edit-departments.html?id=${id}`;
+        }
+        async function deleteDepartment(id) {
+            if (!confirm('Tem certeza que deseja excluir este departamento?')) return;
+            
+            try {
+                console.log(`Excluindo departamento ${id}`);
+                // Substitua pela URL correta da sua API para exclusão
+                const response = await fetch(`/api/departments/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao excluir departamento');
+                }
+
+                loadDepartments();
+            } catch (error) {
+                console.error('Erro ao excluir:', error);
+                document.getElementById('error-message').textContent = 'Erro ao excluir: ' + error.message;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'retry-button') {
+                loadDepartments();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadDepartments);
+    </script>
+</body>
+</html>

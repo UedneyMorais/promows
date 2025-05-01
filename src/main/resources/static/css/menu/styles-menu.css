@@ -1,0 +1,28 @@
+.menu {
+    margin-bottom: 20px;
+}
+
+.menu ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.menu ul li {
+    margin-right: 15px;
+}
+
+.menu ul li a {
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f9f9f9;
+}
+
+.menu ul li a:hover {
+    background-color: #eee;
+}

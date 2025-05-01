@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS - Editar/Criar Promoção</title>
+    <style>
+        /* Estilos para o loading e mensagens */
+        #loading-container {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 30px 40px;
+            border-radius: 10px;
+            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.2);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            border: 1px solid #e0e0e0;
+        }
+
+        #loading-spinner {
+            border: 6px solid #f3f3f3;
+            border-top: 6px solid #3498db;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            animation: spin 1.2s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        #loading-container p {
+            color: #7f8c8d;
+            font-size: 15px;
+            margin-top: 5px;
+        }
+
+        #message {
+            position: fixed;
+            top: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 18px 35px;
+            border-radius: 8px;
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+            z-index: 9998;
+            display: none;
+            max-width: 80%;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; top: 20px; }
+            to { opacity: 1; top: 30px; }
+        }
+
+        #message.success {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        #message.error {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.1);
+            z-index: 9990;
+            display: none;
+        }
+    </style>
+    <link rel="stylesheet" href="../css/promotions/styles-edit-promotions.css">
+</head>
+<body>
+    <h1>Editar/Criar Promoção</h1>
+
+    <form id="promotionForm">
+        <input type="hidden" id="promotionId">
+
+        <div class="form-group">
+            <label for="productName" class="required">Nome do Produto:</label>
+            <input type="text" id="productName">
+        </div>
+
+        <div class="form-group">
+            <label for="productEan" class="required">EAN do Produto:</label>
+            <input type="number" id="productEan">
+        </div>
+
+        <div class="form-group">
+            <label for="productDescription" class="required">Descrição:</label>
+            <textarea id="productDescription" rows="3"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="productUnitTypeMessage" class="required">Unidade de Medida:</label>
+            <input type="text" id="productUnitTypeMessage">
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="originalPrice" class="required">Preço Original (R$):</label>
+                <input type="number" id="originalPrice" step="0.01" min="0.01">
+            </div>
+
+            <div class="form-group">
+                <label for="promotionalPrice" class="required">Preço Promocional (R$):</label>
+                <input type="number" id="promotionalPrice" step="0.01" min="0.01">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="expirationDate" class="required">Data de Expiração:</label>
+            <input type="text" id="expirationDate" placeholder="dd/mm/yyyy hh:mm" maxlength="16">
+        </div>
+
+        <div class="form-group">
+            <label for="customerLimit" class="required">Limite por Cliente:</label>
+            <input type="number" id="customerLimit" min="1">
+        </div>
+
+        <div class="form-group">
+            <label for="imageUrl">URL da Imagem:</label>
+            <input type="url" id="imageUrl" placeholder="https://exemplo.com/imagem.jpg">
+            <small>Deixe em branco para usar imagem padrão</small>
+        </div>
+
+        <div class="form-group">
+            <label for="active">Status da Promoção:</label>
+            <select id="active">
+                <option value="true">Ativa</option>
+                <option value="false">Inativa</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="departmentId" class="required">Departamento:</label>
+            <select id="departmentId" required>
+                <option value="">Carregando departamentos...</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <button type="submit">Salvar Promoção</button>
+            <button type="button" id="cancelButton" class="secondary-btn">Cancelar</button>
+        </div>
+    </form>
+
+    <div class="overlay" id="overlay" style="display: none;"></div>
+    <div id="loading-container" style="display: none;">
+        <div id="loading-spinner"></div>
+        <span id="loading-text">Processando sua solicitação...</span>
+        <p>Por favor, aguarde um momento</p>
+    </div>
+    <div id="message"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const promotionId = urlParams.get('id');
+
+            document.getElementById('promotionId').value = promotionId || '';
+
+            loadDepartments();
+
+            if (promotionId) {
+                loadPromotion(promotionId)
+                    .catch(error => {
+                        console.error('Erro ao carregar dados da promoção:', error);
+                        showMessage('Erro ao carregar dados da promoção', 'error');
+                    });
+            } else {
+
+                document.getElementById('promotionForm').reset();
+            }
+
+            document.getElementById('promotionForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (promotionId) {
+                    updatePromotion();
+                } else {
+                    createPromotion();
+                }
+            });
+
+            document.getElementById('cancelButton').addEventListener('click', function() {
+                window.location.href = 'list-promotions.html';
+            });
+
+            // Validação em tempo real para preço promocional
+            document.getElementById('promotionalPrice').addEventListener('change', validatePrices);
+            document.getElementById('originalPrice').addEventListener('change', validatePrices);
+        });
+
+        function showLoading() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('loading-container').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('loading-container').style.display = 'none';
+        }
+
+        async function loadDepartments() {
+            try {
+                const response = await fetch('/api/departments');
+                if (!response.ok) throw new Error('Erro ao carregar departamentos');
+
+                const departments = await response.json();
+                const select = document.getElementById('departmentId');
+
+                select.innerHTML = '';
+
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Selecione um departamento';
+                select.appendChild(defaultOption);
+
+                departments.forEach(dept => {
+                    const option = document.createElement('option');
+                    option.value = dept.id;
+                    option.textContent = dept.departmentName;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Erro:', error);
+                showMessage('Erro ao carregar departamentos. Recarregue a página.', 'error');
+
+                const select = document.getElementById('departmentId');
+                select.innerHTML = `
+                    <option value="1">Padaria</option>
+                    <option value="2">Açougue</option>
+                    <option value="3">Hortifruti</option>
+                `;
+            }
+        }
+
+        // Carrega os dados de uma promoção específica
+        async function loadPromotion(promotionId) {
+            try {
+                const response = await fetch(`/api/promotions/${promotionId}`);
+                if (!response.ok) throw new Error('Erro ao carregar promoção');
+
+                const promotion = await response.json();
+                fillFormWithPromotionData(promotion);
+            } catch (error) {
+                console.error('Erro:', error);
+                throw error;
+            }
+        }
+
+        // Preenche o formulário com os dados da promoção
+        function fillFormWithPromotionData(promotion) {
+            document.getElementById('productName').value = promotion.productName || '';
+            document.getElementById('productEan').value = promotion.productEan || '';
+            document.getElementById('productDescription').value = promotion.productDescription || '';
+            document.getElementById('productUnitTypeMessage').value = promotion.productUnitTypeMessage || '';
+            document.getElementById('originalPrice').value = promotion.originalPrice || '';
+            document.getElementById('promotionalPrice').value = promotion.promotionalPrice || '';
+
+            if (promotion.expirationDate) {
+                const date = new Date(promotion.expirationDate);
+                const day = date.getDate().toString().padStart(2, '0');
+                const month = (date.getMonth() + 1).toString().padStart(2, '0');
+                const year = date.getFullYear();
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+
+                document.getElementById('expirationDate').value = `${day}/${month}/${year} ${hours}:${minutes}`;
+            }
+
+            document.getElementById('customerLimit').value = promotion.customerLimit || '';
+            document.getElementById('imageUrl').value = promotion.imageUrl || '';
+            document.getElementById('active').value = promotion.active ? 'true' : 'false';
+            document.getElementById('departmentId').value = promotion.department?.id || '';
+        }
+
+        // Valida se preço promocional é menor que original
+        function validatePrices() {
+            const originalPrice = parseFloat(document.getElementById('originalPrice').value);
+            const promotionalPrice = parseFloat(document.getElementById('promotionalPrice').value);
+
+            if (originalPrice && promotionalPrice && promotionalPrice >= originalPrice) {
+                document.getElementById('promotionalPrice').setCustomValidity('O preço promocional deve ser menor que o original');
+            } else {
+                document.getElementById('promotionalPrice').setCustomValidity('');
+            }
+        }
+
+        async function updatePromotion() {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+            showLoading();
+
+            const promotionId = document.getElementById('promotionId').value;
+
+            try {
+                validatePrices();
+                if (!document.getElementById('promotionForm').checkValidity()) {
+                    throw new Error('Preencha todos os campos obrigatórios corretamente');
+                }
+
+                const expirationDateInput = document.getElementById('expirationDate').value.trim();
+                let expirationDateISO = null;
+
+                if (expirationDateInput) {
+                    const parts = expirationDateInput.split(/[/ :]/);
+                    if (parts.length >= 5) {
+                        const day = parts[0];
+                        const month = parts[1];
+                        const year = parts[2];
+                        const hour = parts[3];
+                        const minute = parts[4];
+
+                        const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
+                        expirationDateISO = new Date(isoString).toISOString();
+                    }
+                }
+
+                const promotionData = {
+                    id: promotionId,
+                    productName: document.getElementById('productName').value.trim(),
+                    productEan: document.getElementById('productEan').value.trim(),
+                    productDescription: document.getElementById('productDescription').value.trim(),
+                    productUnitTypeMessage: document.getElementById('productUnitTypeMessage').value.trim(),
+                    originalPrice: parseFloat(document.getElementById('originalPrice').value),
+                    promotionalPrice: parseFloat(document.getElementById('promotionalPrice').value),
+                    expirationDate: expirationDateISO,
+                    customerLimit: parseInt(document.getElementById('customerLimit').value),
+                    imageUrl: document.getElementById('imageUrl').value.trim() || null,
+                    active: document.getElementById('active').value === 'true',
+                    departmentId: parseInt(document.getElementById('departmentId').value)
+                };
+
+                if (promotionData.promotionalPrice >= promotionData.originalPrice) {
+                    throw new Error('O preço promocional deve ser menor que o original');
+                }
+
+                const response = await fetch(`/api/promotions/${promotionId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(promotionData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao atualizar promoção');
+                }
+
+                showMessage('Promoção atualizada com sucesso!', 'success');
+
+            } catch (error) {
+                console.error('Erro ao atualizar promoção:', error);
+                showMessage('Erro: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function createPromotion() {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+            showLoading();
+
+            try {
+                validatePrices();
+                if (!document.getElementById('promotionForm').checkValidity()) {
+                    throw new Error('Preencha todos os campos obrigatórios corretamente');
+                }
+
+                const expirationDateInput = document.getElementById('expirationDate').value.trim();
+                let expirationDateISO = null;
+
+                if (expirationDateInput) {
+                    const parts = expirationDateInput.split(/[/ :]/);
+                    if (parts.length >= 5) {
+                        const day = parts[0];
+                        const month = parts[1];
+                        const year = parts[2];
+                        const hour = parts[3];
+                        const minute = parts[4];
+
+                        const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
+                        expirationDateISO = new Date(isoString).toISOString();
+                    }
+                }
+
+                const promotionData = {
+                    productName: document.getElementById('productName').value.trim(),
+                    productEan: document.getElementById('productEan').value.trim(),
+                    productDescription: document.getElementById('productDescription').value.trim(),
+                    productUnitTypeMessage: document.getElementById('productUnitTypeMessage').value.trim(),
+                    originalPrice: parseFloat(document.getElementById('originalPrice').value),
+                    promotionalPrice: parseFloat(document.getElementById('promotionalPrice').value),
+                    expirationDate: expirationDateISO,
+                    customerLimit: parseInt(document.getElementById('customerLimit').value),
+                    imageUrl: document.getElementById('imageUrl').value.trim() || null,
+                    active: document.getElementById('active').value === 'true',
+                    departmentId: parseInt(document.getElementById('departmentId').value)
+                };
+
+                if (promotionData.promotionalPrice >= promotionData.originalPrice) {
+                    throw new Error('O preço promocional deve ser menor que o original');
+                }
+
+                const response = await fetch('/api/promotions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(promotionData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao cadastrar promoção');
+                }
+
+                showMessage('Promoção cadastrada com sucesso!', 'success');
+                document.getElementById('promotionForm').reset();
+
+            } catch (error) {
+                console.error('Erro ao cadastrar promoção:', error);
+                showMessage('Erro: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<span>${text}</span>`;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                    if (document.getElementById('promotionId').value) {
+                        window.location.href = 'list-promotions.html';
+                    }
+                }, 3000);
+            } else {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

@@ -223,39 +223,6 @@
         }
     }
 
-    function updateExistingSlide(slideElement, promotion) {
-        // Atualiza a imagem se necessário
-        if (promotion.imageUrl && slideElement.style.backgroundImage !== `url('${promotion.imageUrl}')`) {
-            const img = new Image();
-            img.src = promotion.imageUrl;
-            img.onload = function() {
-                slideElement.style.backgroundImage = `url('${promotion.imageUrl}')`;
-            };
-            img.onerror = function() {
-                console.error("Erro ao carregar imagem:", promotion.imageUrl);
-                slideElement.style.backgroundImage = `url('${defaultImage}')`;
-            };
-        } else if (!promotion.imageUrl) {
-            slideElement.style.backgroundImage = `url('${defaultImage}')`;
-        }
-
-        // Atualiza o conteúdo do slide
-        slideElement.innerHTML = `
-            <div class="promotion-card">
-                <h2>${promotion.productName || 'Produto não especificado'}</h2>
-                <p><strong>de R$:</strong> <originalPrice> ${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
-                <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',')} </promotionalPrice> </p>
-                <p><strong>Promoção válida até:</strong> ${promotion.expirationDate ? new Date(promotion.expirationDate).toLocaleDateString('pt-BR') : 'N/A'}</p>
-            </div>
-        `;
-        
-        // Se o slide estiver ativo, força uma atualização visual
-        if (slideElement.classList.contains('active')) {
-            slideElement.classList.remove('active');
-            setTimeout(() => slideElement.classList.add('active'), 10);
-        }
-    }
-
     function startSlideShow() {
         if (!slideIntervalId) {
             slideIntervalId = setInterval(updateSlideShow, slideInterval);
@@ -378,15 +345,7 @@
             stompClient.subscribe(promotionsTopic, function(message) {
                 try {
                     const promotion = JSON.parse(message.body);
-                    const existingSlide = document.querySelector(`.slide[data-promotion-id="${promotion.id}"]`);
-        
-                    if (existingSlide) {
-                        // Atualiza o slide existente
-                        updateExistingSlide(existingSlide, promotion);
-                    } else {
-                        // Cria um novo slide se for uma promoção nova
-                        showPromotionSlide(promotion);
-                    }
+                    showPromotionSlide(promotion);
                 } catch (e) {
                     console.error("Erro ao processar mensagem:", e);
                 }
