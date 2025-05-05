@@ -1,7 +1,9 @@
 package com.supermarket.promows.service;
 
 import com.supermarket.promows.dto.DepartmentDTO;
+import com.supermarket.promows.exception.DepartmentAlreadyExistsException;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
+import com.supermarket.promows.exception.InconsistentIdException;
 import com.supermarket.promows.model.Department;
 import com.supermarket.promows.repository.DepartmentRepository;
 import jakarta.transaction.Transactional;
@@ -23,8 +25,8 @@ public class DepartmentService {
 
         Optional<Department> existingDepartments = departmentRepository.findBydepartmentName(departmentDTO.getDepartmentName());
 
-        if (!existingDepartments.isEmpty()) {
-            throw new IllegalArgumentException("Já existe um departamento cadastrado com este nome.");
+        if (existingDepartments.isPresent()) {
+            throw new DepartmentAlreadyExistsException(departmentDTO.getDepartmentName());
         }
 
         Department savedDepartment = departmentRepository.save(new Department(departmentDTO));
@@ -32,54 +34,40 @@ public class DepartmentService {
     }
 
     @Transactional
-    public List<Department> getActiveDepartments(){
+    public List<Department> getAllDepartments(){
         List<Department> departments = departmentRepository.findAll();
         return departments;
     }
 
     public Department getDepartmentById(Long id){
-        Optional<Department> loadedDepartment = departmentRepository.findById(id);
-
-        return loadedDepartment.orElseThrow(() -> new DepartmentNotFoundException(id));
+        return departmentRepository.findById(id).orElseThrow(() -> new DepartmentNotFoundException(id));
     }
 
     @Transactional
     public Department updateDepartmentById(DepartmentDTO departmentDTO, Long id) {
-        // Verifica se o ID do path corresponde ao ID do objeto recebido
+
         if (!departmentDTO.getId().equals(id)) {
-            throw new IllegalArgumentException("ID do departamento na requisição não corresponde ao ID do path.");
+            throw new InconsistentIdException("ID do departamento na requisição não corresponde ao ID do path.");
         }
     
-        // Busca o departamento existente
         Department existingDepartment = departmentRepository.findById(id)
             .orElseThrow(() -> new DepartmentNotFoundException(id));
-    
-        // Atualiza apenas os campos permitidos
-        existingDepartment.setDepartmentName(departmentDTO.getDepartmentName());
-        
-        // Validações adicionais (se necessário)
-        if (existingDepartment.getDepartmentName() == null || existingDepartment.getDepartmentName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome do departamento não pode ser vazio");
-        }
-    
-        // Salva as alterações
-        Department updatedDepartment = departmentRepository.save(existingDepartment);
-        
+
         // Se necessário, envia notificação via WebSocket
         // messagingTemplate.convertAndSend("/topic/departments", updatedDepartment);
         
-        return updatedDepartment;
+        existingDepartment.setDepartmentName(departmentDTO.getDepartmentName());
+
+        return departmentRepository.save(existingDepartment);
     }
 
     @Transactional
     public void deleteDepartmentById(Long id) {
         Department loadedDepartment = departmentRepository.findById(id)
             .orElseThrow(() -> new DepartmentNotFoundException(id));
-    
-       // DepartmentDeleteDTO deletedDepartment = new DepartmentDeleteDTO(loadedDepartment.getId());
         
         departmentRepository.delete(loadedDepartment);
         
-        //messagingTemplate.convertAndSend("/topic/deleted-promotions", deletedDepartment);
+        //messagingTemplate.convertAndSend("/topic/deleted-departaments", deletedDepartment);
     }
 }
