@@ -3,9 +3,11 @@ package com.supermarket.promows.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class PromotionDTO {
 
     private String productName;

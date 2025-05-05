@@ -1,9 +1,8 @@
 package com.supermarket.promows.controller;
 
+import com.supermarket.promows.dto.DepartmentDTO;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
-import com.supermarket.promows.exception.PromotionNotFoundException;
 import com.supermarket.promows.model.Department;
-import com.supermarket.promows.model.Promotion;
 import com.supermarket.promows.service.DepartmentService;
 
 import org.springframework.http.HttpStatus;
@@ -24,8 +23,8 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@RequestBody Department department){
-        Department createdDepartment = departmentService.createDepartment(department);
+    public ResponseEntity<Department> createDepartment(@RequestBody DepartmentDTO departmentDTO){
+        Department createdDepartment = departmentService.createDepartment(departmentDTO);
         return new ResponseEntity<Department>(createdDepartment, HttpStatus.CREATED);
     }
 
@@ -49,9 +48,9 @@ public class DepartmentController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartmentById(@RequestBody Department department, @PathVariable Long id) {
+    public ResponseEntity<Department> updateDepartmentById(@RequestBody DepartmentDTO departmentDTO, @PathVariable Long id) {
         
-        Department updatedDepartment = departmentService.updateDepartmentById(department, id);
+        Department updatedDepartment = departmentService.updateDepartmentById(departmentDTO, id);
 
         if (updatedDepartment != null) {
             return new ResponseEntity<>(updatedDepartment, HttpStatus.OK);

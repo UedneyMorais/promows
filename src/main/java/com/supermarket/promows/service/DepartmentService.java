@@ -1,5 +1,6 @@
 package com.supermarket.promows.service;
 
+import com.supermarket.promows.dto.DepartmentDTO;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
 import com.supermarket.promows.model.Department;
 import com.supermarket.promows.repository.DepartmentRepository;
@@ -18,8 +19,15 @@ public class DepartmentService {
     }
 
     @Transactional
-    public Department createDepartment(Department department){
-        Department savedDepartment = departmentRepository.save(department);
+    public Department createDepartment(DepartmentDTO departmentDTO){
+
+        Optional<Department> existingDepartments = departmentRepository.findBydepartmentName(departmentDTO.getDepartmentName());
+
+        if (!existingDepartments.isEmpty()) {
+            throw new IllegalArgumentException("Já existe um departamento cadastrado com este nome.");
+        }
+
+        Department savedDepartment = departmentRepository.save(new Department(departmentDTO));
         return savedDepartment;
     }
 
@@ -36,9 +44,9 @@ public class DepartmentService {
     }
 
     @Transactional
-    public Department updateDepartmentById(Department updatedDepartmentData, Long id) {
+    public Department updateDepartmentById(DepartmentDTO departmentDTO, Long id) {
         // Verifica se o ID do path corresponde ao ID do objeto recebido
-        if (!updatedDepartmentData.getId().equals(id)) {
+        if (!departmentDTO.getId().equals(id)) {
             throw new IllegalArgumentException("ID do departamento na requisição não corresponde ao ID do path.");
         }
     
@@ -47,7 +55,7 @@ public class DepartmentService {
             .orElseThrow(() -> new DepartmentNotFoundException(id));
     
         // Atualiza apenas os campos permitidos
-        existingDepartment.setDepartmentName(updatedDepartmentData.getDepartmentName());
+        existingDepartment.setDepartmentName(departmentDTO.getDepartmentName());
         
         // Validações adicionais (se necessário)
         if (existingDepartment.getDepartmentName() == null || existingDepartment.getDepartmentName().trim().isEmpty()) {

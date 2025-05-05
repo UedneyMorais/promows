@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.supermarket.promows.dto.DepartmentDTO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,5 +28,13 @@ public class Department {
     @OneToMany(mappedBy = "department")
     @JsonIgnore // Isso evita a serialização da lista de promoções
     private List<Promotion> promotions = new ArrayList<Promotion>();
+
+    public Department() {
+    }
+
+
+    public Department(DepartmentDTO departmentDTO) {
+        this.departmentName = departmentDTO.getDepartmentName();
+    }
     
 }
