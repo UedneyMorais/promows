@@ -44,34 +44,14 @@ public class DepartmentService {
     }
 
     @Transactional
-<<<<<<< HEAD
-    public Department updateDepartmentById(Department updatedDepartmentData, Long id) {
-
-        if (!updatedDepartmentData.getId().equals(id)) {
-            throw new IllegalArgumentException("ID do departamento na requisição não corresponde ao ID do path.");
-=======
     public Department updateDepartmentById(DepartmentDTO departmentDTO, Long id) {
 
         if (!departmentDTO.getId().equals(id)) {
             throw new InconsistentIdException("ID do departamento na requisição não corresponde ao ID do path.");
->>>>>>> dev_um_adjustExceptions
         }
     
         Department existingDepartment = departmentRepository.findById(id)
             .orElseThrow(() -> new DepartmentNotFoundException(id));
-<<<<<<< HEAD
-    
-        existingDepartment.setDepartmentName(updatedDepartmentData.getDepartmentName());
-
-        if (existingDepartment.getDepartmentName() == null || existingDepartment.getDepartmentName().trim().isEmpty()) {
-            throw new IllegalArgumentException("Nome do departamento não pode ser vazio");
-        }
-    
-        Department updatedDepartment = departmentRepository.save(existingDepartment);
-        
-=======
-
->>>>>>> dev_um_adjustExceptions
         // Se necessário, envia notificação via WebSocket
         // messagingTemplate.convertAndSend("/topic/departments", updatedDepartment);
         
