@@ -238,8 +238,8 @@
                 slide.innerHTML = `
                     <div class="promotion-card">
                         <h2>${promotion.productName || 'Promoção'}</h2>
-                        <p><strong>de R$:</strong> ${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')}</p>
-                        <p><strong>por R$:</strong> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',')}</p>
+                        <p><strong>de R$:</strong> <originalPrice>${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
+                        <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',') }</promotionalPrice></p>
                         ${promotion.expirationDate ? `<p><strong>Válido até:</strong> ${new Date(promotion.expirationDate).toLocaleDateString('pt-BR')}</p>` : ''}
                     </div>
                 `;
@@ -490,12 +490,6 @@
             document.body.appendChild(overlay);
         }
 
-// No event listener de load:
-window.addEventListener('load', async () => {
-    await loadDepartments();
-    // ... resto da inicialização ...
-        showFullscreenPrompt(); // Em vez de enterFullscreenAutomatically()
-        });
 
         // ============= INICIALIZAÇÃO =============
         window.addEventListener('load', async () => {
@@ -517,7 +511,7 @@ window.addEventListener('load', async () => {
             connect();
 
             // Tenta entrar em tela cheia automaticamente após um pequeno delay
-            setTimeout(enterFullscreenAutomatically, 1000);
+            showFullscreenPrompt();
             
             // Verifica promoções expiradas a cada minuto
             setInterval(() => {

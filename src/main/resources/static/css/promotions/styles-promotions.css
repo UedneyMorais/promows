@@ -125,7 +125,7 @@ html, body {
   font-weight: 400;
 }
 
-.promotion-card .promotionalPrice {
+.promotion-card promotionalPrice {
   user-select: none; /* Padrão moderno */
   -webkit-user-select: none; /* Chrome/Safari */
   -moz-user-select: none; /* Firefox */
