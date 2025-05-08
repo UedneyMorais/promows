@@ -1,9 +1,7 @@
 package com.supermarket.promows.controller;
 
-import com.supermarket.promows.exception.DepartmentNotFoundException;
-import com.supermarket.promows.exception.PromotionNotFoundException;
+import com.supermarket.promows.dto.DepartmentDTO;
 import com.supermarket.promows.model.Department;
-import com.supermarket.promows.model.Promotion;
 import com.supermarket.promows.service.DepartmentService;
 
 import org.springframework.http.HttpStatus;
@@ -24,49 +22,33 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@RequestBody Department department){
-        Department createdDepartment = departmentService.createDepartment(department);
-        return new ResponseEntity<Department>(createdDepartment, HttpStatus.CREATED);
+    public ResponseEntity<Department> createDepartment(@RequestBody DepartmentDTO departmentDTO){
+        Department createdDepartment = departmentService.createDepartment(departmentDTO);
+        return new ResponseEntity<>(createdDepartment, HttpStatus.CREATED);
     }
 
 
     @GetMapping
-    public List<Department> getActiveDepartments() {
-        List<Department> departments = departmentService.getActiveDepartments();
-        return departments;
+    public ResponseEntity<List<Department>> getActiveDepartments() {
+        List<Department> departments = departmentService.getAllDepartments();
+        return new ResponseEntity<>(departments, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) {
-        
+    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) { 
         Department loadedDepartment = departmentService.getDepartmentById(id);
-
-        if (loadedDepartment != null) {
-            return new ResponseEntity<>(loadedDepartment, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return new ResponseEntity<>(loadedDepartment, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartmentById(@RequestBody Department department, @PathVariable Long id) {
-        
-        Department updatedDepartment = departmentService.updateDepartmentById(department, id);
-
-        if (updatedDepartment != null) {
-            return new ResponseEntity<>(updatedDepartment, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<Department> updateDepartmentById(@RequestBody DepartmentDTO departmentDTO, @PathVariable Long id) {
+        Department updatedDepartment = departmentService.updateDepartmentById(departmentDTO, id);
+        return new ResponseEntity<>(updatedDepartment, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteDepartmentById(@PathVariable Long id) {
-        try {
             departmentService.deleteDepartmentById(id);
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        } catch (DepartmentNotFoundException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
     }
 }

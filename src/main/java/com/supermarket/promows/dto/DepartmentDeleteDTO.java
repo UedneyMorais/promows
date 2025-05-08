@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class DepartmentDeleteDTO {
+    
     private Long id;
 
     public DepartmentDeleteDTO(Long id) {
