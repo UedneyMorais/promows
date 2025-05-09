@@ -70,6 +70,7 @@ public class PromotionService {
     public List<Promotion> getAndSendValidPromotions() {
         List<Promotion> activePromotions = promotionRepository.findAll().stream()
                 .filter(Promotion::isActive)
+                .filter(promotion -> promotion.getExpirationDate() != null && promotion.getExpirationDate().isAfter(java.time.LocalDateTime.now()))
                 .collect(Collectors.toList());
 
         if (!activePromotions.isEmpty()) {
@@ -87,28 +88,28 @@ public class PromotionService {
     }
 
     @Transactional
-    public Promotion updatePromotionById(Promotion promotion, Long id) {
+    public Promotion updatePromotionById(PromotionDTO promotionDTO, Long id) {
         Optional<Promotion> loadedPromotionOptional = promotionRepository.findById(id);
 
         Promotion loadedPromotion = loadedPromotionOptional.orElseThrow(() -> new PromotionNotFoundException(id));
 
-        if (!promotion.getId().equals(id)) {
-            throw new IllegalArgumentException("ID da promoção na requisição não corresponde ao ID do path.");
-        }
+        // if (!promotionDTO.getId().equals(id)) {
+        //     throw new IllegalArgumentException("ID da promoção na requisição não corresponde ao ID do path.");
+        // }
 
-         Long departmentId = loadedPromotion.getDepartment().getId(); 
+         Long departmentId = promotionDTO.getDepartmentId(); 
          Department department = departmentRepository.findById(departmentId)
                  .orElseThrow(() -> new DepartmentNotFoundException(departmentId)); 
-        loadedPromotion.setProductName(promotion.getProductName());
-        loadedPromotion.setProductEan(promotion.getProductEan());
-        loadedPromotion.setProductDescription(promotion.getProductDescription());
-        loadedPromotion.setProductUnitTypeMessage(promotion.getProductUnitTypeMessage());
-        loadedPromotion.setOriginalPrice(promotion.getOriginalPrice());
-        loadedPromotion.setPromotionalPrice(promotion.getPromotionalPrice());
-        loadedPromotion.setExpirationDate(promotion.getExpirationDate());
-        loadedPromotion.setCustomerLimit(promotion.getCustomerLimit());
-        loadedPromotion.setImageUrl(promotion.getImageUrl());
-        loadedPromotion.setActive(promotion.isActive());
+        loadedPromotion.setProductName(promotionDTO.getProductName());
+        loadedPromotion.setProductEan(promotionDTO.getProductEan());
+        loadedPromotion.setProductDescription(promotionDTO.getProductDescription());
+        loadedPromotion.setProductUnitTypeMessage(promotionDTO.getProductUnitTypeMessage());
+        loadedPromotion.setOriginalPrice(promotionDTO.getOriginalPrice());
+        loadedPromotion.setPromotionalPrice(promotionDTO.getPromotionalPrice());
+        loadedPromotion.setExpirationDate(promotionDTO.getExpirationDate());
+        loadedPromotion.setCustomerLimit(promotionDTO.getCustomerLimit());
+        loadedPromotion.setImageUrl(promotionDTO.getImageUrl());
+        loadedPromotion.setActive(promotionDTO.isActive());
         loadedPromotion.setDepartment(department);
 
         Promotion updatedPromotion = promotionRepository.save(loadedPromotion);

@@ -52,9 +52,9 @@ public class PromotionController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Promotion> updatePromotionById(@RequestBody Promotion promotion, @PathVariable Long id) {
+    public ResponseEntity<Promotion> updatePromotionById(@RequestBody PromotionDTO promotionDTO, @PathVariable Long id) {
         
-        Promotion updatedPromotion = promotionService.updatePromotionById(promotion, id);
+        Promotion updatedPromotion = promotionService.updatePromotionById(promotionDTO, id);
 
         if (updatedPromotion != null) {
             return new ResponseEntity<>(updatedPromotion, HttpStatus.OK);
