@@ -52,7 +52,7 @@ public class PromotionService {
             Promotion savedPromotion = promotionRepository.save(promotion);
 
 
-        messagingTemplate.convertAndSend("/topic/promotions", savedPromotion);
+            getAndSendValidPromotions();
         return savedPromotion;
     }
 
@@ -64,21 +64,19 @@ public class PromotionService {
 
     @Transactional
     public List<Promotion> getAllValidPromotions(){
-        List<Promotion> promotions = promotionRepository.findAll();
-        List<Promotion> activePromotions = promotions.stream()
+        return getAndSendValidPromotions();
+    }
+
+    public List<Promotion> getAndSendValidPromotions() {
+        List<Promotion> activePromotions = promotionRepository.findAll().stream()
                 .filter(Promotion::isActive)
                 .collect(Collectors.toList());
 
         if (!activePromotions.isEmpty()) {
-            // Envia cada promoção ativa individualmente (consistente com createPromotion)
-            activePromotions.forEach(promo ->
-                    messagingTemplate.convertAndSend("/topic/promotions", promo));
-
-            // Ou alternativamente, envie a lista completa uma vez
-            // messagingTemplate.convertAndSend("/topic/promotions", activePromotions);
+            messagingTemplate.convertAndSend("/topic/promotions", activePromotions);
         }
 
-        return promotions;
+        return activePromotions; 
     }
 
 
@@ -116,7 +114,9 @@ public class PromotionService {
         Promotion updatedPromotion = promotionRepository.save(loadedPromotion);
     
         // Envia a promoção atualizada via WebSocket
-        messagingTemplate.convertAndSend("/topic/promotions", updatedPromotion);
+        //messagingTemplate.convertAndSend("/topic/promotions", updatedPromotion);
+
+        getAndSendValidPromotions();
         
         return updatedPromotion;
     }
@@ -125,15 +125,14 @@ public class PromotionService {
     public void deletePromotionById(Long id) {
         Promotion loadedPromotion = promotionRepository.findById(id)
             .orElseThrow(() -> new PromotionNotFoundException(id));
-    
-        PromotionDeleteDTO deletedPromotion = new PromotionDeleteDTO(loadedPromotion.getId());
         
         promotionRepository.delete(loadedPromotion);
         
-        messagingTemplate.convertAndSend("/topic/deleted-promotions", deletedPromotion);
+        //messagingTemplate.convertAndSend("/topic/deleted-promotions", deletedPromotion);
+        getAndSendValidPromotions();
     }
 
-    public void broadcastPromotion(Promotion promotion){
-        messagingTemplate.convertAndSend("/topic/promotions", promotion);
-    }
+    // public void broadcastPromotion(Promotion promotion){
+    //     //messagingTemplate.convertAndSend("/topic/promotions", promotion);
+    // }
 }

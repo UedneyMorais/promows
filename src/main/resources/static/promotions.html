@@ -390,48 +390,61 @@ body.fullscreen-no-cursor {
 
         async function loadValidPromotions() {
             try {
-                const response = await fetch('/api/promotions/valid');
-                if (!response.ok) throw new Error('Erro ao carregar promoções');
+
+                await fetch('/api/promotions/valid');
+                // const response = await fetch('/api/promotions/valid');
+                // if (!response.ok) throw new Error('Erro ao carregar promoções');
                 
-                const promotions = await response.json();
-                // promotions.filter(promotion => isPromotionValid(promotion))
-                promotions.forEach(promotion => showPromotionSlide(promotion));
+                // const promotions = await response.json();
+                // promotions.forEach(promotion => console.log(promotion));
+
+
+                // // promotions.filter(promotion => isPromotionValid(promotion))
+                // promotions.forEach(promotion => showPromotionSlide(promotion));
             } catch (error) {
                 console.error('Erro ao carregar promoções:', error);
             }
         }
 
-        function showPromotionSlide(promotion) {
+        function showPromotionSlide(promotions) {
             //if (!isPromotionValid(promotion)) return;
-
-            const promoDept = formatDepartmentName(promotion.department.departmentName);
-            const shouldShow = state.selectedDepartment === 'ALL' || promoDept === state.selectedDepartment;
             
-            if (shouldShow && !state.activePromotionIds.has(promotion.id)) {
-                state.activePromotionIds.add(promotion.id);
-                elements.welcomeMessage.style.display = 'none';
+            if(promotions){
 
-                const slide = document.createElement('div');
-                slide.className = 'slide';
-                slide.dataset.promotionId = promotion.id;
-                slide.style.backgroundImage = `url('${promotion.imageUrl || defaultImage}')`;
-                
-                slide.innerHTML = `
-                    <div class="promotion-card">
-                        <h2>${promotion.productName || 'Promoção'}</h2>
-                        <p><strong>de R$:</strong> <originalPrice>${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
-                        <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',') }</promotionalPrice></p>
-                        ${promotion.expirationDate ? `<p><strong>Válido até:</strong> ${new Date(promotion.expirationDate).toLocaleDateString('pt-BR')}</p>` : ''}
-                    </div>
-                `;
+                resetSlider();
 
-                elements.slider.appendChild(slide);
-                
-                if (document.querySelectorAll('.slide').length === 1) {
-                    startSlideShow();
-                    slide.classList.add('active');
-                    state.currentSlide = 0;
-                }
+
+                promotions.forEach(promotion => {
+                    const promoDept = formatDepartmentName(promotion.department.departmentName);
+                    const shouldShow = state.selectedDepartment === 'ALL' || promoDept === state.selectedDepartment;
+
+                    if (shouldShow && !state.activePromotionIds.has(promotion.id)) {
+                        state.activePromotionIds.add(promotion.id);
+                        elements.welcomeMessage.style.display = 'none';
+
+                        const slide = document.createElement('div');
+                        slide.className = 'slide';
+                        slide.dataset.promotionId = promotion.id;
+                        slide.style.backgroundImage = `url('${promotion.imageUrl || defaultImage}')`;
+
+                        slide.innerHTML = `
+                            <div class="promotion-card">
+                                <h2>${promotion.productName || 'Promoção'}</h2>
+                                <p><strong>de R$:</strong> <originalPrice>${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
+                                <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',') }</promotionalPrice></p>
+                                ${promotion.expirationDate ? `<p><strong>Válido até:</strong> ${new Date(promotion.expirationDate).toLocaleDateString('pt-BR')}</p>` : ''}
+                            </div>
+                        `;
+
+                        elements.slider.appendChild(slide);
+                        
+                        if (document.querySelectorAll('.slide').length === 1) {
+                            startSlideShow();
+                            slide.classList.add('active');
+                            state.currentSlide = 0;
+                        }
+                    }
+            })
             }
         }
 
@@ -441,14 +454,14 @@ body.fullscreen-no-cursor {
                 elements.progressCircle.style.strokeDasharray = state.circumference;
                 updateProgressCircle(100);
                 state.timeLeft = state.slideInterval / 1000; // Converte para segundos
-                
+
                 // Atualiza o contador a cada 100ms
                 state.progressIntervalId = setInterval(() => {
                     state.timeLeft -= 0.1;
                     const progress = (state.timeLeft / (state.slideInterval / 1000)) * 100;
                     updateProgressCircle(progress);
                 }, 100);
-                
+
                 state.slideIntervalId = setInterval(() => {
                     updateSlideShow();
                     state.timeLeft = state.slideInterval / 1000; // Reseta o contador
@@ -459,13 +472,12 @@ body.fullscreen-no-cursor {
 
         function updateSlideShow() {
             const slides = document.querySelectorAll('.slide');
-            
+
             if (slides.length === 0) {
                 elements.welcomeMessage.style.display = 'flex';
                 stopSlideShow();
                 return;
             }
-
             slides.forEach(slide => slide.classList.remove('active'));
             state.currentSlide = (state.currentSlide + 1) % slides.length;
             slides[state.currentSlide].classList.add('active');
@@ -484,7 +496,7 @@ body.fullscreen-no-cursor {
         function updateProgressCircle(percent) {
             const offset = state.circumference - (percent / 100) * state.circumference;
             elements.progressCircle.style.strokeDashoffset = offset;
-            
+
             // Muda a cor quando está perto de acabar
             if (percent < 20) {
                 elements.progressCircle.style.stroke = '#f44336';
@@ -493,64 +505,63 @@ body.fullscreen-no-cursor {
             }
         }
 
+        // ============= FUNÇÕES DE TELA CHEIA =============    
 
-    // ============= FUNÇÕES DE TELA CHEIA =============    
+        /** Alterna entre tela cheia e normal */
+        function toggleFullscreen() {
+                if (!state.isFullscreen) {
+                    document.documentElement.requestFullscreen()
+                        .then(() => {
+                            state.isFullscreen = true;
+                            document.addEventListener('mousemove', handleMouseMove);
+                            resetHideTimeout();
+                        })
+                        .catch(err => {
+                            console.error("Erro ao entrar em tela cheia:", err);
+                        });
+                } else {
+                    document.exitFullscreen();
+                }
+        }
 
-    /** Alterna entre tela cheia e normal */
-    function toggleFullscreen() {
-            if (!state.isFullscreen) {
-                document.documentElement.requestFullscreen()
+        /** Entra em modo tela cheia */
+        function enterFullscreen() {
+            const element = document.documentElement;
+            if (element.requestFullscreen) {
+                element.requestFullscreen()
                     .then(() => {
-                        state.isFullscreen = true;
-                        document.addEventListener('mousemove', handleMouseMove);
-                        resetHideTimeout();
+                        isFullscreen = true;
+                        hideControls();
                     })
                     .catch(err => {
                         console.error("Erro ao entrar em tela cheia:", err);
+                        showFullscreenButton();
                     });
-            } else {
+            }
+        }
+
+        /** Sai do modo tela cheia */
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
                 document.exitFullscreen();
             }
-    }
-
-    /** Entra em modo tela cheia */
-    function enterFullscreen() {
-        const element = document.documentElement;
-        if (element.requestFullscreen) {
-            element.requestFullscreen()
-                .then(() => {
-                    isFullscreen = true;
-                    hideControls();
-                })
-                .catch(err => {
-                    console.error("Erro ao entrar em tela cheia:", err);
-                    showFullscreenButton();
-                });
+            isFullscreen = false;
+            showControls();
         }
-    }
 
-    /** Sai do modo tela cheia */
-    function exitFullscreen() {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
+        /** Mostra o botão de tela cheia */
+        function showFullscreenButton() {
+            fullscreenBtn.style.display = 'block';
+            fullscreenBtn.textContent = 'TELA CHEIA';
         }
-        isFullscreen = false;
-        showControls();
-    }
 
-    /** Mostra o botão de tela cheia */
-    function showFullscreenButton() {
-        fullscreenBtn.style.display = 'block';
-        fullscreenBtn.textContent = 'TELA CHEIA';
-    }
+        /** Esconde o botão de tela cheia */
+        function hideFullscreenButton() {
+            fullscreenBtn.style.display = 'none';
+        }
 
-    /** Esconde o botão de tela cheia */
-    function hideFullscreenButton() {
-        fullscreenBtn.style.display = 'none';
-    }
-
-    /** Esconde os controles na tela cheia */
-    function hideControls() {
+        /** Esconde os controles na tela cheia */
+        function hideControls() {
             const controls = [
                 elements.status,
                 elements.reconnectBtn,
@@ -563,13 +574,13 @@ body.fullscreen-no-cursor {
             controls.forEach(control => {
                 if (control) control.classList.add('controls-hidden');
             });
-
+    
             // Esconde o cursor do mouse
             document.body.classList.add('fullscreen-no-cursor');
-    }
+        }
 
-    /** Mostra os controles na tela cheia */
-    function showControls() {
+        /** Mostra os controles na tela cheia */
+        function showControls() {
         const controls = [
             elements.status,
             elements.reconnectBtn,
@@ -624,6 +635,8 @@ body.fullscreen-no-cursor {
                         // if (isPromotionValid(promotion)) {
                         //     showPromotionSlide(promotion);
                         // }
+                        //resetSlider();
+                        
 
                         showPromotionSlide(promotion);
                     } catch (e) {

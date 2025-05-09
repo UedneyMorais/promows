@@ -35,8 +35,8 @@ public class PromotionController {
 
     @GetMapping("/valid")
     public List<Promotion> getAllValidPromotions() {
-        List<Promotion> promotions = promotionService.getAllValidPromotions();
-        return promotions;
+        List<Promotion> validPromotions = promotionService.getAllValidPromotions();
+        return validPromotions;
     }
 
     @GetMapping("/{id}")
