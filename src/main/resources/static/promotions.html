@@ -1,120 +1,273 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>PromoWS - Promoções em Slide</title>
-    <link rel="stylesheet" href="./css/promotions/styles-promotions.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins&display=swap" rel="stylesheet">
+
     <style>
-        /* Estilos otimizados */
-        .status {
+html, body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  height: 100%;
+  font-family: Arial, sans-serif;
+  background-color: #000;
+  color: #fff;
+}
+
+.status {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 1000;
+  background-color: rgba(0,0,0,0.7);
+  transition: opacity 0.5s ease;
+}
+
+.connected { color: #28a745; }
+.disconnected { color: #dc3545; }
+.connecting { color: #ffc107; }
+
+#reconnect-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    z-index: 1000;
+    display: none;
+    transition: opacity 0.5s ease;
+}
+
+#department-selector {
+  position: absolute;
+  top: 60px;
+  left: 10px;
+  padding: 10px;
+  z-index: 1000;
+  background-color: rgba(0,0,0,0.7);
+  border-radius: 5px;
+}
+
+#department-selector select {
+  padding: 8px;
+  font-size: 16px;
+  border-radius: 5px;
+  background-color: #333;
+  color: white;
+  border: 1px solid #555;
+}
+
+#goto-menu, #reconnect-btn {
             position: fixed;
             top: 10px;
-            left: 10px;
             padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: bold;
-            z-index: 1000;
-        }
-        
-        .connected { background-color: #4CAF50; color: white; }
-        .disconnected { background-color: #f44336; color: white; }
-        .connecting { background-color: #FFC107; color: black; }
-        
-        #fullscreen-btn {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            padding: 10px 20px;
-            background-color: #2196F3;
-            color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 20px;
             cursor: pointer;
             z-index: 1000;
         }
         
-        #department-selector {
-            position: fixed;
-            top: 50px;
-            left: 10px;
-            z-index: 1000;
-        }
+#goto-menu {
+    left: 200px;
+    background-color: rgb(48, 47, 47);
+    color: white;
+}
+        
 
-        #goto-menu, #reconnect-btn {
-            position: fixed;
-            top: 10px;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-        
-        #goto-menu {
-            left: 200px;
-            background-color: rgb(48, 47, 47);
-            color: white;
-        }
-        
-        #reconnect-btn {
-            right: 10px;
-            background-color: #9E9E9E;
-            color: white;
-            display: none;
-        }
-        
-        .controls-hidden { opacity: 0; transition: opacity 0.5s; }
-        
-        #welcome-message, .slide {
-            transition: all 0.5s ease;
-        }
+#slider {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
 
-        /* Estilos do contador de progresso */
-        .slide-progress {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            width: 50px;
-            height: 50px;
-            z-index: 1000;
-        }
-        
-        .progress-circle {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-        
-        .progress-circle-bg {
-            fill: none;
-            stroke: rgba(255, 255, 255, 0.2);
-            stroke-width: 4;
-        }
-        
-        .progress-circle-fill {
-            fill: none;
-            stroke: #2196F3;
-            stroke-width: 4;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 0.1s linear;
-        }
+.slide {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  transition: opacity 1s ease-in-out;
+  opacity: 0;
+}
+
+.slide.active {
+  opacity: 1;
+  z-index: 1;
+}
+
+.slide, .promotion-card {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+}
+
+.promotion-card {
+  width: 90%;
+  height: 90%;
+  box-sizing: border-box;
+  padding: 2vh 5vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.6);
+  text-align: center;
+  overflow: hidden;
+}
+
+.promotion-card h2 {
+  font-size: 15vmin; /* Usando vmin para melhor responsividade */
+  margin: 1vh 0;
+  color: #fca311;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  max-width: 100%;
+  word-break: break-word;
+  line-height: 1.2;
+}
+
+.promotion-card originalPrice {
+  font-size: 5vmin;
+  margin: 1vh 0;
+  color: #fff;
+  text-decoration: line-through;
+  text-decoration-thickness: 0.3vmin;
+  opacity: 0.8;
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+}
+
+.promotion-card promotionalPrice {
+  user-select: none; /* Padrão moderno */
+  -webkit-user-select: none; /* Chrome/Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE/Edge */
+  font-size: 18vmin;
+  margin: 1vh 0;
+  font-weight: bold;
+  color: #fca311;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  font-family: "Poppins", sans-serif;
+  font-weight: 400;
+  line-height: 1;
+  max-width: 100%;
+}
+
+.promotion-card .department {
+  font-size: 4vmin;
+  color: #e63946;
+  margin-bottom: 2vh;
+}
+
+.promotion-card p {
+  font-size: 4vmin;
+  margin: 1vh 0;
+  max-width: 100%;
+  word-break: break-word;
+}
+
+#fullscreen-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  padding: 15px 25px;
+  background-color: rgba(255, 165, 0, 0.8);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 10000;
+  font-size: 16px;
+  font-weight: bold;
+  transition: opacity 0.5s ease;
+}
+
+#fullscreen-btn:hover {
+  background-color: rgba(255, 165, 0, 1);
+}
+
+.controls-hidden {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+#welcome-message {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7);
+  z-index: 10;
+  font-size: 10vmin;
+  color: #fca311;
+  text-align: center;
+  padding: 20px;
+  word-break: break-word;
+}
+
+.slide-progress {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  width: 50px;
+  height: 50px;
+  z-index: 1000;
+  transition: opacity 0.5s;
+}
+
+.progress-circle {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.progress-circle-bg {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.2);
+  stroke-width: 4;
+}
+
+.progress-circle-fill {
+  fill: none;
+  stroke: #2196F3;
+  stroke-width: 4;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.1s linear;
+}
+
+body.fullscreen-no-cursor {
+  cursor: none;
+}
+
     </style>
 </head>
 <body>
-    <!-- Interface simplificada -->
     <div id="status" class="status disconnected">Desconectado</div>
     <button id="reconnect-btn">Reconectar</button>
-
     <div id="department-selector">
         <div id="department-loading">Carregando departamentos...</div>
         <select id="department-select" style="display: none;"></select>
     </div>
-    
     <button id="goto-menu">Menu</button>
     <button id="fullscreen-btn">TELA CHEIA</button>
     <div id="welcome-message">Seja bem-vindo!<br>Fique atento às nossas promoções</div>
@@ -128,15 +281,17 @@
         </svg>
     </div>
 
-    <!-- Apenas STOMP.js necessário -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
 
+    <!-- Bibliotecas externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script>
-        // ============= CONFIGURAÇÕES =============
+        // ============= CONFIGURAÇÕES GLOBAIS =============
         const serverAddress = window.location.hostname;
         const serverPort = window.location.port || '9090';
         const socketEndpoint = `ws://${serverAddress}:${serverPort}/ws-promotions`;
         const promotionsTopic = "/topic/promotions";
+        //const deletedPromotionsTopic = "/topic/deleted-promotions";
         const defaultImage = "https://cdn.pixabay.com/photo/2018/08/30/14/46/food-3642376_1280.jpg";
 
         // ============= ELEMENTOS DOM =============
@@ -168,16 +323,29 @@
             circumference: 2 * Math.PI * 16 // Circunferência do círculo (2πr)
         };
 
-        // ============= FUNÇÕES PRINCIPAIS =============
+
+        // ============= VARIÁVEIS GLOBAIS =============
+        let stompClient = null;
+        let currentSlide = 0;
+        const slideInterval = 8000; // Intervalo entre slides (8 segundos)
+        let mouseTimeout;
+        const hideDelay = 3000; // Tempo para esconder controles em tela cheia
+        let isFullscreen = false;
+        let selectedDepartment = null;
+        let activePromotionIds = new Set(); // Armazena IDs de promoções ativas
+        let slideIntervalId = null;
+
+        // ============= FUNÇÕES AUXILIARES =============
         function formatDepartmentName(name) {
-            return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                   .replace(/[^a-zA-Z\s]/g, '').toUpperCase();
+            return name
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
+                .replace(/[^a-zA-Z\s]/g, '') // Remove caracteres especiais
+                .toUpperCase(); // Padroniza para maiúsculas
         }
 
-        function isPromotionValid(promotion) {
-            if (!promotion.active) return false;
-            if (!promotion.expirationDate) return true;
-            return new Date() <= new Date(promotion.expirationDate);
+        function setStatus(status, message) {
+            elements.status.textContent = message;
+            elements.status.className = `status ${status}`;
         }
 
         function resetSlider() {
@@ -220,8 +388,21 @@
             }
         }
 
+        async function loadValidPromotions() {
+            try {
+                const response = await fetch('/api/promotions/valid');
+                if (!response.ok) throw new Error('Erro ao carregar promoções');
+                
+                const promotions = await response.json();
+                // promotions.filter(promotion => isPromotionValid(promotion))
+                promotions.forEach(promotion => showPromotionSlide(promotion));
+            } catch (error) {
+                console.error('Erro ao carregar promoções:', error);
+            }
+        }
+
         function showPromotionSlide(promotion) {
-            if (!isPromotionValid(promotion)) return;
+            //if (!isPromotionValid(promotion)) return;
 
             const promoDept = formatDepartmentName(promotion.department.departmentName);
             const shouldShow = state.selectedDepartment === 'ALL' || promoDept === state.selectedDepartment;
@@ -251,76 +432,6 @@
                     slide.classList.add('active');
                     state.currentSlide = 0;
                 }
-            }
-        }
-
-        // ============= WEBSOCKET =============
-        function connect() {
-            setStatus("connecting", "Conectando...");
-            elements.reconnectBtn.style.display = 'none';
-
-            if (state.stompClient && state.stompClient.connected) {
-                state.stompClient.disconnect();
-            }
-
-            const socket = new WebSocket(socketEndpoint);
-            state.stompClient = Stomp.over(socket);
-            state.stompClient.debug = () => {};
-
-            state.stompClient.connect({}, 
-                () => {
-                    setStatus("connected", `Conectado - ${new Date().toLocaleTimeString()}`);
-                    elements.reconnectBtn.style.display = 'none';
-                    loadExistingPromotions();
-
-                    state.stompClient.subscribe(promotionsTopic, message => {
-                        try {
-                            const promotion = JSON.parse(message.body);
-                            if (isPromotionValid(promotion)) {
-                                showPromotionSlide(promotion);
-                            }
-                        } catch (e) {
-                            console.error("Erro ao processar mensagem:", e);
-                        }
-                    });
-                },
-                (error) => {
-                    console.error("Erro na conexão:", error);
-                    setStatus("disconnected", "Falha na conexão");
-                    elements.reconnectBtn.style.display = 'block';
-                    setTimeout(connect, 5000);
-                }
-            );
-        }
-
-        // ============= FUNÇÕES AUXILIARES =============
-        function setStatus(status, message) {
-            elements.status.textContent = message;
-            elements.status.className = `status ${status}`;
-        }
-
-        async function loadExistingPromotions() {
-            try {
-                const response = await fetch('/api/promotions');
-                if (!response.ok) throw new Error('Erro ao carregar promoções');
-                
-                const promotions = await response.json();
-                promotions.filter(promotion => isPromotionValid(promotion))
-                         .forEach(promotion => showPromotionSlide(promotion));
-            } catch (error) {
-                console.error('Erro ao carregar promoções:', error);
-            }
-        }
-
-        function updateProgressCircle(percent) {
-            const offset = state.circumference - (percent / 100) * state.circumference;
-            elements.progressCircle.style.strokeDashoffset = offset;
-            
-            // Muda a cor quando está perto de acabar
-            if (percent < 20) {
-                elements.progressCircle.style.stroke = '#f44336';
-            } else {
-                elements.progressCircle.style.stroke = '#2196F3';
             }
         }
 
@@ -370,7 +481,76 @@
             }
         }
 
-        function hideControls() {
+        function updateProgressCircle(percent) {
+            const offset = state.circumference - (percent / 100) * state.circumference;
+            elements.progressCircle.style.strokeDashoffset = offset;
+            
+            // Muda a cor quando está perto de acabar
+            if (percent < 20) {
+                elements.progressCircle.style.stroke = '#f44336';
+            } else {
+                elements.progressCircle.style.stroke = '#2196F3';
+            }
+        }
+
+
+    // ============= FUNÇÕES DE TELA CHEIA =============    
+
+    /** Alterna entre tela cheia e normal */
+    function toggleFullscreen() {
+            if (!state.isFullscreen) {
+                document.documentElement.requestFullscreen()
+                    .then(() => {
+                        state.isFullscreen = true;
+                        document.addEventListener('mousemove', handleMouseMove);
+                        resetHideTimeout();
+                    })
+                    .catch(err => {
+                        console.error("Erro ao entrar em tela cheia:", err);
+                    });
+            } else {
+                document.exitFullscreen();
+            }
+    }
+
+    /** Entra em modo tela cheia */
+    function enterFullscreen() {
+        const element = document.documentElement;
+        if (element.requestFullscreen) {
+            element.requestFullscreen()
+                .then(() => {
+                    isFullscreen = true;
+                    hideControls();
+                })
+                .catch(err => {
+                    console.error("Erro ao entrar em tela cheia:", err);
+                    showFullscreenButton();
+                });
+        }
+    }
+
+    /** Sai do modo tela cheia */
+    function exitFullscreen() {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+        isFullscreen = false;
+        showControls();
+    }
+
+    /** Mostra o botão de tela cheia */
+    function showFullscreenButton() {
+        fullscreenBtn.style.display = 'block';
+        fullscreenBtn.textContent = 'TELA CHEIA';
+    }
+
+    /** Esconde o botão de tela cheia */
+    function hideFullscreenButton() {
+        fullscreenBtn.style.display = 'none';
+    }
+
+    /** Esconde os controles na tela cheia */
+    function hideControls() {
             const controls = [
                 elements.status,
                 elements.reconnectBtn,
@@ -386,155 +566,98 @@
 
             // Esconde o cursor do mouse
             document.body.classList.add('fullscreen-no-cursor');
+    }
+
+    /** Mostra os controles na tela cheia */
+    function showControls() {
+        const controls = [
+            elements.status,
+            elements.reconnectBtn,
+            elements.fullscreenBtn,
+            elements.menuBtn,
+            document.getElementById('department-selector'),
+            document.querySelector('.slide-progress')
+        ];
+        
+        controls.forEach(control => {
+            if (control) control.classList.remove('controls-hidden');
+        });
+        // Mostra o cursor do mouse
+         document.body.classList.remove('fullscreen-no-cursor');
+    }
+
+    function handleMouseMove() {
+        if (state.isFullscreen) {
+            showControls();
+            resetHideTimeout();
         }
+    }
 
-        // ============= FUNÇÕES DE TELA CHEIA =============
-
-        function showControls() {
-            const controls = [
-                elements.status,
-                elements.reconnectBtn,
-                elements.fullscreenBtn,
-                elements.menuBtn,
-                document.getElementById('department-selector'),
-                document.querySelector('.slide-progress')
-            ];
-            
-            controls.forEach(control => {
-                if (control) control.classList.remove('controls-hidden');
-            });
-
-            // Mostra o cursor do mouse
-             document.body.classList.remove('fullscreen-no-cursor');
-        }
-
-        function handleMouseMove() {
+    function resetHideTimeout() {
+        //clearTimeout(state.mouseTimeout);
+        state.mouseTimeout = setTimeout(() => {
             if (state.isFullscreen) {
-                showControls();
-                resetHideTimeout();
+                hideControls();
             }
-        }
+        }, state.hideDelay);
+    }
 
-        function resetHideTimeout() {
-            clearTimeout(state.mouseTimeout);
-            state.mouseTimeout = setTimeout(() => {
-                if (state.isFullscreen) {
-                    hideControls();
-                }
-            }, state.hideDelay);
-        }
+    // ============= WEBSOCKET =============
+        function connect(){
+            setStatus("connecting", "Conectando...");
 
-        function enterFullscreenAutomatically() {
-            // Só tenta entrar em tela cheia se não estiver já em fullscreen
-            if (!state.isFullscreen) {
-                document.documentElement.requestFullscreen()
-                    .then(() => {
-                        state.isFullscreen = true;
-                          document.addEventListener('mousemove', handleMouseMove);
-                              resetHideTimeout();
-                                  hideControls(); // Esconde os controles após entrar em fullscreen
-                      })    
-                        .catch(err => {
-                        console.log("Erro ao entrar em tela cheia automaticamente:", err);
-                        // Em alguns navegadores, o fullscreen automático só funciona após interação do usuário
-                        // Então marcamos para tentar novamente quando houver interação
-                        document.addEventListener('click', tryFullscreenOnce, { once: true });
-                    });
+            if (state.stompClient && state.stompClient.connected) {
+                state.stompClient.disconnect();
             }
-        }
 
-        function tryFullscreenOnce() {
-            if (!state.isFullscreen) {
-                enterFullscreenAutomatically();
-            }
-        }
+            const socket = new WebSocket(socketEndpoint);
+            state.stompClient = Stomp.over(socket);
+            state.stompClient.debug = () => {};
 
-        function toggleFullscreen() {
-            if (!state.isFullscreen) {
-                document.documentElement.requestFullscreen()
-                    .then(() => {
-                        state.isFullscreen = true;
-                        document.addEventListener('mousemove', handleMouseMove);
-                        resetHideTimeout();
-                    })
-                    .catch(err => {
-                        console.error("Erro ao entrar em tela cheia:", err);
-                    });
-            } else {
-                document.exitFullscreen();
-            }
-        }
+            state.stompClient.connect({}, () => {
+                setStatus("connected", `Conectado - ${new Date().toLocaleTimeString()}`);
+                loadValidPromotions();
 
-        function showFullscreenPrompt() {
-            const overlay = document.createElement('div');
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0';
-            overlay.style.left = '0';
-            overlay.style.width = '100%';
-            overlay.style.height = '100%';
-            overlay.style.backgroundColor = 'rgba(0,0,0,0.8)';
-            overlay.style.display = 'flex';
-            overlay.style.justifyContent = 'center';
-            overlay.style.alignItems = 'center';
-            overlay.style.zIndex = '9999';
-            overlay.style.color = 'white';
-            overlay.style.fontSize = '2rem';
-            overlay.style.textAlign = 'center';
-            overlay.innerHTML = '<p>Clique para entrar em modo tela cheia e ver as promoções</p>';
+                state.stompClient.subscribe(promotionsTopic, message => {
+                    try {
+                        const promotion = JSON.parse(message.body);
+                        // if (isPromotionValid(promotion)) {
+                        //     showPromotionSlide(promotion);
+                        // }
 
-            overlay.addEventListener('click', () => {
-                overlay.remove();
-                enterFullscreenAutomatically();
-            });
-
-            document.body.appendChild(overlay);
-        }
-
-
-        // ============= INICIALIZAÇÃO =============
-        window.addEventListener('load', async () => {
-            
-            await loadDepartments();
-            
-            elements.departmentSelect.addEventListener('change', () => {
-                state.selectedDepartment = elements.departmentSelect.value;
-                resetSlider();
-                if (state.stompClient?.connected) loadExistingPromotions();
-            });
-
-            elements.reconnectBtn.addEventListener('click', connect);
-            elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
-            elements.menuBtn.addEventListener('click', () => {
-                window.location.href = '/promotions/list-promotions.html';
-            });
-
-            connect();
-
-            // Tenta entrar em tela cheia automaticamente após um pequeno delay
-            showFullscreenPrompt();
-            
-            // Verifica promoções expiradas a cada minuto
-            setInterval(() => {
-                document.querySelectorAll('.slide').forEach(slide => {
-                    const expiration = slide.querySelector('p:last-child')?.textContent;
-                    if (expiration) {
-                        const [day, month, year] = expiration.match(/\d{2}\/\d{2}\/\d{4}/)[0].split('/');
-                        if (new Date(`${year}-${month}-${day}`) < new Date()) {
-                            slide.remove();
-                        }
+                        showPromotionSlide(promotion);
+                    } catch (e) {
+                        console.error("Erro ao processar mensagem:", e);
                     }
                 });
-            }, 60000);
-        });
+            }, (error) => {
+                console.error('Erro de conexão: ', error);
+                setStatus("disconnected", "Desconectado");
+                setTimeout(connect, 5000);
+            });
 
-        document.addEventListener('fullscreenchange', () => {
-            state.isFullscreen = !!document.fullscreenElement;
-            if (!state.isFullscreen) {
-                document.removeEventListener('mousemove', handleMouseMove);
-                clearTimeout(state.mouseTimeout);
-                showControls();
-            }
-        });
+        }
+
+    // ============= INICIALIZAÇÃO =============
+    window.addEventListener('load', async () => {
+
+        await loadDepartments();
+            
+        elements.departmentSelect.addEventListener('change', () => {
+            state.selectedDepartment = elements.departmentSelect.value;
+            resetSlider();
+            if (state.stompClient?.connected) loadValidPromotions();
+        })  
+
+        elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
+        //elements.reconnectBtn.addEventListener('click', connect);
+        elements.menuBtn.addEventListener('click', () => {
+            window.location.href = '/promotions/list-promotions.html';
+        })  
+
+        connect();
+    });
+ 
     </script>
 </body>
 </html>

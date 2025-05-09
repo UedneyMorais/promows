@@ -28,8 +28,14 @@ public class PromotionController {
 
 
     @GetMapping
-    public List<Promotion> getActivePromotions() {
-        List<Promotion> promotions = promotionService.getActivePromotions();
+    public List<Promotion> getAllPromotions() {
+        List<Promotion> promotions = promotionService.getAllPromotions();
+        return promotions;
+    }
+
+    @GetMapping("/valid")
+    public List<Promotion> getAllValidPromotions() {
+        List<Promotion> promotions = promotionService.getAllValidPromotions();
         return promotions;
     }
 

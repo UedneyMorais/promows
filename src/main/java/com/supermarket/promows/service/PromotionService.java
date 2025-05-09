@@ -57,7 +57,13 @@ public class PromotionService {
     }
 
     @Transactional
-    public List<Promotion> getActivePromotions(){
+    public List<Promotion> getAllPromotions(){
+        return promotionRepository.findAll();
+    }
+
+
+    @Transactional
+    public List<Promotion> getAllValidPromotions(){
         List<Promotion> promotions = promotionRepository.findAll();
         List<Promotion> activePromotions = promotions.stream()
                 .filter(Promotion::isActive)
