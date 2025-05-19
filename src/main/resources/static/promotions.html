@@ -289,7 +289,10 @@ body.fullscreen-no-cursor {
         // ============= CONFIGURAÇÕES GLOBAIS =============
         const serverAddress = window.location.hostname;
         const serverPort = window.location.port || '9090';
-        const socketEndpoint = `ws://${serverAddress}:${serverPort}/ws-promotions`;
+        //Com Websocket sem SOckJs
+        //const socketEndpoint = `ws://${serverAddress}:${serverPort}/ws-promotions`;
+        const socketEndpoint = `/ws-promotions`;
+
         const promotionsTopic = "/topic/promotions";
         //const deletedPromotionsTopic = "/topic/deleted-promotions";
         const defaultImage = "https://cdn.pixabay.com/photo/2018/08/30/14/46/food-3642376_1280.jpg";
@@ -621,7 +624,8 @@ body.fullscreen-no-cursor {
                 state.stompClient.disconnect();
             }
 
-            const socket = new WebSocket(socketEndpoint);
+            //const socket = new WebSocket(socketEndpoint);
+            const socket = new SockJS(socketEndpoint);
             state.stompClient = Stomp.over(socket);
             state.stompClient.debug = () => {};
 

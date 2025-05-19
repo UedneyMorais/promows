@@ -15,3 +15,8 @@ services:
 
 volumes:
   postgres_data:
+
+# Em ambos os arquivos, adicione no final:
+networks:
+  app_network:
+    driver: bridge  
