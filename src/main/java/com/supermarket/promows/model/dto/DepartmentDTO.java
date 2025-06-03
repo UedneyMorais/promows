@@ -1,4 +1,4 @@
-package com.supermarket.promows.dto;
+package com.supermarket.promows.model.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -1,10 +1,10 @@
 package com.supermarket.promows.service;
 
-import com.supermarket.promows.dto.DepartmentDTO;
 import com.supermarket.promows.exception.DepartmentAlreadyExistsException;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
 import com.supermarket.promows.exception.InconsistentIdException;
 import com.supermarket.promows.model.Department;
+import com.supermarket.promows.model.dto.DepartmentDTO;
 import com.supermarket.promows.repository.DepartmentRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;

@@ -1,7 +1,7 @@
 package com.supermarket.promows.controller;
 
-import com.supermarket.promows.dto.DepartmentDTO;
 import com.supermarket.promows.model.Department;
+import com.supermarket.promows.model.dto.DepartmentDTO;
 import com.supermarket.promows.service.DepartmentService;
 
 import org.springframework.http.HttpStatus;

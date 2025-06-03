@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Licença Expirada | PromoWS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #fca311;
+            --secondary: #14213d;
+            --dark: #000000;
+            --light: #ffffff;
+            --gray: #e5e5e5;
+            --whatsapp: #25D366;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 2rem;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(252, 163, 17, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 75% 75%, rgba(20, 33, 61, 0.1) 0%, transparent 50%);
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            border-radius: 16px;
+            padding: 3rem 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(252, 163, 17, 0.2);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .logo {
+            width: 120px;
+            margin-bottom: 1.5rem;
+            filter: drop-shadow(0 0 8px rgba(252, 163, 17, 0.4));
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+            color: var(--gray);
+        }
+
+        .whatsapp-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--whatsapp);
+            color: white;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3);
+        }
+
+        .whatsapp-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(37, 211, 102, 0.4);
+            background-color: #128C7E;
+        }
+
+        .whatsapp-btn i {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        .contact-info {
+            margin-top: 2.5rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(252, 163, 17, 0.2);
+        }
+
+        .contact-info p {
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        .countdown {
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 2rem 1.5rem;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            p {
+                font-size: 1rem;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Substitua pelo seu logo -->
+        <img src="https://cdn.pixabay.com/photo/2017/03/24/20/46/apple-2172165_1280.jpg" alt="PromoWS Logo" class="logo">
+        
+        <h1>Licença Expirada</h1>
+        <p>Sua licença do PromoWS atingiu a data de expiração. Para continuar utilizando nosso sistema, entre em contato com nosso suporte para renovação.</p>
+        
+        <div class="countdown" id="countdown">
+            Redirecionando em <span id="seconds">10</span> segundos...
+        </div>
+        
+        <a href="https://wa.me/5562981373944" class="whatsapp-btn" target="_blank">
+            <i class="fab fa-whatsapp"></i> Falar com Suporte
+        </a>
+        
+        <div class="contact-info">
+            <p>WhatsApp: (62) 98137-3944</p>
+            <p>Suporte: suporte@promows.com.br</p>
+        </div>
+    </div>
+
+    <script>
+        // Contador regressivo para redirecionamento
+        let seconds = 10;
+        const countdownElement = document.getElementById('seconds');
+        
+        const timer = setInterval(() => {
+            seconds--;
+            countdownElement.textContent = seconds;
+            
+            if (seconds <= 0) {
+                clearInterval(timer);
+                window.location.href = 'https://wa.me/5562981373944';
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

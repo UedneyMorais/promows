@@ -29,6 +29,20 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);  
     }
 
+    @ExceptionHandler(ParameterAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleParameterAlreadyExists(ParameterAlreadyExistsException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);  
+    }  
+
+    @ExceptionHandler(ParameterNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleParameterNotFound(ParameterNotFoundException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);  
+    }
+
     @ExceptionHandler(PromotionNotFoundException.class)
     public ResponseEntity<ErrorResponse> handlePromotionNotFound(PromotionNotFoundException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
@@ -49,5 +63,21 @@ public class GlobalExceptionHandler {
 
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
-    
+
+    @ExceptionHandler(InvalidLicenseException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidLicense(InvalidLicenseException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
+    @ExceptionHandler(ExpiredLicenseException.class)
+    public ResponseEntity<ErrorResponse> handleExpiredLicense(ExpiredLicenseException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+
 }
