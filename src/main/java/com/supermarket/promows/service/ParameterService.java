@@ -19,7 +19,6 @@ public class ParameterService {
     public ParameterService(ParameterRepository parameterRepository) {
         this.parameterRepository = parameterRepository;
     }
-
     @Transactional
     public Parameter createParameter(ParameterDTO parameterDTO) {
 
@@ -70,6 +69,49 @@ public class ParameterService {
         existingParameter.setPhoneNumber(parameterDTO.getPhoneNumber());
 
         return parameterRepository.save(existingParameter);
+    }
+
+    @Transactional
+    public void updateParameterLastCheckDate(LocalDateTime lastCheckDate, Long id) {
+        Parameter parameter = parameterRepository.findById(id)
+            .orElseThrow(() -> new ParameterNotFoundException(id));
+        
+        parameter.setLastCheckDate(lastCheckDate);
+        parameterRepository.save(parameter);
+    }
+
+    
+
+    @Transactional
+    public void updateLicenseStatus(boolean isValid) {
+        parameterRepository.findById(1L).ifPresent(parameter -> {
+            parameter.setLicenseValid(isValid);
+            parameter.setLastCheckDate(LocalDateTime.now());
+            
+            // Atualiza apenas se foi uma verificação bem-sucedida
+            if (isValid) {
+                parameter.setLastSuccessfulCheck(LocalDateTime.now());
+                parameter.setUsingFallback(false);
+            } else {
+                parameter.setUsingFallback(true);
+            }
+            
+            parameterRepository.save(parameter);
+        });
+    }
+    
+    @Transactional
+    public boolean getCachedLicenseStatus() {
+        return parameterRepository.findById(1L)
+            .map(Parameter::getLicenseValid)
+            .orElse(true); // Fallback seguro
+    }
+
+    @Transactional
+    public LocalDateTime getLastCheckDate() {
+        return parameterRepository.findById(1L)
+            .map(Parameter::getLastCheckDate)
+            .orElse(LocalDateTime.MIN);
     }
 
     @Transactional

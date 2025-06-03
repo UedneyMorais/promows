@@ -7,8 +7,6 @@ import com.supermarket.promows.model.dto.ParameterDTO;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Data;
 
@@ -17,7 +15,6 @@ import lombok.Data;
 public class Parameter {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id = 1L;
 
     @Column(nullable = false)
@@ -42,13 +39,33 @@ public class Parameter {
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private LocalDateTime lastCheckDate;
+    
+    // Novo campo para status cacheado da licença
+    @Column(nullable = false)
+    private Boolean licenseValid = true;
+    
+    // Novo campo para última verificação bem-sucedida
+    @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private LocalDateTime lastSuccessfulCheck = LocalDateTime.now();
+    
+    // Novo campo para controle de fallback
+    @Column(nullable = false)
+    private Boolean usingFallback = false;
+
 
     public Parameter() {
     }
-
+    
     public Parameter(ParameterDTO parameterDTO) {
         this.licenseKey = parameterDTO.getLicenseKey();
         this.email = parameterDTO.getEmail();
         this.lastCheckDate = LocalDateTime.now();
+        this.licenseValid = true; // Valor padrão
+        this.lastSuccessfulCheck = LocalDateTime.now();
+    }
+
+    public boolean isWithinGracePeriod(int gracePeriodDays) {
+        return this.lastSuccessfulCheck.isAfter(LocalDateTime.now().minusDays(gracePeriodDays));
     }
 }

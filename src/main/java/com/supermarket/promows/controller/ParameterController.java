@@ -17,7 +17,7 @@ public class ParameterController {
  
     }
 
-    @PostMapping
+    @PostMapping("/create")
     public ResponseEntity<Parameter> createParameter(@RequestBody ParameterDTO parameterDTO){
         Parameter createdParameter = parameterService.createParameter(parameterDTO);
         return new ResponseEntity<>(createdParameter, HttpStatus.CREATED);

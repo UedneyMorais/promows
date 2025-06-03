@@ -1,5 +1,7 @@
 package com.supermarket.promows.model.dto;
 
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -8,9 +10,9 @@ import lombok.Setter;
 public class LicenseResultDTO {
     private boolean valid;
     private String message;
-    private String errors;
+   private List<String> errors;
 
-    public LicenseResultDTO(boolean valid, String message, String errors) {
+    public LicenseResultDTO(boolean valid, String message, List<String> errors) {
         this.valid = valid;
         this.message = message;
         this.errors = errors;

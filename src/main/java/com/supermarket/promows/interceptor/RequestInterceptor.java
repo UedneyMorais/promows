@@ -1,16 +1,15 @@
 package com.supermarket.promows.interceptor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-
-import com.supermarket.promows.exception.ExpiredLicenseException;
 import com.supermarket.promows.model.dto.LicenseInfoDTO;
 import com.supermarket.promows.service.LicenseService;
+import com.supermarket.promows.service.ParameterService;
 import com.supermarket.utils.ValidateLicense;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -18,15 +17,18 @@ import jakarta.servlet.http.HttpServletResponse;
 public class RequestInterceptor implements HandlerInterceptor {
 
     private final LicenseService licenseService;
-    public RequestInterceptor(LicenseService licenseService) {
+    private final ParameterService parameterService;
+
+    public RequestInterceptor(LicenseService licenseService, ParameterService parameterService) {
         this.licenseService = licenseService;
+        this.parameterService = parameterService;
     }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-       // Verifica se já está na página de licença expirada
+
         if (request.getRequestURI().equals("/licenses/expired-license.html")) {
-            return true; // Permite o acesso à página de licença expirada
+            return true; 
         }
 
         LicenseInfoDTO licenseInfo = licenseService.getLicenseEndDate();
@@ -37,6 +39,20 @@ public class RequestInterceptor implements HandlerInterceptor {
                 response.sendRedirect("/licenses/expired-license.html");
             }
             return false;
+        }
+
+        if(licenseInfo.getLastCheckDate().toLocalDate().isBefore(LocalDate.now())) {
+
+            boolean isValid = licenseService.isLicenseValid();
+            if(isValid){
+                parameterService.updateParameterLastCheckDate(LocalDateTime.now(), 1L);
+            } else {
+                // Verifica se o cabeçalho de redirecionamento já foi enviado
+                if (!response.isCommitted()) {
+                    response.sendRedirect("/licenses/invalid-license.html");
+                }
+                return false;
+            }
         }
 
         return true;

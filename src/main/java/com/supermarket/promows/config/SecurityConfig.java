@@ -16,6 +16,10 @@ public class SecurityConfig implements WebMvcConfigurer {
 
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(requestInterceptor);
-    }    
+        registry.addInterceptor(requestInterceptor).excludePathPatterns(
+                "/api/parameters/create",
+                "/error",
+                "/api/activate-license"
+            );
+    }
 }
