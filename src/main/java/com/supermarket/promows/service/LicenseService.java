@@ -32,7 +32,7 @@ public class LicenseService {
     @Transactional
     public boolean isLicenseValid() {
         Optional<Parameter> parameter = parameterRepository.findById(1L);
-        if (parameter.isEmpty()) return true;
+        if (parameter.isEmpty()) return false;
     
         try {
             String licenseKey = parameter.get().getLicenseKey();
@@ -41,9 +41,8 @@ public class LicenseService {
             ResponseEntity<LicenseResultDTO> response = restTemplate.getForEntity(url, LicenseResultDTO.class);
             LicenseResultDTO body = response.getBody();
             if (response.getStatusCode() == HttpStatus.OK && body != null) {
-                boolean isValid = body.isValid();
-                parameterService.updateLicenseStatus(isValid);
-                return isValid;
+                parameterService.updateLicenseStatus(body);
+                return body.isValid();
             }
         } catch (Exception e) {
                 System.err.println("[AVISO] Falha na verificação de licença: " + e.getMessage());

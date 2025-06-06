@@ -1,6 +1,5 @@
 package com.supermarket.utils;
 
-import com.supermarket.promows.exception.ApiConnectionException;
 import com.supermarket.promows.service.LicenseService;
 import java.time.LocalDateTime;
 
@@ -29,12 +28,6 @@ public class ValidateLicense {
             isValidated = offlineValidation();
         }
 
-        // try {
-        //     isValidated = onlineValidation();
-        // } catch (ApiConnectionException e) {
-        //      isValidated = offlineValidation();
-        // }
-
         return isValidated;
     }
 
@@ -43,7 +36,6 @@ public class ValidateLicense {
     }
 
     private boolean onlineValidation() {
-        // Implementação da validação online
         return licenseService.isLicenseValid();
     }
 }

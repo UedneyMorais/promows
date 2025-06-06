@@ -4,6 +4,7 @@ import com.supermarket.promows.exception.ParameterAlreadyExistsException;
 import com.supermarket.promows.exception.ParameterNotFoundException;
 import com.supermarket.promows.exception.InconsistentIdException;
 import com.supermarket.promows.model.Parameter;
+import com.supermarket.promows.model.dto.LicenseResultDTO;
 import com.supermarket.promows.model.dto.ParameterDTO;
 import com.supermarket.promows.repository.ParameterRepository;
 import jakarta.transaction.Transactional;
@@ -83,16 +84,18 @@ public class ParameterService {
     
 
     @Transactional
-    public void updateLicenseStatus(boolean isValid) {
+    public void updateLicenseStatus(LicenseResultDTO licenseResultDTO) {
         parameterRepository.findById(1L).ifPresent(parameter -> {
-            parameter.setLicenseValid(isValid);
-            parameter.setLastCheckDate(LocalDateTime.now());
-            parameter.setValidateNumberTries(0);
-            
-            // Atualiza apenas se foi uma verificação bem-sucedida
-            if (isValid) {
+
+
+            if (licenseResultDTO.isValid()) {
                 parameter.setLastSuccessfulCheck(LocalDateTime.now());
+                parameter.setLicenseKey(licenseResultDTO.getLicenseKey());
+                parameter.setEndDate(licenseResultDTO.getEndDate());
                 parameter.setUsingFallback(false);
+                parameter.setLicenseValid(licenseResultDTO.isValid());
+                parameter.setLastCheckDate(LocalDateTime.now());
+                parameter.setValidateNumberTries(0);
             } else {
                 parameter.setUsingFallback(true);
             }

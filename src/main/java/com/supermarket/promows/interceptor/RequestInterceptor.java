@@ -1,5 +1,6 @@
 package com.supermarket.promows.interceptor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
@@ -27,10 +28,12 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
+        boolean returnResult = false;
+
     // URLs que devem ser ignoradas pelo interceptor
     if (request.getRequestURI().equals("/licenses/expired-license.html") || 
         request.getRequestURI().equals("/parameters/error-date-param.html")) {
-        return true;
+        returnResult = true;
     }
 
     //LicenseInfoDTO licenseInfo = licenseService.getLicenseEndDate();
@@ -44,7 +47,7 @@ public class RequestInterceptor implements HandlerInterceptor {
             response.sendRedirect(request.getContextPath() + "/parameters/error-date-param.html");
         }
 
-        return false;
+        returnResult = false;
     }
 
     if (parameter.getEndDate() != null && 
@@ -54,20 +57,19 @@ public class RequestInterceptor implements HandlerInterceptor {
             response.sendRedirect("/licenses/expired-license.html");
         }
 
-        return false;
+        returnResult = false;
     }
 
-    if(parameter.getLastCheckDate() != null && 
-        parameter.getLastCheckDate().isBefore(LocalDateTime.now())) {
+    if(parameter.getLastCheckDate() != null && parameter.getLastCheckDate().toLocalDate().isBefore(LocalDate.now())) {
             if (!validateLicense.validate()) {
                 if (!response.isCommitted()) {
                     response.sendRedirect("/licenses/expired-license.html");
                 }
-                return false;
+                returnResult = false;
             }
-        return true;
+        returnResult = true;
     }
-        return true;
+    return returnResult;
     }
 
     @Override
