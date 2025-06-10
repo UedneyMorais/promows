@@ -1,26 +1,49 @@
 package com.supermarket.utils;
 
+import com.supermarket.promows.exception.ApiConnectionException;
+import com.supermarket.promows.service.LicenseService;
 import java.time.LocalDateTime;
 
 public class ValidateLicense {
-    
-    public static boolean isValidLicense(String licenseKey) {
-        // Implement your license validation logic here
-        // For example, check if the license key matches a specific pattern or is stored in a database
-        if(licenseKey == null || licenseKey.isEmpty()) {
-            return false;
-        }
 
-        if(!licenseKey.equals("CDB")) {
-            return false;
-        }
+    private final LicenseService licenseService;
 
-        return true;
+    public ValidateLicense(LicenseService licenseService) {
+        this.licenseService = licenseService;
+    }
+
+    public boolean isLicenseValid() {
+        return licenseService.isLicenseValid();
     }
 
     public static boolean isLicenseExpired(LocalDateTime endDate) {
-        // Implement your logic to check if the license has expired based on the end date
-        // For example, compare the end date with the current date
         return endDate.isBefore(LocalDateTime.now());
+    }
+
+    public boolean validate() {
+        boolean isValidated = false;
+
+        if(onlineValidation()) {
+            isValidated = true;
+        } else {
+            isValidated = offlineValidation();
+        }
+
+        // try {
+        //     isValidated = onlineValidation();
+        // } catch (ApiConnectionException e) {
+        //      isValidated = offlineValidation();
+        // }
+
+        return isValidated;
+    }
+
+    private boolean offlineValidation() {
+        return licenseService.setOfflineLicenseValid();
+    }
+
+    private boolean onlineValidation() {
+        // Implementação da validação online
+        return licenseService.isLicenseValid();
     }
 }

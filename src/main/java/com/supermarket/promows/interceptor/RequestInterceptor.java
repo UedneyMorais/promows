@@ -1,12 +1,12 @@
 package com.supermarket.promows.interceptor;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
-import com.supermarket.promows.model.dto.LicenseInfoDTO;
+
+import com.supermarket.promows.model.Parameter;
 import com.supermarket.promows.service.LicenseService;
 import com.supermarket.promows.service.ParameterService;
 import com.supermarket.utils.ValidateLicense;
@@ -27,34 +27,46 @@ public class RequestInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
 
-        if (request.getRequestURI().equals("/licenses/expired-license.html")) {
-            return true; 
+    // URLs que devem ser ignoradas pelo interceptor
+    if (request.getRequestURI().equals("/licenses/expired-license.html") || 
+        request.getRequestURI().equals("/parameters/error-date-param.html")) {
+        return true;
+    }
+
+    //LicenseInfoDTO licenseInfo = licenseService.getLicenseEndDate();
+    Parameter parameter = parameterService.getParameterById(1L);
+    ValidateLicense validateLicense = new ValidateLicense(licenseService);
+
+    if (parameter.getLastValidAccessDate() != null && 
+        parameter.getLastValidAccessDate().isAfter(LocalDateTime.now())) {
+
+        if (!response.isCommitted()) {
+            response.sendRedirect(request.getContextPath() + "/parameters/error-date-param.html");
         }
 
-        LicenseInfoDTO licenseInfo = licenseService.getLicenseEndDate();
+        return false;
+    }
 
-        if (ValidateLicense.isLicenseExpired(licenseInfo.getEndDate())) {
-            // Verifica se o cabeçalho de redirecionamento já foi enviado
-            if (!response.isCommitted()) {
-                response.sendRedirect("/licenses/expired-license.html");
-            }
-            return false;
+    if (parameter.getEndDate() != null && 
+        parameter.getEndDate().isBefore(LocalDateTime.now())) {
+
+        if (!response.isCommitted()) {
+            response.sendRedirect("/licenses/expired-license.html");
         }
 
-        if(licenseInfo.getLastCheckDate().toLocalDate().isBefore(LocalDate.now())) {
+        return false;
+    }
 
-            boolean isValid = licenseService.isLicenseValid();
-            if(isValid){
-                parameterService.updateParameterLastCheckDate(LocalDateTime.now(), 1L);
-            } else {
-                // Verifica se o cabeçalho de redirecionamento já foi enviado
+    if(parameter.getLastCheckDate() != null && 
+        parameter.getLastCheckDate().isBefore(LocalDateTime.now())) {
+            if (!validateLicense.validate()) {
                 if (!response.isCommitted()) {
-                    response.sendRedirect("/licenses/invalid-license.html");
+                    response.sendRedirect("/licenses/expired-license.html");
                 }
                 return false;
             }
-        }
-
+        return true;
+    }
         return true;
     }
 

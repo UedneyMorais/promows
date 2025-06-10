@@ -48,20 +48,26 @@ public class Parameter {
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
     private LocalDateTime lastSuccessfulCheck = LocalDateTime.now();
+
+    @Column(nullable = false)
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", timezone = "UTC")
+    private LocalDateTime lastValidAccessDate = LocalDateTime.now();
     
     // Novo campo para controle de fallback
     @Column(nullable = false)
     private Boolean usingFallback = false;
 
+    @Column(nullable = false)
+    private int validateNumberTries = 0;
 
     public Parameter() {
     }
-    
+
     public Parameter(ParameterDTO parameterDTO) {
         this.licenseKey = parameterDTO.getLicenseKey();
         this.email = parameterDTO.getEmail();
         this.lastCheckDate = LocalDateTime.now();
-        this.licenseValid = true; // Valor padrão
+        this.licenseValid = true;
         this.lastSuccessfulCheck = LocalDateTime.now();
     }
 

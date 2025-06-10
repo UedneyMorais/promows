@@ -29,46 +29,20 @@ public class LicenseService {
         this.parameterService = parameterService;
     }
 
-    // @Transactional
-    // public boolean isLicenseValid() {
-    //     Optional<Parameter> parameter = parameterRepository.findById(1L);
-
-    //     if (parameter.isEmpty()) {
-    //         throw new ParameterNotFoundException(1L);
-    //     }
-
-    //     String licenseKey = parameter.get().getLicenseKey();
-    //     String url = "http://192.168.77.137:9595/licenses/" + licenseKey + "/validate";
-
-    //     try {
-    //         ResponseEntity<LicenseResultDTO> responseEntity = restTemplate.getForEntity(url, LicenseResultDTO.class);
-    //         LicenseResultDTO body = responseEntity.getBody();
-    //         if (body == null || !body.isValid()) {
-    //             return false;
-    //         }
-    //     } catch (Exception e) {
-    //         // Log the exception if necessary
-    //         return false;
-    //     }
-
-    //     return true;
-    // }
-
     @Transactional
     public boolean isLicenseValid() {
         Optional<Parameter> parameter = parameterRepository.findById(1L);
-        if (parameter.isEmpty()) return true; // Fallback seguro
+        if (parameter.isEmpty()) return true;
     
-        // Tenta verificar no servidor
         try {
             String licenseKey = parameter.get().getLicenseKey();
             String url = "http://192.168.77.137:9595/licenses/" + licenseKey + "/validate";
 
             ResponseEntity<LicenseResultDTO> response = restTemplate.getForEntity(url, LicenseResultDTO.class);
-            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
-                boolean isValid = response.getBody().isValid();
-                parameterService.updateLicenseStatus(isValid); // Atualiza cache local
-                parameterService.updateParameterLastCheckDate(LocalDateTime.now(), 1L);
+            LicenseResultDTO body = response.getBody();
+            if (response.getStatusCode() == HttpStatus.OK && body != null) {
+                boolean isValid = body.isValid();
+                parameterService.updateLicenseStatus(isValid);
                 return isValid;
             }
         } catch (Exception e) {
@@ -81,42 +55,25 @@ public class LicenseService {
            ChronoUnit.DAYS.between(parameter.get().getLastCheckDate(), LocalDateTime.now()) <= 1;
     }
 
-
     public LicenseInfoDTO getLicenseEndDate(){
         return parameterRepository.findById(1L)
             .map(p -> new LicenseInfoDTO(p.getEndDate(),p.getLastCheckDate(), p.getLicenseKey()))
                 .orElseThrow(() -> new ParameterNotFoundException(1L));
     }
 
+    public boolean setOfflineLicenseValid() {
 
-    // public Department getDepartmentById(Long id){
-    //     return departmentRepository.findById(id).orElseThrow(() -> new DepartmentNotFoundException(id));
-    // }
+        Parameter parameter = parameterRepository.findById(1L)
+            .orElseThrow(() -> new ParameterNotFoundException(1L));
 
-    // @Transactional
-    // public Department updateDepartmentById(DepartmentDTO departmentDTO, Long id) {
+        if(parameter.getValidateNumberTries() <= 2 && parameter.getLastCheckDate().isBefore(LocalDateTime.now())) {
+            parameter.setLastCheckDate(LocalDateTime.now().plusDays(3));
+            parameter.setEndDate(LocalDateTime.now().plusDays(3));
+            parameter.setValidateNumberTries(parameter.getValidateNumberTries() + 1);
+            parameterRepository.save(parameter);
+            return true;
+        }
 
-    //     if (!departmentDTO.getId().equals(id)) {
-    //         throw new InconsistentIdException("ID do departamento na requisição não corresponde ao ID do path.");
-    //     }
-    
-    //     Department existingDepartment = departmentRepository.findById(id)
-    //         .orElseThrow(() -> new DepartmentNotFoundException(id));
-    //     // Se necessário, envia notificação via WebSocket
-    //     // messagingTemplate.convertAndSend("/topic/departments", updatedDepartment);
-        
-    //     existingDepartment.setDepartmentName(departmentDTO.getDepartmentName());
-
-    //     return departmentRepository.save(existingDepartment);
-    // }
-
-    // @Transactional
-    // public void deleteDepartmentById(Long id) {
-    //     Department loadedDepartment = departmentRepository.findById(id)
-    //         .orElseThrow(() -> new DepartmentNotFoundException(id));
-        
-    //     departmentRepository.delete(loadedDepartment);
-        
-    //     //messagingTemplate.convertAndSend("/topic/deleted-departaments", deletedDepartment);
-    // }
+        return false;
+    }
 }

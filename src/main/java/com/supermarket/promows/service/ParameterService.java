@@ -87,6 +87,7 @@ public class ParameterService {
         parameterRepository.findById(1L).ifPresent(parameter -> {
             parameter.setLicenseValid(isValid);
             parameter.setLastCheckDate(LocalDateTime.now());
+            parameter.setValidateNumberTries(0);
             
             // Atualiza apenas se foi uma verificação bem-sucedida
             if (isValid) {
