@@ -1,7 +1,6 @@
 package com.supermarket.promows.service;
 
 import com.supermarket.promows.dto.PromotionDTO;
-import com.supermarket.promows.dto.PromotionDeleteDTO;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
 import com.supermarket.promows.exception.PromotionNotFoundException;
 import com.supermarket.promows.model.Department;
