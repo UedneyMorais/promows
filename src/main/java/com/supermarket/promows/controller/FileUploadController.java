@@ -22,8 +22,10 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.MvcUriComponentsBuilder;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import com.supermarket.promows.dto.SuccessfulUploadFileResponse;
 import com.supermarket.promows.exception.StorageFileNotFoundException;
-import com.supermarket.promows.service.StorageService;
+import com.supermarket.promows.repository.StorageService;
+import com.supermarket.promows.utils.SlugUtil;
 
 
 @Controller
@@ -59,16 +61,14 @@ public class FileUploadController {
 	}
 
     @PostMapping("/api/upload")
-	public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file,
-			RedirectAttributes redirectAttributes) {
+	public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
 
 		storageService.store(file);
-		redirectAttributes.addFlashAttribute("message",
-				"You successfully uploaded " + file.getOriginalFilename() + "!");
+		redirectAttributes.addFlashAttribute("message", "You successfully uploaded " + file.getOriginalFilename() + "!");
 		
-				Map<String, Object> response = new HashMap<>();
-				response.put("message", "File uploaded successfully");
-				response.put("fileName", file.getOriginalFilename());
+		SuccessfulUploadFileResponse response = new SuccessfulUploadFileResponse();
+		response.setMessage("File uploaded successfully");
+		response.setFilename(SlugUtil.slugifyFileName(file.getOriginalFilename()));
 
 		return ResponseEntity.ok(response);
 	}

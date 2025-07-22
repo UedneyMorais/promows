@@ -1,17 +1,16 @@
-package com.supermarket.promows.service;
+package com.supermarket.promows.repository;
 
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
 import org.springframework.core.io.Resource;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface StorageService {
 
     void init();
 
-    void store(MultipartFile file);
+    String store(MultipartFile file);
 
     Stream<Path> loadAll();
 

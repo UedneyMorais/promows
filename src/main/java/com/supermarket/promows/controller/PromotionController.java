@@ -4,6 +4,7 @@ import com.supermarket.promows.dto.PromotionDTO;
 import com.supermarket.promows.exception.PromotionNotFoundException;
 import com.supermarket.promows.model.Promotion;
 import com.supermarket.promows.service.PromotionService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

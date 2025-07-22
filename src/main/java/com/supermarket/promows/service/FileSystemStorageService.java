@@ -18,6 +18,8 @@ import org.springframework.web.multipart.MultipartFile;
 import com.supermarket.promows.config.StorageProperties;
 import com.supermarket.promows.exception.StorageException;
 import com.supermarket.promows.exception.StorageFileNotFoundException;
+import com.supermarket.promows.repository.StorageService;
+import com.supermarket.promows.utils.SlugUtil;
 
 @Service
 public class FileSystemStorageService implements StorageService {
@@ -43,27 +45,31 @@ public class FileSystemStorageService implements StorageService {
     }
 
 	@Override
-	public void store(MultipartFile file) {
-		try {
-			if (file.isEmpty()) {
-				throw new StorageException("Failed to store empty file.");
-			}
-			Path destinationFile = this.rootLocation.resolve(
-					Paths.get(file.getOriginalFilename()))
-					.normalize().toAbsolutePath();
-			if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
-				// This is a security check
-				throw new StorageException(
-						"Cannot store file outside current directory.");
-			}
-			try (InputStream inputStream = file.getInputStream()) {
-				Files.copy(inputStream, destinationFile,
-					StandardCopyOption.REPLACE_EXISTING);
-			}
-		}
-		catch (IOException e) {
-			throw new StorageException("Failed to store file.", e);
-		}
+	public String store(MultipartFile file) {
+	    try {
+	        if (file.isEmpty()) {
+	            throw new StorageException("Failed to store empty file.");
+	        }
+
+	        // Gera nome seguro
+	        String safeFilename = SlugUtil.slugifyFileName(file.getOriginalFilename());
+
+	        Path destinationFile = this.rootLocation.resolve(Paths.get(safeFilename))
+	                .normalize().toAbsolutePath();
+
+	        if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {
+	            throw new StorageException("Cannot store file outside current directory.");
+	        }
+
+	        try (InputStream inputStream = file.getInputStream()) {
+	            Files.copy(inputStream, destinationFile, StandardCopyOption.REPLACE_EXISTING);
+	        }
+
+	        return safeFilename;
+
+	    } catch (IOException e) {
+	        throw new StorageException("Failed to store file.", e);
+	    }
 	}
 
     @Override
