@@ -9,6 +9,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,12 @@ import com.supermarket.promows.utils.SlugUtil;
 
 @Service
 public class FileSystemStorageService implements StorageService {
+
+	@Value("${server.address}")
+	private String serverHost;
+
+	@Value("${server.port}")
+	private int serverPort;
 
     private final Path rootLocation;
 
@@ -111,5 +118,12 @@ public class FileSystemStorageService implements StorageService {
     public void deleteAll() {
         FileSystemUtils.deleteRecursively(rootLocation.toFile());
     }
+
+
+	String getUrl(String filename) {
+		if (filename == null || filename.startsWith("http") || filename.startsWith("https") || filename.startsWith("192.168")) return filename;
+		String finalUrl = serverHost + ":" + serverPort + "/uploads/" + filename;
+		return finalUrl;
+	}
     
 }

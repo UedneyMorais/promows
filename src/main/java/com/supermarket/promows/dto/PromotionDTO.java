@@ -3,6 +3,9 @@ package com.supermarket.promows.dto;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.supermarket.promows.model.Department;
+
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
@@ -11,6 +14,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PromotionDTO {
+
+    private Long id;
 
     @NotBlank(message = "Nome do produto(productName) não pode ser vazio")
     @Size(min = 3, max = 50, message = "O nome deve ter entre 3 e 50 caracteres")
@@ -37,7 +42,7 @@ public class PromotionDTO {
     @NotBlank(message = "Limite de item para clientes(customerLimit) não pode ser vazio")
     private int customerLimit;
 
-    @NotBlank(message = "URL da imagem(imageUrl) não pode ser vazio")
+    //@NotBlank(message = "URL da imagem(imageUrl) não pode ser vazio")
     private String imageUrl;
 
     @NotBlank(message = "Ativo(active) não pode ser vazio")
@@ -45,6 +50,9 @@ public class PromotionDTO {
 
     @NotBlank(message = "ID do departamento(departmentId) não pode ser vazio")
     private Long departmentId;
+
+    private DepartmentDTO department;
     
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
 }
