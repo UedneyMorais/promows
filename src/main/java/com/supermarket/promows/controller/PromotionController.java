@@ -23,12 +23,6 @@ public class PromotionController {
         this.promotionService = promotionService;
     }
 
-    // @PostMapping
-    // public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionJson, @RequestPart("file") MultipartFile file){
-    //     PromotionDTO createdPromotion = promotionService.createPromotion(promotionJson, file);
-    //     return new ResponseEntity<>(createdPromotion, HttpStatus.CREATED);
-    // }
-
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionDTO, @RequestPart("file") MultipartFile file){
         PromotionDTO createdPromotion = promotionService.createPromotion(promotionDTO, file);
@@ -81,8 +75,4 @@ public class PromotionController {
         }
     }
 
-//    @PostMapping("/upload")
-//    public ResponseEntity<String> uploadImage(@RequestParam MultipartFile file) {
-//        // Salva a imagem no banco ou em um storage externo
-//    }
 }

@@ -386,27 +386,13 @@
                 let expirationDateISO = null;
 
                 if (expirationDateInput) {
-    const [datePart, timePart] = expirationDateInput.split(' ');
-    const [day, month, year] = datePart.split('/');
-    const [hours, minutes] = timePart.split(':');
-    
-    // Formato esperado pelo backend: "yyyy-MM-ddTHH:mm:ss"
-    expirationDateISO = `${year}-${month}-${day}T${hours}:${minutes}:00`;
-}
+                    const [datePart, timePart] = expirationDateInput.split(' ');
+                    const [day, month, year] = datePart.split('/');
+                    const [hours, minutes] = timePart.split(':');
 
-                // if (expirationDateInput) {
-                //     const parts = expirationDateInput.split(/[/ :]/);
-                //     if (parts.length >= 5) {
-                //         const day = parts[0];
-                //         const month = parts[1];
-                //         const year = parts[2];
-                //         const hour = parts[3];
-                //         const minute = parts[4];
-
-                //         const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
-                //         expirationDateISO = new Date(isoString).toISOString();
-                //     }
-                // }
+                    // Formato esperado pelo backend: "yyyy-MM-ddTHH:mm:ss"
+                    expirationDateISO = `${year}-${month}-${day}T${hours}:${minutes}:00`;
+                }
 
                 const promotionData = {
                     id: promotionId,
@@ -469,27 +455,13 @@
                 let expirationDateISO = null;
 
                 if (expirationDateInput) {
-    const [datePart, timePart] = expirationDateInput.split(' ');
-    const [day, month, year] = datePart.split('/');
-    const [hours, minutes] = timePart.split(':');
-    
-    // Formato esperado pelo backend: "yyyy-MM-ddTHH:mm:ss"
-    expirationDateISO = `${year}-${month}-${day}T${hours}:${minutes}:00`;
-}
+                    const [datePart, timePart] = expirationDateInput.split(' ');
+                    const [day, month, year] = datePart.split('/');
+                    const [hours, minutes] = timePart.split(':');
 
-                // if (expirationDateInput) {
-                //     const parts = expirationDateInput.split(/[/ :]/);
-                //     if (parts.length >= 5) {
-                //         const day = parts[0];
-                //         const month = parts[1];
-                //         const year = parts[2];
-                //         const hour = parts[3];
-                //         const minute = parts[4];
-
-                //         const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
-                //         expirationDateISO = new Date(isoString).toISOString();
-                //     }
-                // }
+                    // Formato esperado pelo backend: "yyyy-MM-ddTHH:mm:ss"
+                    expirationDateISO = `${year}-${month}-${day}T${hours}:${minutes}:00`;
+                }
 
                 const promotionData = {
                     productName: document.getElementById('productName').value.trim(),
