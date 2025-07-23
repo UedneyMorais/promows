@@ -4,7 +4,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateTimeDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer;
 import com.supermarket.promows.model.Department;
+import com.supermarket.promows.model.Promotion;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -14,6 +19,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class PromotionDTO {
+
+
 
     private Long id;
 
@@ -30,13 +37,16 @@ public class PromotionDTO {
     @NotBlank(message = "Mensagem do tipo da unidade do produto(productUnitTypeMessage) não pode ser vazio")
     private String productUnitTypeMessage;
 
-    @NotBlank(message = "Preço original(originalPrice) não pode ser vazio")
+    //@NotBlank(message = "Preço original(originalPrice) não pode ser vazio")
     private BigDecimal originalPrice;
 
     @NotBlank(message = "Preço promocional(promotionalPrice) não pode ser vazio")
     private BigDecimal promotionalPrice;
 
     @NotBlank(message = "Data de expiração(expirationDate) não pode ser vazio")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @JsonSerialize(using = LocalDateTimeSerializer.class)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss") 
     private LocalDateTime expirationDate;
 
     @NotBlank(message = "Limite de item para clientes(customerLimit) não pode ser vazio")
@@ -45,7 +55,7 @@ public class PromotionDTO {
     //@NotBlank(message = "URL da imagem(imageUrl) não pode ser vazio")
     private String imageUrl;
 
-    @NotBlank(message = "Ativo(active) não pode ser vazio")
+    //@NotBlank(message = "Ativo(active) não pode ser vazio")
     private boolean active;
 
     @NotBlank(message = "ID do departamento(departmentId) não pode ser vazio")
@@ -55,4 +65,25 @@ public class PromotionDTO {
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+
+    public PromotionDTO(Promotion promotion) {
+        this.id = promotion.getId();
+        this.productName = promotion.getProductName();
+        this.productEan = promotion.getProductEan();
+        this.productDescription = promotion.getProductDescription();
+        this.productUnitTypeMessage = promotion.getProductUnitTypeMessage();
+        this.originalPrice = promotion.getOriginalPrice();
+        this.promotionalPrice = promotion.getPromotionalPrice();
+        this.expirationDate = promotion.getExpirationDate();
+        this.customerLimit = promotion.getCustomerLimit();
+        this.imageUrl = promotion.getImageUrl();
+        this.active = promotion.isActive();
+        this.departmentId = promotion.getDepartment().getId();
+        this.department = DepartmentDTO.fromDepartment(promotion.getDepartment());
+        this.createdAt = promotion.getCreatedAt();
+        
+    }
+
+    public PromotionDTO() {
+    }
 }

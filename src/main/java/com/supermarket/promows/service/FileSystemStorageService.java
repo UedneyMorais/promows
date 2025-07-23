@@ -121,7 +121,9 @@ public class FileSystemStorageService implements StorageService {
 
 
 	String getUrl(String filename) {
-		if (filename == null || filename.startsWith("http") || filename.startsWith("https") || filename.startsWith("192.168")) return filename;
+		if (filename == null || filename.startsWith("http") || filename.startsWith("https") || filename.startsWith("192.168"))
+		return filename;
+		
 		String finalUrl = "http://"+serverHost + ":" + serverPort + "/uploads/" + filename;
 		return finalUrl;
 	}

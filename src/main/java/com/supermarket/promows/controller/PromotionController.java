@@ -2,7 +2,6 @@ package com.supermarket.promows.controller;
 
 import com.supermarket.promows.dto.PromotionDTO;
 import com.supermarket.promows.exception.PromotionNotFoundException;
-import com.supermarket.promows.model.Promotion;
 import com.supermarket.promows.service.FileSystemStorageService;
 import com.supermarket.promows.service.PromotionService;
 
@@ -24,18 +23,17 @@ public class PromotionController {
         this.promotionService = promotionService;
     }
 
-    @PostMapping
-    public ResponseEntity<Promotion> createPromotion(@RequestPart("promotion") String promotionJson, @RequestPart("file") MultipartFile file){
-        Promotion createdPromotion = promotionService.createPromotion(promotionJson, file);
-        return new ResponseEntity<Promotion>(createdPromotion, HttpStatus.CREATED);
-    }
-
-    // @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    // public ResponseEntity<Promotion> createPromotion(@RequestPart("promotion") String promotionDTO, @RequestPart("file") MultipartFile file){
-    //     Promotion createdPromotion = promotionService.createPromotion(promotionDTO, file);
-    //     return new ResponseEntity<Promotion>(createdPromotion, HttpStatus.CREATED);
+    // @PostMapping
+    // public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionJson, @RequestPart("file") MultipartFile file){
+    //     PromotionDTO createdPromotion = promotionService.createPromotion(promotionJson, file);
+    //     return new ResponseEntity<>(createdPromotion, HttpStatus.CREATED);
     // }
 
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionDTO, @RequestPart("file") MultipartFile file){
+        PromotionDTO createdPromotion = promotionService.createPromotion(promotionDTO, file);
+        return new ResponseEntity<PromotionDTO>(createdPromotion, HttpStatus.CREATED);
+    }
 
     @GetMapping
     public List<PromotionDTO> getAllPromotions() {
@@ -61,10 +59,10 @@ public class PromotionController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<PromotionDTO> updatePromotionById(@RequestBody PromotionDTO promotionDTO, @PathVariable Long id) {
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, value = "/{id}")
+    public ResponseEntity<PromotionDTO> updatePromotionById(@RequestPart("promotion") String promotionDTO, @RequestPart(value = "file", required = false) MultipartFile file, @PathVariable Long id) {
 
-        PromotionDTO updatedPromotion = promotionService.updatePromotionById(promotionDTO, id);
+        PromotionDTO updatedPromotion = promotionService.updatePromotionById(promotionDTO,file, id);
 
         if (updatedPromotion != null) {
             return new ResponseEntity<>(updatedPromotion, HttpStatus.OK);

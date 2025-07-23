@@ -9,6 +9,7 @@ import com.supermarket.promows.model.Department;
 import com.supermarket.promows.model.Promotion;
 import com.supermarket.promows.repository.DepartmentRepository;
 import com.supermarket.promows.repository.PromotionRepository;
+
 import jakarta.transaction.Transactional;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,7 @@ public class PromotionService {
     }
 
     @Transactional
-    public Promotion createPromotion(String promotionJson, MultipartFile file) {
+    public PromotionDTO createPromotion(String promotionJson, MultipartFile file) {
 
         // Parse JSON manualmente
         PromotionDTO promotionDTO;
@@ -48,8 +49,10 @@ public class PromotionService {
 
         Department department = departmentRepository.findById(promotionDTO.getDepartmentId())
             .orElseThrow(() -> new RuntimeException("Departamento não encontrado com ID: " + promotionDTO.getDepartmentId()));
-            
-            Promotion promotion = new Promotion();
+
+        String imageUrl = fileSystemStorageService.store(file);
+
+        Promotion promotion = new Promotion();
             promotion.setProductName(promotionDTO.getProductName());
             promotion.setProductEan(promotionDTO.getProductEan());
             promotion.setProductDescription(promotionDTO.getProductDescription());
@@ -58,16 +61,17 @@ public class PromotionService {
             promotion.setPromotionalPrice(promotionDTO.getPromotionalPrice());
             promotion.setExpirationDate(promotionDTO.getExpirationDate());
             promotion.setCustomerLimit(promotionDTO.getCustomerLimit());
-            promotion.setImageUrl(promotionDTO.getImageUrl());
+            promotion.setImageUrl(imageUrl);
             promotion.setActive(promotionDTO.isActive());
             promotion.setCreatedAt(promotionDTO.getCreatedAt());
             promotion.setDepartment(department);
 
             Promotion createdPromotion = promotionRepository.save(promotion);
 
+            PromotionDTO createdPromotionDTO = new PromotionDTO(createdPromotion);
 
             getAndSendValidPromotions();
-        return createdPromotion;
+        return createdPromotionDTO;
     }
 
     @Transactional
@@ -182,7 +186,17 @@ public class PromotionService {
     }
 
     @Transactional
-    public PromotionDTO updatePromotionById(PromotionDTO promotionDTO, Long id) {
+    public PromotionDTO updatePromotionById(String promotionJson, MultipartFile file, Long id) {
+
+        // Parse JSON manualmente
+        PromotionDTO promotionDTO;
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            promotionDTO = objectMapper.readValue(promotionJson, PromotionDTO.class);
+        } catch (IOException e) {
+            throw new RuntimeException("Erro ao converter JSON para PromotionDTO", e);
+        }
+
         Optional<Promotion> loadedPromotionOptional = promotionRepository.findById(id);
 
         Promotion loadedPromotion = loadedPromotionOptional.orElseThrow(() -> new PromotionNotFoundException(id));
@@ -194,7 +208,12 @@ public class PromotionService {
         Long departmentId = promotionDTO.getDepartmentId(); 
         Department department = departmentRepository.findById(departmentId)
                  .orElseThrow(() -> new DepartmentNotFoundException(departmentId)); 
-                 
+
+        if(file != null && !file.isEmpty()){
+            String imageUrl = fileSystemStorageService.store(file);
+            loadedPromotion.setImageUrl(imageUrl);
+        }
+
         loadedPromotion.setProductName(promotionDTO.getProductName());
         loadedPromotion.setProductEan(promotionDTO.getProductEan());
         loadedPromotion.setProductDescription(promotionDTO.getProductDescription());
@@ -203,7 +222,7 @@ public class PromotionService {
         loadedPromotion.setPromotionalPrice(promotionDTO.getPromotionalPrice());
         loadedPromotion.setExpirationDate(promotionDTO.getExpirationDate());
         loadedPromotion.setCustomerLimit(promotionDTO.getCustomerLimit());
-        loadedPromotion.setImageUrl(promotionDTO.getImageUrl());
+        loadedPromotion.setImageUrl(loadedPromotion.getImageUrl());
         loadedPromotion.setActive(promotionDTO.isActive());
         loadedPromotion.setDepartment(department);
 
