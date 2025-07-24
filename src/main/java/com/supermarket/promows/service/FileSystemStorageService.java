@@ -25,7 +25,7 @@ import com.supermarket.promows.utils.SlugUtil;
 @Service
 public class FileSystemStorageService implements StorageService {
 
-	@Value("${server.address}")
+	@Value("${app.external.address}")
 	private String serverHost;
 
 	@Value("${server.port}")
@@ -124,7 +124,8 @@ public class FileSystemStorageService implements StorageService {
 		if (filename == null || filename.startsWith("http") || filename.startsWith("https") || filename.startsWith("192.168"))
 		return filename;
 		
-		String finalUrl = "http://"+serverHost + ":" + serverPort + "/uploads/" + filename;
+		// String finalUrl = "http://"+serverHost + ":" + serverPort + "/uploads/" + filename;
+		String finalUrl = serverHost +"/uploads/" + filename;
 		return finalUrl;
 	}
     
