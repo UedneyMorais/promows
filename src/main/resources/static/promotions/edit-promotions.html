@@ -93,6 +93,16 @@
             z-index: 9990;
             display: none;
         }
+
+        #imagePreview img {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 5px;
+        }
+    
+        #imagePreview img:hover {
+            box-shadow: 0 0 2px 1px rgba(0, 140, 186, 0.5);
+        }
     </style>
    <link rel="stylesheet" href="../css/menu/styles-nav.css">
     <link rel="stylesheet" href="../css/promotions/styles-edit-promotions.css">
@@ -167,9 +177,12 @@
         </div>
 
         <div class="form-group">
-            <label for="imageUrl">URL da Imagem:</label>
-            <input type="url" id="imageUrl" placeholder="https://exemplo.com/imagem.jpg">
-            <small>Deixe em branco para usar imagem padrão</small>
+            <label for="imageUpload">Imagem do Produto:</label>
+            <input type="file" id="imageUpload" accept="image/*">
+            <small>Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB</small>
+            <div id="imagePreview" style="margin-top: 10px; display: none;">
+                <img id="previewImage" src="#" alt="Pré-visualização da imagem" style="max-width: 200px; max-height: 200px;">
+            </div>
         </div>
 
         <div class="form-group">
@@ -203,6 +216,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('promotionForm').setAttribute('enctype', 'multipart/form-data');
             const urlParams = new URLSearchParams(window.location.search);
             const promotionId = urlParams.get('id');
 
@@ -318,9 +332,15 @@
             }
 
             document.getElementById('customerLimit').value = promotion.customerLimit || '';
-            document.getElementById('imageUrl').value = promotion.imageUrl || '';
             document.getElementById('active').value = promotion.active ? 'true' : 'false';
             document.getElementById('departmentId').value = promotion.department?.id || '';
+
+            // Mostra a imagem existente se houver
+            if (promotion.imageUrl) {
+                const preview = document.getElementById('previewImage');
+                preview.src = promotion.imageUrl;
+                document.getElementById('imagePreview').style.display = 'block';
+            }
         }
 
         // Valida se preço promocional é menor que original
@@ -335,12 +355,26 @@
             }
         }
 
+        document.getElementById('imageUpload').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('previewImage');
+                    preview.src = e.target.result;
+                    document.getElementById('imagePreview').style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
         async function updatePromotion() {
             const messageDiv = document.getElementById('message');
             messageDiv.style.display = 'none';
             showLoading();
 
             const promotionId = document.getElementById('promotionId').value;
+            const imageFile = document.getElementById('imageUpload').files[0];
 
             try {
                 validatePrices();
@@ -352,17 +386,12 @@
                 let expirationDateISO = null;
 
                 if (expirationDateInput) {
-                    const parts = expirationDateInput.split(/[/ :]/);
-                    if (parts.length >= 5) {
-                        const day = parts[0];
-                        const month = parts[1];
-                        const year = parts[2];
-                        const hour = parts[3];
-                        const minute = parts[4];
+                    const [datePart, timePart] = expirationDateInput.split(' ');
+                    const [day, month, year] = datePart.split('/');
+                    const [hours, minutes] = timePart.split(':');
 
-                        const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
-                        expirationDateISO = new Date(isoString).toISOString();
-                    }
+                    // Formato esperado pelo backend: "yyyy-MM-ddTHH:mm:ss"
+                    expirationDateISO = `${year}-${month}-${day}T${hours}:${minutes}:00`;
                 }
 
                 const promotionData = {
@@ -375,7 +404,6 @@
                     promotionalPrice: parseFloat(document.getElementById('promotionalPrice').value),
                     expirationDate: expirationDateISO,
                     customerLimit: parseInt(document.getElementById('customerLimit').value),
-                    imageUrl: document.getElementById('imageUrl').value.trim() || null,
                     active: document.getElementById('active').value === 'true',
                     departmentId: parseInt(document.getElementById('departmentId').value)
                 };
@@ -384,12 +412,15 @@
                     throw new Error('O preço promocional deve ser menor que o original');
                 }
 
+                const formData = new FormData();
+                formData.append('promotion', JSON.stringify(promotionData));
+                if (imageFile) {
+                    formData.append('file', imageFile);
+                }
+
                 const response = await fetch(`/api/promotions/${promotionId}`, {
                     method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(promotionData)
+                    body: formData
                 });
 
                 if (!response.ok) {
@@ -412,6 +443,8 @@
             messageDiv.style.display = 'none';
             showLoading();
 
+            const imageFile = document.getElementById('imageUpload').files[0];
+
             try {
                 validatePrices();
                 if (!document.getElementById('promotionForm').checkValidity()) {
@@ -422,17 +455,12 @@
                 let expirationDateISO = null;
 
                 if (expirationDateInput) {
-                    const parts = expirationDateInput.split(/[/ :]/);
-                    if (parts.length >= 5) {
-                        const day = parts[0];
-                        const month = parts[1];
-                        const year = parts[2];
-                        const hour = parts[3];
-                        const minute = parts[4];
+                    const [datePart, timePart] = expirationDateInput.split(' ');
+                    const [day, month, year] = datePart.split('/');
+                    const [hours, minutes] = timePart.split(':');
 
-                        const isoString = `${year}-${month}-${day}T${hour}:${minute}:00`;
-                        expirationDateISO = new Date(isoString).toISOString();
-                    }
+                    // Formato esperado pelo backend: "yyyy-MM-ddTHH:mm:ss"
+                    expirationDateISO = `${year}-${month}-${day}T${hours}:${minutes}:00`;
                 }
 
                 const promotionData = {
@@ -444,7 +472,6 @@
                     promotionalPrice: parseFloat(document.getElementById('promotionalPrice').value),
                     expirationDate: expirationDateISO,
                     customerLimit: parseInt(document.getElementById('customerLimit').value),
-                    imageUrl: document.getElementById('imageUrl').value.trim() || null,
                     active: document.getElementById('active').value === 'true',
                     departmentId: parseInt(document.getElementById('departmentId').value)
                 };
@@ -453,12 +480,13 @@
                     throw new Error('O preço promocional deve ser menor que o original');
                 }
 
+                const formData = new FormData();
+                formData.append('promotion', JSON.stringify(promotionData));
+                formData.append('file', imageFile);
+
                 const response = await fetch('/api/promotions', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(promotionData)
+                    body: formData
                 });
 
                 if (!response.ok) {

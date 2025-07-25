@@ -66,7 +66,5 @@ public class DepartmentService {
             .orElseThrow(() -> new DepartmentNotFoundException(id));
         
         departmentRepository.delete(loadedDepartment);
-        
-        //messagingTemplate.convertAndSend("/topic/deleted-departaments", deletedDepartment);
     }
 }

@@ -2,11 +2,14 @@ package com.supermarket.promows.controller;
 
 import com.supermarket.promows.dto.PromotionDTO;
 import com.supermarket.promows.exception.PromotionNotFoundException;
-import com.supermarket.promows.model.Promotion;
+import com.supermarket.promows.service.FileSystemStorageService;
 import com.supermarket.promows.service.PromotionService;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -16,33 +19,32 @@ import java.util.List;
 public class PromotionController {
     private final PromotionService promotionService;
 
-    public PromotionController(PromotionService promotionService) {
+    public PromotionController(PromotionService promotionService, FileSystemStorageService fileSystemStorageService) {
         this.promotionService = promotionService;
     }
 
-    @PostMapping
-    public ResponseEntity<Promotion> createPromotion(@RequestBody PromotionDTO promotionDTO){
-        Promotion createdPromotion = promotionService.createPromotion(promotionDTO);
-        return new ResponseEntity<Promotion>(createdPromotion, HttpStatus.CREATED);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionDTO, @RequestPart("file") MultipartFile file){
+        PromotionDTO createdPromotion = promotionService.createPromotion(promotionDTO, file);
+        return new ResponseEntity<PromotionDTO>(createdPromotion, HttpStatus.CREATED);
     }
 
-
     @GetMapping
-    public List<Promotion> getAllPromotions() {
-        List<Promotion> promotions = promotionService.getAllPromotions();
+    public List<PromotionDTO> getAllPromotions() {
+        List<PromotionDTO> promotions = promotionService.getAllPromotions();
         return promotions;
     }
 
     @GetMapping("/valid")
-    public List<Promotion> getAllValidPromotions() {
-        List<Promotion> validPromotions = promotionService.getAllValidPromotions();
+    public List<PromotionDTO> getAllValidPromotions() {
+        List<PromotionDTO> validPromotions = promotionService.getAllValidPromotions();
         return validPromotions;
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Promotion> getPromotionById(@PathVariable Long id) {
-        
-        Promotion loadedPromotion = promotionService.getPromotionById(id);
+    public ResponseEntity<PromotionDTO> getPromotionById(@PathVariable Long id) {
+
+        PromotionDTO loadedPromotion = promotionService.getPromotionById(id);
 
         if (loadedPromotion != null) {
             return new ResponseEntity<>(loadedPromotion, HttpStatus.OK);
@@ -51,10 +53,10 @@ public class PromotionController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Promotion> updatePromotionById(@RequestBody PromotionDTO promotionDTO, @PathVariable Long id) {
-        
-        Promotion updatedPromotion = promotionService.updatePromotionById(promotionDTO, id);
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, value = "/{id}")
+    public ResponseEntity<PromotionDTO> updatePromotionById(@RequestPart("promotion") String promotionDTO, @RequestPart(value = "file", required = false) MultipartFile file, @PathVariable Long id) {
+
+        PromotionDTO updatedPromotion = promotionService.updatePromotionById(promotionDTO,file, id);
 
         if (updatedPromotion != null) {
             return new ResponseEntity<>(updatedPromotion, HttpStatus.OK);
@@ -73,8 +75,4 @@ public class PromotionController {
         }
     }
 
-//    @PostMapping("/upload")
-//    public ResponseEntity<String> uploadImage(@RequestParam MultipartFile file) {
-//        // Salva a imagem no banco ou em um storage externo
-//    }
 }
