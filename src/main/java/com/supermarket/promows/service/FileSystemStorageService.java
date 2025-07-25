@@ -123,7 +123,7 @@ public class FileSystemStorageService implements StorageRepository {
 		return filename;
 		
 		// String finalUrl = "http://"+serverHost + ":" + serverPort + "/uploads/" + filename;
-		String finalUrl = serverHost +"/uploads/" + filename;
+		String finalUrl = serverHost.trim() +"/uploads/" + filename;
 		return finalUrl;
 	}
     

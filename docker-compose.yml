@@ -1,23 +1,22 @@
-version: '3.8'
-
 services:
-  postgres:
-    image: postgres:15-alpine
+  promows_db:
+    image: postgres:15
     container_name: promows_db
+    restart: always
     environment:
+      POSTGRES_DB: promows_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: senha123
-      POSTGRES_DB: promows_db
+
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
 
   promows:
     build:
@@ -30,21 +29,14 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://promows_db:5432/promows_db
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: senha123
-      APP_EXTERNAL_ADDRESS: http://192.168.77.137:9090
-      # --- NOVO: Variável de ambiente para o caminho de storage ---
-      STORAGE_LOCATION: /app/uploads # Garante que a propriedade 'storage.location' seja lida do ambiente
-      # --- FIM NOVO ---
+      STORAGE_LOCATION: /app/uploads
+      SPRING_PROFILES_ACTIVE: prod
     volumes:
-      # --- NOVO: Mapeamento de volume para persistir uploads ---
-      - ./uploads:/app/uploads # Mapeia a pasta 'uploads' do seu host para '/app/uploads' no contêiner
-      # --- FIM NOVO ---
+      - ./uploads:/app/uploads
     depends_on:
-      postgres:
+      promows_db:
         condition: service_healthy
+    entrypoint: ["/bin/bash", "/app/entrypoint.sh"]
 
 volumes:
-  postgres_data:
-
-networks:
-  app_network:
-    driver: bridge
+  pgdata:

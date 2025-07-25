@@ -41,6 +41,12 @@ WORKDIR /app
 # Como é um projeto de módulo único, o JAR estará diretamente em /app/target.
 COPY --from=builder /app/target/*.jar app.jar
 
+# Copia o script de entrypoint
+COPY entrypoint.sh /app/entrypoint.sh
+
+# Dá permissão de execução ao script
+RUN chmod +x /app/entrypoint.sh
+
 # Expõe a porta que sua aplicação Java usa.
 EXPOSE 9090
 

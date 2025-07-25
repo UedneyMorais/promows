@@ -23,7 +23,9 @@ public class PromotionController {
         this.promotionService = promotionService;
     }
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    //@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+             produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
     public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionDTO, @RequestPart("file") MultipartFile file){
         PromotionDTO createdPromotion = promotionService.createPromotion(promotionDTO, file);
         return new ResponseEntity<PromotionDTO>(createdPromotion, HttpStatus.CREATED);

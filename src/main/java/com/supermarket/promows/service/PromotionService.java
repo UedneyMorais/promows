@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,7 +44,8 @@ public class PromotionService {
 
         PromotionDTO promotionDTO;
         try {
-            promotionDTO = objectMapper.readValue(promotionJson, PromotionDTO.class);
+            String fixedJson = new String(promotionJson.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+            promotionDTO = objectMapper.readValue(fixedJson, PromotionDTO.class);
         } catch (IOException e) {
             throw new JsonConverterDTOException(e, PromotionDTO.class);
         }
