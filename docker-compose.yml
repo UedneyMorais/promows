@@ -31,6 +31,10 @@ services:
       SPRING_DATASOURCE_PASSWORD: senha123
       STORAGE_LOCATION: /app/uploads
       SPRING_PROFILES_ACTIVE: prod
+      #APP_EXTERNAL_ADDRESS: http://192.168.77.137:9090
+      APP_EXTERNAL_ADDRESS: ${APP_EXTERNAL_ADDRESS}
+    env_file:
+      - .env
     volumes:
       - ./uploads:/app/uploads
     depends_on:

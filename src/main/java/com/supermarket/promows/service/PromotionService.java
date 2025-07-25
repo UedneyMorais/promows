@@ -193,7 +193,8 @@ public class PromotionService {
         // Parse JSON manualmente
         PromotionDTO promotionDTO;
         try {
-            promotionDTO = objectMapper.readValue(promotionJson, PromotionDTO.class);
+            String fixedJson = new String(promotionJson.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
+            promotionDTO = objectMapper.readValue(fixedJson, PromotionDTO.class);
         } catch (IOException e) {
             throw new JsonConverterDTOException(e, PromotionDTO.class);
         }
