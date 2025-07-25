@@ -18,16 +18,16 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.supermarket.promows.dto.SuccessfulUploadFileResponse;
 import com.supermarket.promows.exception.StorageFileNotFoundException;
-import com.supermarket.promows.repository.StorageService;
+import com.supermarket.promows.repository.StorageRepository;
 import com.supermarket.promows.utils.SlugUtil;
 
 
 @Controller
 public class FileUploadController {
 
-    private final StorageService storageService;
+    private final StorageRepository storageService;
     
-    public FileUploadController(StorageService storageService) {
+    public FileUploadController(StorageRepository storageService) {
         this.storageService = storageService;
     }
 
@@ -55,7 +55,7 @@ public class FileUploadController {
 	}
 
     @PostMapping("/api/upload")
-	public ResponseEntity<?> handleFileUpload(@RequestParam("file") MultipartFile file, RedirectAttributes redirectAttributes) {
+	public ResponseEntity<?> handleFileUpload(@RequestParam MultipartFile file, RedirectAttributes redirectAttributes) {
 
 		storageService.store(file);
 		redirectAttributes.addFlashAttribute("message", "You successfully uploaded " + file.getOriginalFilename() + "!");

@@ -16,14 +16,11 @@ public class DepartmentDTO {
     @Size(min = 3, max = 50, message = "O nome deve ter entre 3 e 50 caracteres")
     private String departmentName;
 
-    public static DepartmentDTO fromDepartment(Department department) {
-        if (department == null) {
-            return null;
-        }
+    public DepartmentDTO() {
+    }
 
-        DepartmentDTO dto = new DepartmentDTO();
-        dto.setId(department.getId());
-        dto.setDepartmentName(department.getDepartmentName());
-        return dto;
+    public DepartmentDTO(Department department) {
+        this.id = department.getId();
+        this.departmentName = department.getDepartmentName();
     }
 }

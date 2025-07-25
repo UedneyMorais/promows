@@ -5,7 +5,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @ConfigurationProperties("storage")
-public class StorageProperties {
+public class StoragePropertiesConfig {
 
     private String location = "uploads";
 

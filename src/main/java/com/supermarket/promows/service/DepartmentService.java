@@ -21,7 +21,7 @@ public class DepartmentService {
     }
 
     @Transactional
-    public Department createDepartment(DepartmentDTO departmentDTO){
+    public DepartmentDTO createDepartment(DepartmentDTO departmentDTO){
 
         Optional<Department> existingDepartments = departmentRepository.findBydepartmentName(departmentDTO.getDepartmentName());
 
@@ -30,21 +30,24 @@ public class DepartmentService {
         }
 
         Department savedDepartment = departmentRepository.save(new Department(departmentDTO));
-        return savedDepartment;
+
+        DepartmentDTO savedDepartmentDTO = new DepartmentDTO(savedDepartment);
+
+        return savedDepartmentDTO;
     }
 
     @Transactional
-    public List<Department> getAllDepartments(){
-        List<Department> departments = departmentRepository.findAll();
+    public List<DepartmentDTO> getAllDepartments(){
+        List<DepartmentDTO> departments = departmentRepository.findAll().stream().map(DepartmentDTO::new).toList();
         return departments;
     }
 
-    public Department getDepartmentById(Long id){
-        return departmentRepository.findById(id).orElseThrow(() -> new DepartmentNotFoundException(id));
+    public DepartmentDTO getDepartmentById(Long id){
+        return departmentRepository.findById(id).map(DepartmentDTO::new).orElseThrow(() -> new DepartmentNotFoundException(id));
     }
 
     @Transactional
-    public Department updateDepartmentById(DepartmentDTO departmentDTO, Long id) {
+    public DepartmentDTO updateDepartmentById(DepartmentDTO departmentDTO, Long id) {
 
         if (!departmentDTO.getId().equals(id)) {
             throw new InconsistentIdException("ID do departamento na requisição não corresponde ao ID do path.");
@@ -57,7 +60,7 @@ public class DepartmentService {
         
         existingDepartment.setDepartmentName(departmentDTO.getDepartmentName());
 
-        return departmentRepository.save(existingDepartment);
+        return new DepartmentDTO(departmentRepository.save(existingDepartment));
     }
 
     @Transactional

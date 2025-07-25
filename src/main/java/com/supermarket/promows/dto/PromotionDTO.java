@@ -78,7 +78,7 @@ public class PromotionDTO {
         this.imageUrl = promotion.getImageUrl();
         this.active = promotion.isActive();
         this.departmentId = promotion.getDepartment().getId();
-        this.department = DepartmentDTO.fromDepartment(promotion.getDepartment());
+        this.department = new DepartmentDTO(promotion.getDepartment());
         this.createdAt = promotion.getCreatedAt();
         
     }

@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.stream.Stream;
 
@@ -16,14 +15,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.supermarket.promows.config.StorageProperties;
+import com.supermarket.promows.config.StoragePropertiesConfig;
 import com.supermarket.promows.exception.StorageException;
 import com.supermarket.promows.exception.StorageFileNotFoundException;
-import com.supermarket.promows.repository.StorageService;
+import com.supermarket.promows.repository.StorageRepository;
 import com.supermarket.promows.utils.SlugUtil;
 
 @Service
-public class FileSystemStorageService implements StorageService {
+public class FileSystemStorageService implements StorageRepository {
 
 	@Value("${app.external.address}")
 	private String serverHost;
@@ -33,13 +32,13 @@ public class FileSystemStorageService implements StorageService {
 
     private final Path rootLocation;
 
-	public FileSystemStorageService(StorageProperties properties) {
+	public FileSystemStorageService(StoragePropertiesConfig properties) {
         
         if(properties.getLocation().trim().length() == 0){
             throw new StorageException("File upload location can not be Empty."); 
         }
 
-		this.rootLocation = Paths.get(properties.getLocation());
+		this.rootLocation = Path.of(properties.getLocation());
 	}
 
     @Override
@@ -58,10 +57,9 @@ public class FileSystemStorageService implements StorageService {
 	            throw new StorageException("Failed to store empty file.");
 	        }
 
-	        // Gera nome seguro
 	        String safeFilename = SlugUtil.slugifyFileName(file.getOriginalFilename());
 
-	        Path destinationFile = this.rootLocation.resolve(Paths.get(safeFilename))
+	        Path destinationFile = this.rootLocation.resolve(Path.of(safeFilename))
 	                .normalize().toAbsolutePath();
 
 	        if (!destinationFile.getParent().equals(this.rootLocation.toAbsolutePath())) {

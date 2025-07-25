@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 import org.springframework.core.io.Resource;
 import org.springframework.web.multipart.MultipartFile;
 
-public interface StorageService {
+public interface StorageRepository {
 
     void init();
 

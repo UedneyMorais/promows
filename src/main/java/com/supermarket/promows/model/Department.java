@@ -26,8 +26,8 @@ public class Department {
     private String departmentName;
 
     @OneToMany(mappedBy = "department")
-    @JsonIgnore // Isso evita a serialização da lista de promoções
-    private List<Promotion> promotions = new ArrayList<Promotion>();
+    @JsonIgnore
+    private List<Promotion> promotions = new ArrayList<>();
 
     public Department() {
     }

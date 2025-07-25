@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.supermarket.promows.dto.DepartmentDTO;
 import com.supermarket.promows.dto.PromotionDTO;
 import com.supermarket.promows.exception.DepartmentNotFoundException;
+import com.supermarket.promows.exception.JsonConverterDTOException;
 import com.supermarket.promows.exception.PromotionNotFoundException;
 import com.supermarket.promows.model.Department;
 import com.supermarket.promows.model.Promotion;
@@ -27,28 +28,28 @@ public class PromotionService {
     private final DepartmentRepository departmentRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final FileSystemStorageService fileSystemStorageService;
+    private final ObjectMapper objectMapper;
 
     public PromotionService(PromotionRepository promotionRepository, DepartmentRepository departmentRepository, SimpMessagingTemplate messagingTemplate, FileSystemStorageService fileSystemStorageService) {
         this.promotionRepository = promotionRepository;
         this.departmentRepository = departmentRepository;
         this.messagingTemplate = messagingTemplate;
+        this.objectMapper = new ObjectMapper();
         this.fileSystemStorageService = fileSystemStorageService;
     }
 
     @Transactional
     public PromotionDTO createPromotion(String promotionJson, MultipartFile file) {
 
-        // Parse JSON manualmente
         PromotionDTO promotionDTO;
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             promotionDTO = objectMapper.readValue(promotionJson, PromotionDTO.class);
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao converter JSON para PromotionDTO", e);
+            throw new JsonConverterDTOException(e, PromotionDTO.class);
         }
 
         Department department = departmentRepository.findById(promotionDTO.getDepartmentId())
-            .orElseThrow(() -> new RuntimeException("Departamento não encontrado com ID: " + promotionDTO.getDepartmentId()));
+            .orElseThrow(() -> new DepartmentNotFoundException(promotionDTO.getDepartmentId()));
 
         String imageUrl = fileSystemStorageService.store(file);
 
@@ -101,7 +102,7 @@ public class PromotionService {
             
                return dto;
            })
-           .collect(Collectors.toList());
+           .toList();
 
         return loadedPromotionsDTO;
             
@@ -136,8 +137,7 @@ public class PromotionService {
                dto.setActive(promotion.isActive());
                dto.setDepartmentId(promotion.getDepartment().getId());
                dto.setCreatedAt(promotion.getCreatedAt());
-            
-               // Mapear DepartmentDTO
+
                DepartmentDTO departmentDTO = new DepartmentDTO();
                departmentDTO.setId(promotion.getDepartment().getId());
                departmentDTO.setDepartmentName(promotion.getDepartment().getDepartmentName());
@@ -145,7 +145,7 @@ public class PromotionService {
             
                return dto;
            })
-           .collect(Collectors.toList());
+           .toList();
         
             if (!promotionsToSend.isEmpty()) {
                 messagingTemplate.convertAndSend("/topic/promotions", promotionsToSend );
@@ -191,19 +191,14 @@ public class PromotionService {
         // Parse JSON manualmente
         PromotionDTO promotionDTO;
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
             promotionDTO = objectMapper.readValue(promotionJson, PromotionDTO.class);
         } catch (IOException e) {
-            throw new RuntimeException("Erro ao converter JSON para PromotionDTO", e);
+            throw new JsonConverterDTOException(e, PromotionDTO.class);
         }
 
         Optional<Promotion> loadedPromotionOptional = promotionRepository.findById(id);
 
         Promotion loadedPromotion = loadedPromotionOptional.orElseThrow(() -> new PromotionNotFoundException(id));
-
-        // if (!promotionDTO.getId().equals(id)) {
-        //     throw new IllegalArgumentException("ID da promoção na requisição não corresponde ao ID do path.");
-        // }
 
         Long departmentId = promotionDTO.getDepartmentId(); 
         Department department = departmentRepository.findById(departmentId)

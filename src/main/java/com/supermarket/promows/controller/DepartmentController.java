@@ -1,7 +1,6 @@
 package com.supermarket.promows.controller;
 
 import com.supermarket.promows.dto.DepartmentDTO;
-import com.supermarket.promows.model.Department;
 import com.supermarket.promows.service.DepartmentService;
 
 import org.springframework.http.HttpStatus;
@@ -22,27 +21,27 @@ public class DepartmentController {
     }
 
     @PostMapping
-    public ResponseEntity<Department> createDepartment(@RequestBody DepartmentDTO departmentDTO){
-        Department createdDepartment = departmentService.createDepartment(departmentDTO);
+    public ResponseEntity<DepartmentDTO> createDepartment(@RequestBody DepartmentDTO departmentDTO){
+        DepartmentDTO createdDepartment = departmentService.createDepartment(departmentDTO);
         return new ResponseEntity<>(createdDepartment, HttpStatus.CREATED);
     }
 
 
     @GetMapping
-    public ResponseEntity<List<Department>> getActiveDepartments() {
-        List<Department> departments = departmentService.getAllDepartments();
+    public ResponseEntity<List<DepartmentDTO>> getActiveDepartments() {
+        List<DepartmentDTO> departments = departmentService.getAllDepartments();
         return new ResponseEntity<>(departments, HttpStatus.OK);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Department> getDepartmentById(@PathVariable Long id) { 
-        Department loadedDepartment = departmentService.getDepartmentById(id);
+    public ResponseEntity<DepartmentDTO> getDepartmentById(@PathVariable Long id) {
+        DepartmentDTO loadedDepartment = departmentService.getDepartmentById(id);
         return new ResponseEntity<>(loadedDepartment, HttpStatus.OK);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Department> updateDepartmentById(@RequestBody DepartmentDTO departmentDTO, @PathVariable Long id) {
-        Department updatedDepartment = departmentService.updateDepartmentById(departmentDTO, id);
+    public ResponseEntity<DepartmentDTO> updateDepartmentById(@RequestBody DepartmentDTO departmentDTO, @PathVariable Long id) {
+        DepartmentDTO updatedDepartment = departmentService.updateDepartmentById(departmentDTO, id);
         return new ResponseEntity<>(updatedDepartment, HttpStatus.OK);
     }
 

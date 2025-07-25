@@ -44,6 +44,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
+    @ExceptionHandler(JsonConverterDTOException.class)
+    public ResponseEntity<ErrorResponse> handleJsonConverterDTOException(JsonConverterDTOException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(HttpStatus.BAD_REQUEST, "Erro ao converter JSON para DTO: " + ex.getMessage(), LocalDateTime.now(), request.getRequestURI());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(StorageException.class)
     public ResponseEntity<ErrorResponse> handleStorageException(StorageException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, ex.getMessage(), LocalDateTime.now(), request.getRequestURI());       
