@@ -52,11 +52,10 @@ Clone o Repositório ou Baixe o Código:
 
 Via Git (Recomendado): Abra seu terminal/CMD e execute:
 
-Bash
-
-git clone [https://github.com/UedneyMorais/promows.git] 
+```bash
+git clone [https://github.com/UedneyMorais/promows.git]
 cd promows
-
+```
 Baixar Zip: Baixe o código-fonte como um arquivo .zip diretamente do GitHub, descompacte-o em uma pasta de sua preferência e navegue até ela via terminal/CMD.
 
 Inicie a Aplicação com Docker Compose:
@@ -69,10 +68,10 @@ Execute o comando:
 docker compose up -d
 ```
 
-Este comando irá baixar as imagens necessárias (PostgreSQL e sua imagem da API Spring Boot), criar os containers e iniciá-los em segundo plano. Na primeira vez, isso pode levar alguns minutos.
+Este comando irá baixar as imagens necessárias (PostgreSQL e sua imagem da API Spring Boot), criar os containers e iniciá-los em segundo plano.<br> Na primeira vez, isso pode levar alguns minutos.
 
 🌐 Acessando o Sistema
-Após o Docker Compose finalizar a inicialização (você pode verificar o status com docker ps), abra seu navegador web.
+Após o Docker Compose finalizar a inicialização (você pode verificar o status com docker ps), abra seu navegador web.<br>
 
 Digite na barra de endereço: http://localhost:9090 (ou a porta que sua aplicação Spring Boot está configurada para expor).
 
