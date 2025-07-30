@@ -39,15 +39,53 @@ O sistema exibe automaticamente as promoções em **modo apresentação**, com t
 
 ---
 
-## 🚀 Como usar?
+## 🚀 Como usar o PromoWS (Nova Abordagem para Desenvolvedores/Usuários Docker)
+Para quem já tem o Docker instalado ou está disposto a instalá-lo, o PromoWS é super fácil de colocar no ar. Basta seguir estes passos:
 
-1. **Baixe o sistema** clicando no link abaixo
-2. **Execute o aplicativo**
-3. **Acesse pelo navegador** no seu computador ou rede local
-4. Use uma TV ou monitor para exibir as promoções
+📌 Requisitos
+Docker Desktop (ou Docker Engine) instalado no seu sistema. Você pode baixá-lo em: https://www.docker.com/products/docker-desktop/
 
-🔗 [Clique aqui para baixar o sistema](https://github.com/**seuusuario**/**seurepositorio**/releases)
+Git (opcional, para clonar o repositório).
 
+📦 Instalação e Inicialização
+Clone o Repositório ou Baixe o Código:
+
+Via Git (Recomendado): Abra seu terminal/CMD e execute:
+
+Bash
+
+git clone https://github.com/seuusuario/seurepositorio.git
+cd seurepositorio
+(Lembre-se de substituir seuusuario/seurepositorio pelo caminho correto do seu repositório GitHub).
+
+Baixar Zip: Baixe o código-fonte como um arquivo .zip diretamente do GitHub, descompacte-o em uma pasta de sua preferência e navegue até ela via terminal/CMD.
+
+Inicie a Aplicação com Docker Compose:
+
+Dentro da pasta raiz do projeto (onde está o arquivo docker-compose.yml), abra seu terminal/CMD.
+
+Execute o comando:
+
+Bash
+
+docker compose up -d
+Este comando irá baixar as imagens necessárias (PostgreSQL e sua imagem da API Spring Boot), criar os containers e iniciá-los em segundo plano. Na primeira vez, isso pode levar alguns minutos.
+
+🌐 Acessando o Sistema
+Após o Docker Compose finalizar a inicialização (você pode verificar o status com docker ps), abra seu navegador web.
+
+Digite na barra de endereço: http://localhost:9090 (ou a porta que sua aplicação Spring Boot está configurada para expor).
+
+📺 Exibição em TV ou Monitor
+Para exibir as promoções em uma TV ou monitor conectado à mesma rede:
+
+No computador onde o PromoWS está rodando, descubra o endereço IP local. Abra o Prompt de Comando (CMD) e digite ipconfig. Procure por "Endereço IPv4" (ex: 192.168.1.100).
+
+Na TV/monitor (se for um Smart TV com navegador, ou um computador conectado à TV), abra o navegador.
+
+Digite o endereço IP do seu computador seguido da porta: http://[SEU_ENDERECO_IP_AQUI]:9090 (ex: http://192.168.1.100:9090).
+
+No sistema PromoWS, clique no botão de "Tela Cheia" para iniciar o modo de exibição de slides.
 ---
 
 ## 📌 Requisitos
