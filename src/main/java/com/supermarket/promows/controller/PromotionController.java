@@ -1,58 +1,80 @@
 package com.supermarket.promows.controller;
 
-import com.supermarket.promows.model.Promotion;
+import com.supermarket.promows.dto.PromotionDTO;
+import com.supermarket.promows.exception.PromotionNotFoundException;
+import com.supermarket.promows.service.FileSystemStorageService;
 import com.supermarket.promows.service.PromotionService;
+
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
+
 @RestController
 @RequestMapping("/api/promotions")
 public class PromotionController {
     private final PromotionService promotionService;
-    private final SimpMessagingTemplate messagingTemplate;
 
-    public PromotionController(PromotionService promotionService, SimpMessagingTemplate messagingTemplate) {
+    public PromotionController(PromotionService promotionService, FileSystemStorageService fileSystemStorageService) {
         this.promotionService = promotionService;
-        this.messagingTemplate = messagingTemplate;
     }
 
-    @PostMapping
-    public ResponseEntity<Promotion> createPromotion(@RequestBody Promotion promotion){
-        Promotion createdPromotion = promotionService.createPromotion(promotion);
-        return new ResponseEntity<Promotion>(createdPromotion, HttpStatus.CREATED);
+    //@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+             produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
+    public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionDTO, @RequestPart("file") MultipartFile file){
+        PromotionDTO createdPromotion = promotionService.createPromotion(promotionDTO, file);
+        return new ResponseEntity<PromotionDTO>(createdPromotion, HttpStatus.CREATED);
     }
-
 
     @GetMapping
-    public List<Promotion> getActivePromotions() {
-        List<Promotion> promotions = promotionService.getActivePromotions();
+    public List<PromotionDTO> getAllPromotions() {
+        List<PromotionDTO> promotions = promotionService.getAllPromotions();
         return promotions;
     }
 
-    //TESTE REMOVER
-//    @GetMapping("/trigger-ws")
-//    public void triggerWebSocketTest() {
-//        Promotion testPromo = new Promotion();
-//        testPromo.setProductDescription("TESTE MANUAL");
-//        testPromo.setDepartament("Açougue");
-//        messagingTemplate.convertAndSend("/topic/promotions", testPromo);
-//        System.out.println(("Mensagem TESTE MANUAL enviada para /topic/promotions"));
-//    }
-//    //TESTE REMOVER
-//    @GetMapping("/test-ws")
-//    public String testWebSocket() {
-//        // Envia uma mensagem SIMPLES para teste
-//        messagingTemplate.convertAndSend("/topic/promotions", "TESTE MANUAL 123");
-//        return "Mensagem enviada para /topic/promotions";
-//    }
-//
-//    @PostMapping("/upload")
-//    public ResponseEntity<String> uploadImage(@RequestParam MultipartFile file) {
-//        // Salva a imagem no banco ou em um storage externo
-//    }
+    @GetMapping("/valid")
+    public List<PromotionDTO> getAllValidPromotions() {
+        List<PromotionDTO> validPromotions = promotionService.getAllValidPromotions();
+        return validPromotions;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<PromotionDTO> getPromotionById(@PathVariable Long id) {
+
+        PromotionDTO loadedPromotion = promotionService.getPromotionById(id);
+
+        if (loadedPromotion != null) {
+            return new ResponseEntity<>(loadedPromotion, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, value = "/{id}")
+    public ResponseEntity<PromotionDTO> updatePromotionById(@RequestPart("promotion") String promotionDTO, @RequestPart(value = "file", required = false) MultipartFile file, @PathVariable Long id) {
+
+        PromotionDTO updatedPromotion = promotionService.updatePromotionById(promotionDTO,file, id);
+
+        if (updatedPromotion != null) {
+            return new ResponseEntity<>(updatedPromotion, HttpStatus.OK);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletePromotionById(@PathVariable Long id) {
+        try {
+            promotionService.deletePromotionById(id);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+        } catch (PromotionNotFoundException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
 }

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS - Editar/Criar Departamentos</title>
+    
+    <link rel="stylesheet" href="../css/departments/styles-edit-departments.css">
+</head>
+<body>
+
+    <h1>Editar/Criar Departamento</h1>
+
+    <form id="departmentForm">
+        <input type="hidden" id="departmentId">
+
+        <div class="form-group">
+            <label for="departmentName" class="required">Nome do Departamento:</label>
+            <input type="text" id="departmentName">
+        </div>
+
+        <div class="form-group">
+            <button type="submit">Salvar Departamento</button>
+            <button type="button" id="cancelButton" class="secondary-btn">Cancelar</button>
+        </div>
+    </form>
+
+    <div class="overlay" id="overlay" style="display: none;"></div>
+    <div id="loading-container" style="display: none;">
+        <div id="loading-spinner"></div>
+        <span id="loading-text">Processando sua solicitação...</span>
+        <p>Por favor, aguarde um momento</p>
+    </div>
+    <div id="message"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const departmentId = urlParams.get('id');
+
+            document.getElementById('departmentId').value = departmentId || '';
+
+            if (departmentId) {
+                loadDepartment(departmentId)
+                    .catch(error => {
+                        console.error('Erro ao carregar dados do departamento:', error);
+                        showMessage('Erro ao carregar dados do departamento', 'error');
+                    });
+            } else {
+                document.getElementById('departmentForm').reset();
+            }
+
+            document.getElementById('departmentForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (departmentId) {
+                    updateDepartment();
+                } else {
+                    createDepartment();
+                }
+            });
+
+            document.getElementById('cancelButton').addEventListener('click', function() {
+                window.location.href = 'list-departments.html';
+            });
+        });
+
+        function showLoading() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('loading-container').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('loading-container').style.display = 'none';
+        }
+
+        async function loadDepartment(departmentId) {
+            try {
+                const response = await fetch(`/api/departments/${departmentId}`);
+                if (!response.ok) throw new Error('Erro ao carregar departamento');
+
+                const department = await response.json();
+                fillFormWithDepartmentData(department);
+            } catch (error) {
+                console.error('Erro:', error);
+                throw error;
+            }
+        }
+
+        function fillFormWithDepartmentData(department) {
+            document.getElementById('departmentName').value = department.departmentName || '';
+        }
+
+        async function updateDepartment() {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+            showLoading();
+
+            const departmentId = document.getElementById('departmentId').value;
+
+            try {
+                if (!document.getElementById('departmentForm').checkValidity()) {
+                    throw new Error('Preencha todos os campos obrigatórios corretamente');
+                }
+
+                const departmentData = {
+                    id: departmentId,
+                    departmentName: document.getElementById('departmentName').value.trim(),
+                };
+
+                const response = await fetch(`/api/departments/${departmentId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(departmentData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao atualizar departamento');
+                }
+
+                showMessage('Departamento atualizado com sucesso!', 'success');
+
+            } catch (error) {
+                console.error('Erro ao atualizar departamento:', error);
+                showMessage('Erro: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function createDepartment() {
+            const messageDiv = document.getElementById('message');
+            messageDiv.style.display = 'none';
+            showLoading();
+
+            try {
+                if (!document.getElementById('departmentForm').checkValidity()) {
+                    throw new Error('Preencha todos os campos obrigatórios corretamente');
+                }
+
+                const departmentData = {
+                    departmentName: document.getElementById('departmentName').value.trim(),
+                };
+
+                const response = await fetch('/api/departments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(departmentData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Erro ao cadastrar departamento');
+                }
+
+                showMessage('Departamento cadastrado com sucesso!', 'success');
+                document.getElementById('departmentForm').reset();
+                
+                setTimeout(() => window.location.href = 'list-departments.html', 1000);
+
+            } catch (error) {
+                console.error('Erro ao cadastrar departamento:', error);
+                showMessage('Erro: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = `<span>${text}</span>`;
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                    
+                    if (document.getElementById('departmentId').value) {
+                        window.location.href = 'list-departments.html';
+                    }
+                }, 3000);
+            } else {
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

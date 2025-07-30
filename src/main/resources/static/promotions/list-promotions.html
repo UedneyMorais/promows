@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS - Lista de Promoções</title>
+    <link rel="stylesheet" href="../css/menu/styles-nav.css">
+    <link rel="stylesheet" href="../css/promotions/styles-list-promotions.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-container">
+              <a href="../promotions.html" class="logo">
+                <span class="logo-icon">🏷️</span>
+                <span>PromoWS</span>
+              </a>
+              
+              <div class="nav-links">
+                <a href="../promotions/list-promotions.html" class="nav-link">
+                  <i>🎯</i>
+                  <span>Promoções</span>
+                </a>
+                <a href="../departments/list-departments.html" class="nav-link">
+                  <i>📦</i>
+                  <span>Departamentos</span>
+                </a>
+              </div>
+            </div>
+        </nav>
+
+        <h1>Promoções cadastradas</h1>
+
+        <button id="create-promotion" class="retry-btn">Nova Promoção</a></button>
+        
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando promoções...</p>
+        </div>
+        
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <div class="table-container" id="table-container" style="display: none;">
+            <table class="promotion-table">
+                <thead>
+                    <tr>
+                        <th>Produto</th>
+                        <th>EAN</th>
+                        <th>Preço Original</th>
+                        <th>Preço Promocional</th>
+                        <th>Validade</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="promotions-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('create-promotion').addEventListener('click', function() {
+            if (confirm('Deseja criar uma nova promoção?')) {
+                window.location.href = '/promotions/edit-promotions.html';
+            }
+        });
+
+        function formatDate(dateInput) {
+            if (Array.isArray(dateInput) && dateInput.length >= 5) {
+                const [year, month, day, hours, minutes] = dateInput;
+                const date = new Date(year, month - 1, day, hours, minutes);
+                return date.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            else if (typeof dateInput === 'string') {
+                const date = new Date(dateInput);
+                if (isNaN(date.getTime())) return 'Data inválida';
+
+                return date.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+            else if (dateInput instanceof Date || typeof dateInput === 'number') {
+                const date = new Date(dateInput);
+                return date.toLocaleString('pt-BR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            }
+
+            return 'Sem data';
+        }
+
+        function formatCurrency(value) {
+            if (isNaN(value)) return 'R$ --,--';
+            
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL'
+            }).format(value);
+        }
+
+        async function loadPromotions() {
+            const loadingElement = document.getElementById('loading');
+            const errorElement = document.getElementById('error-message');
+            const tableContainer = document.getElementById('table-container');
+            const promotionsBody = document.getElementById('promotions-body');
+            
+            const API_URL = '/api/promotions';
+            
+            try {
+                loadingElement.style.display = 'flex';
+                errorElement.style.display = 'none';
+                tableContainer.style.display = 'none';
+                promotionsBody.innerHTML = '';
+
+                console.log('[DEBUG] Fazendo requisição para:', API_URL);
+                
+                const response = await fetch(API_URL, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                console.log('[DEBUG] Resposta recebida:', {
+                    status: response.status,
+                    ok: response.ok,
+                    url: response.url
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('[DEBUG] Conteúdo do erro:', errorText);
+                    
+                    throw new Error(`Erro ${response.status}: ${response.statusText || 'Falha na requisição'}`);
+                }
+
+                const promotions = await response.json();
+                console.log('[DEBUG] Dados recebidos:', promotions);
+
+                if (!promotions || promotions.length === 0) {
+                    errorElement.textContent = 'Nenhuma promoção cadastrada.';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+
+                renderPromotions(promotions);
+                tableContainer.style.display = 'block';
+
+            } catch (error) {
+                console.error('Erro completo:', error);
+                
+                errorElement.innerHTML = `
+                    <strong>Falha ao carregar promoções</strong>
+                    <p>${error.message}</p>
+                    <div class="debug-info">
+                        <p>Endpoint chamado: <code>${API_URL}</code></p>
+                        <p>Verifique:</p>
+                        <ol>
+                            <li>Se o servidor está online</li>
+                            <li>Se a URL está exatamente igual ao Postman</li>
+                            <li>Se há necessidade de headers adicionais</li>
+                            <li>O console do navegador (F12) para detalhes</li>
+                        </ol>
+                    </div>
+                    <button id="retry-button" class="retry-btn">Tentar Novamente</button>
+                `;
+                errorElement.style.display = 'block';
+            } finally {
+                loadingElement.style.display = 'none';
+            }
+        }
+
+        function renderPromotions(promotions) {
+            const tbody = document.getElementById('promotions-body');
+            tbody.innerHTML = '';
+
+            promotions.forEach(promo => {
+                const row = document.createElement('tr');
+                
+                const discount = promo.originalPrice && promo.promotionalPrice 
+                    ? ((promo.originalPrice - promo.promotionalPrice) / promo.originalPrice * 100).toFixed(0)
+                    : '0';
+                
+                row.innerHTML = `
+                    <td data-label="Produto">
+                        <strong>${promo.productName || 'Sem nome'}</strong>
+                        ${promo.productDescription ? `<small>${promo.productDescription}</small>` : ''}
+                    </td>
+                    <td data-label="EAN">${promo.productEan || 'Sem EAN'}</td>
+                    <td data-label="Original">${formatCurrency(promo.originalPrice)}</td>
+                    <td data-label="Promocional">
+                        ${formatCurrency(promo.promotionalPrice)}
+                        <span class="discount-badge">-${discount}%</span>
+                    </td>
+                    <td data-label="Validade">${formatDate(promo.expirationDate)}</td>
+                    <td data-label="Status">
+                        <span class="status-badge ${promo.active ? 'active' : 'inactive'}">
+                            ${promo.active ? 'Ativa' : 'Inativa'}
+                        </span>
+                    </td>
+                    <td data-label="Ações" class="actions">
+                        <button class="edit-btn" data-id="${promo.id}">Editar</button>
+                        <button class="delete-btn" data-id="${promo.id}">Excluir</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+
+            setupActionButtons();
+        }
+
+        function setupActionButtons() {
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const promotionId = btn.getAttribute('data-id');
+                    editPromotion(promotionId);
+                });
+            });
+            
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const promotionId = btn.getAttribute('data-id');
+                    deletePromotion(promotionId);
+                });
+            });
+        }
+
+        function editPromotion(id) {
+            window.location.href = `/promotions/edit-promotions.html?id=${id}`;
+        }
+
+        async function deletePromotion(id) {
+            if (!confirm('Tem certeza que deseja excluir esta promoção?')) return;
+            
+            try {
+                console.log(`Excluindo promoção ${id}`);
+                const response = await fetch(`/api/promotions/${id}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    throw new Error('Falha ao excluir promoção');
+                }
+                loadPromotions();
+            } catch (error) {
+                console.error('Erro ao excluir:', error);
+                document.getElementById('error-message').textContent = 'Erro ao excluir: ' + error.message;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'retry-button') {
+                loadPromotions();
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadPromotions);
+    </script>
+</body>
+</html>

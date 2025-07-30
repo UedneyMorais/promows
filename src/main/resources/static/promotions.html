@@ -3,192 +3,402 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supermarket - Promoções em Tempo Real</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .promotion-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            background-color: #f9f9f9;
-            animation: fadeIn 0.5s;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .promotion-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        .department {
-            color: #e63946;
-        }
-        .status {
-            text-align: center;
-            padding: 10px;
-            margin-bottom: 20px;
-            border-radius: 5px;
-        }
-        .connected {
-            background-color: #d4edda;
-            color: #155724;
-        }
-        .disconnected {
-            background-color: #f8d7da;
-            color: #721c24;
-        }
-        .connecting {
-            background-color: #fff3cd;
-            color: #856404;
-        }
-        #reconnect-btn {
-            margin-top: 10px;
-            padding: 5px 10px;
-            cursor: pointer;
-        }
-    </style>
+    <title>PromoWS - Promoções em Slide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/promotions/styles-promotions.css">
 </head>
 <body>
-<h1>Promoções do Supermercado</h1>
-<div id="status" class="status disconnected">Desconectado</div>
-<button id="reconnect-btn" style="display:none;">Reconectar</button>
+    <div id="status" class="status disconnected">Desconectado</div>
+    <button id="reconnect-btn">Reconectar</button>
+    <div id="department-selector">
+        <div id="department-loading">Carregando departamentos...</div>
+        <select id="department-select" style="display: none;"></select>
+    </div>
+    <button id="goto-menu">Menu</button>
+    <button id="fullscreen-btn">TELA CHEIA</button>
+    <div id="welcome-message">Seja bem-vindo!<br>Fique atento às nossas promoções</div>
+    <div id="slider"></div>
 
-<div id="promotions-container">
-    <!-- As promoções serão inseridas aqui dinamicamente -->
-</div>
+    <div class="slide-progress">
+        <svg class="progress-circle" viewBox="0 0 36 36">
+            <circle class="progress-circle-bg" cx="18" cy="18" r="16"></circle>
+            <circle class="progress-circle-fill" cx="18" cy="18" r="16" stroke-dasharray="100 100" stroke-dashoffset="0"></circle>
+        </svg>
+    </div>
 
-<!-- Carrega a biblioteca STOMP primeiro -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
-<script>
-    // Configurações do WebSocket
-    const socketEndpoint = "ws://localhost:9090/ws-promotions";
-    const promotionsTopic = "/topic/promotions";
+    <!-- Bibliotecas externas -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script>
+        
+        // ============= CONFIGURAÇÕES GLOBAIS =============
+        const serverAddress = window.location.hostname;
+        const serverPort = window.location.port || '9090';
+        const socketEndpoint = `/ws-promotions`;
 
-    let stompClient = null;
-    let reconnectAttempts = 0;
-    const maxReconnectAttempts = 5;
-    const reconnectDelay = 3000; // 3 segundos
+        const promotionsTopic = "/topic/promotions";
+        //const deletedPromotionsTopic = "/topic/deleted-promotions";
+        const defaultImage = "https://cdn.pixabay.com/photo/2018/08/30/14/46/food-3642376_1280.jpg";
 
-    const statusElement = document.getElementById('status');
-    const promotionsContainer = document.getElementById('promotions-container');
-    const reconnectBtn = document.getElementById('reconnect-btn');
-
-    function setStatus(status, message) {
-        statusElement.textContent = message;
-        statusElement.className = `status ${status}`;
-        console.log(`Status: ${status} - ${message}`);
-    }
-
-    function connect() {
-        setStatus("connecting", "Conectando...");
-
-        // Fecha a conexão anterior se existir
-        if (stompClient !== null && stompClient.connected) {
-            stompClient.disconnect();
-        }
-
-        const socket = new WebSocket(socketEndpoint);
-        stompClient = Stomp.over(socket);
-
-        // Configuração importante para evitar problemas
-        stompClient.reconnect_delay = 5000;
-        stompClient.heartbeatIncoming = 4000;
-        stompClient.heartbeatOutgoing = 4000;
-
-        // Desabilita logging (opcional)
-        stompClient.debug = function(message) {
-            if (message && message.includes('ERROR')) {
-                console.error(message);
-            }
+        // ============= ELEMENTOS DOM =============
+        const elements = {
+            status: document.getElementById('status'),
+            menuBtn: document.getElementById('goto-menu'),
+            slider: document.getElementById('slider'),
+            reconnectBtn: document.getElementById('reconnect-btn'),
+            fullscreenBtn: document.getElementById('fullscreen-btn'),
+            welcomeMessage: document.getElementById('welcome-message'),
+            departmentSelect: document.getElementById('department-select'),
+            departmentLoading: document.getElementById('department-loading'),
+            progressCircle: document.querySelector('.progress-circle-fill')
         };
 
-        stompClient.connect({},
-            function(frame) {
-                reconnectAttempts = 0; // Reseta tentativas
-                setStatus("connected", `Conectado - ${new Date().toLocaleTimeString()}`);
-                reconnectBtn.style.display = 'none';
+        // ============= ESTADO GLOBAL =============
+        const state = {
+            stompClient: null,
+            currentSlide: 0,
+            slideIntervalId: null,
+            progressIntervalId: null,
+            isFullscreen: false,
+            selectedDepartment: null,
+            activePromotionIds: new Set(),
+            slideInterval: 8000, // 8 segundos
+            hideDelay: 3000,
+            mouseTimeout: null,
+            timeLeft: 0,
+            circumference: 2 * Math.PI * 16
+        };
 
-                // Inscreve no tópico de promoções
-                const subscription = stompClient.subscribe(promotionsTopic, function(message) {
+        // ============= VARIÁVEIS GLOBAIS =============
+        let stompClient = null;
+        let currentSlide = 0;
+        const slideInterval = 8000;
+        let mouseTimeout;
+        const hideDelay = 3000;
+        let isFullscreen = false;
+        let selectedDepartment = null;
+        let activePromotionIds = new Set();
+        let slideIntervalId = null;
+
+        // ============= FUNÇÕES AUXILIARES =============
+        function formatDepartmentName(name) {
+            return name
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z\s]/g, '')
+                .toUpperCase();
+        }
+
+        function setStatus(status, message) {
+            elements.status.textContent = message;
+            elements.status.className = `status ${status}`;
+        }
+
+        function resetSlider() {
+            document.querySelectorAll('.slide').forEach(slide => slide.remove());
+            state.activePromotionIds.clear();
+            elements.welcomeMessage.style.display = 'flex';
+            state.currentSlide = 0;
+            stopSlideShow();
+        }
+
+        async function loadDepartments() {
+            try {
+                const response = await fetch('/api/departments');
+                if (!response.ok) throw new Error('Erro na API');
+                
+                const departments = await response.json();
+                elements.departmentSelect.innerHTML = '';
+                elements.departmentSelect.add(new Option('Todos os Departamentos', 'ALL'));
+                
+                departments.forEach(dept => {
+                    const option = new Option(dept.departmentName, formatDepartmentName(dept.departmentName));
+                    elements.departmentSelect.add(option);
+                });
+
+                elements.departmentLoading.style.display = 'none';
+                elements.departmentSelect.style.display = 'block';
+                state.selectedDepartment = elements.departmentSelect.value;
+
+            } catch (error) {
+                console.error('Erro ao carregar departamentos:', error);
+                elements.departmentSelect.innerHTML = `
+                    <option value="ALL">Todos os Departamentos</option>
+                    <option value="PADARIA">Padaria</option>
+                    <option value="ACOUGUE">Açougue</option>
+                `;
+                elements.departmentLoading.style.display = 'none';
+                elements.departmentSelect.style.display = 'block';
+                state.selectedDepartment = "ALL";
+            }
+        }
+
+        async function loadValidPromotions() {
+            try {
+                await fetch('/api/promotions/valid');
+            } catch (error) {
+                console.error('Erro ao carregar promoções:', error);
+            }
+        }
+
+        function showPromotionSlide(promotions) {
+            if(promotions){
+                resetSlider();
+                promotions.forEach(promotion => {
+                    const promoDept = formatDepartmentName(promotion.department.departmentName);
+                    const shouldShow = state.selectedDepartment === 'ALL' || promoDept === state.selectedDepartment;
+
+                    if (shouldShow && !state.activePromotionIds.has(promotion.id)) {
+                        state.activePromotionIds.add(promotion.id);
+                        elements.welcomeMessage.style.display = 'none';
+
+                        const slide = document.createElement('div');
+                        slide.className = 'slide';
+                        slide.dataset.promotionId = promotion.id;
+                        slide.style.backgroundImage = `url('${promotion.imageUrl || defaultImage}')`;
+
+                        slide.innerHTML = `
+                            <div class="promotion-card">
+                                <h2>${promotion.productName || 'Promoção'}</h2>
+                                <p><strong>de R$:</strong> <originalPrice>${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
+                                <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',') }</promotionalPrice></p>
+                                ${promotion.expirationDate ? `<p><strong>Válido até:</strong> ${new Date(promotion.expirationDate).toLocaleDateString('pt-BR')}</p>` : ''}
+                            </div>
+                        `;
+
+                        elements.slider.appendChild(slide);
+                        
+                        if (document.querySelectorAll('.slide').length === 1) {
+                            startSlideShow();
+                            slide.classList.add('active');
+                            state.currentSlide = 0;
+                        }
+                    }
+            })
+            }
+        }
+
+        function startSlideShow() {
+            if (!state.slideIntervalId) {
+                elements.progressCircle.style.strokeDasharray = state.circumference;
+                updateProgressCircle(100);
+                state.timeLeft = state.slideInterval / 1000;
+
+                state.progressIntervalId = setInterval(() => {
+                    state.timeLeft -= 0.1;
+                    const progress = (state.timeLeft / (state.slideInterval / 1000)) * 100;
+                    updateProgressCircle(progress);
+                }, 100);
+
+                state.slideIntervalId = setInterval(() => {
+                    updateSlideShow();
+                    state.timeLeft = state.slideInterval / 1000;
+                    updateProgressCircle(100);
+                }, state.slideInterval);
+            }
+        }
+
+        function updateSlideShow() {
+            const slides = document.querySelectorAll('.slide');
+
+            if (slides.length === 0) {
+                elements.welcomeMessage.style.display = 'flex';
+                stopSlideShow();
+                return;
+            }
+            slides.forEach(slide => slide.classList.remove('active'));
+            state.currentSlide = (state.currentSlide + 1) % slides.length;
+            slides[state.currentSlide].classList.add('active');
+        }
+
+        function stopSlideShow() {
+            if (state.slideIntervalId) {
+                clearInterval(state.slideIntervalId);
+                clearInterval(state.progressIntervalId);
+                state.slideIntervalId = null;
+                state.progressIntervalId = null;
+                updateProgressCircle(100);
+            }
+        }
+
+        function updateProgressCircle(percent) {
+            const offset = state.circumference - (percent / 100) * state.circumference;
+            elements.progressCircle.style.strokeDashoffset = offset;
+            if (percent < 20) {
+                elements.progressCircle.style.stroke = '#f44336';
+            } else {
+                elements.progressCircle.style.stroke = '#2196F3';
+            }
+        }
+
+        // ============= FUNÇÕES DE TELA CHEIA =============   
+        
+        document.addEventListener('fullscreenchange', () => {
+            const isNowFullscreen = !!document.fullscreenElement;
+            state.isFullscreen = isNowFullscreen;
+            
+            if (isNowFullscreen) {
+                hideControls();
+                document.addEventListener('mousemove', handleMouseMove);
+                resetHideTimeout();
+            } else {
+                showControls();
+                document.removeEventListener('mousemove', handleMouseMove);
+
+                document.body.classList.remove('fullscreen-no-cursor');
+            
+                if (state.mouseTimeout) {
+                    clearTimeout(state.mouseTimeout);
+                    state.mouseTimeout = null;
+                }
+            }
+        });
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Erro ao entrar em tela cheia:", err);
+                });
+            } else {
+                document.exitFullscreen().catch(err => {
+                    console.error("Erro ao sair da tela cheia:", err);
+                });
+            }
+        }
+
+        function enterFullscreen() {
+            const element = document.documentElement;
+            if (element.requestFullscreen) {
+                element.requestFullscreen()
+                    .then(() => {
+                        isFullscreen = true;
+                        hideControls();
+                    })
+                    .catch(err => {
+                        console.error("Erro ao entrar em tela cheia:", err);
+                        showFullscreenButton();
+                    });
+            }
+        }
+
+        function exitFullscreen() {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+            isFullscreen = false;
+            showControls();
+        }
+
+        function showFullscreenButton() {
+            fullscreenBtn.style.display = 'block';
+            fullscreenBtn.textContent = 'TELA CHEIA';
+        }
+
+        function hideFullscreenButton() {
+            fullscreenBtn.style.display = 'none';
+        }
+
+        function hideControls() {
+            if (!state.isFullscreen) return;
+
+            const controls = [
+                elements.status,
+                elements.reconnectBtn,
+                elements.fullscreenBtn,
+                elements.menuBtn,
+                document.getElementById('department-selector'),
+                document.querySelector('.slide-progress')
+            ];
+            
+            controls.forEach(control => {
+                if (control) control.classList.add('controls-hidden');
+            });
+    
+            document.body.classList.add('fullscreen-no-cursor');
+        }
+
+        function showControls() {
+        const controls = [
+            elements.status,
+            elements.reconnectBtn,
+            elements.fullscreenBtn,
+            elements.menuBtn,
+            document.getElementById('department-selector'),
+            document.querySelector('.slide-progress')
+        ];
+        
+        controls.forEach(control => {
+            if (control) control.classList.remove('controls-hidden');
+        });
+         document.body.classList.remove('fullscreen-no-cursor');
+    }
+
+    function handleMouseMove() {
+        if (state.isFullscreen) {
+            showControls();
+            resetHideTimeout();
+        }
+    }
+
+    function resetHideTimeout() {
+        state.mouseTimeout = setTimeout(() => {
+            if (state.isFullscreen) {
+                hideControls();
+            }
+        }, state.hideDelay);
+    }
+
+    // ============= WEBSOCKET =============
+        function connect(){
+            setStatus("connecting", "Conectando...");
+
+            if (state.stompClient && state.stompClient.connected) {
+                state.stompClient.disconnect();
+            }
+
+            const socket = new SockJS(socketEndpoint);
+            state.stompClient = Stomp.over(socket);
+            state.stompClient.debug = () => {};
+
+            state.stompClient.connect({}, () => {
+                setStatus("connected", `Conectado - ${new Date().toLocaleTimeString()}`);
+                loadValidPromotions();
+
+                state.stompClient.subscribe(promotionsTopic, message => {
                     try {
                         const promotion = JSON.parse(message.body);
-                        showPromotion(promotion);
+                        showPromotionSlide(promotion);
                     } catch (e) {
                         console.error("Erro ao processar mensagem:", e);
                     }
                 });
+            }, (error) => {
+                console.error('Erro de conexão: ', error);
+                setStatus("disconnected", "Desconectado");
+                setTimeout(connect, 5000);
+            });
 
-                console.log("Conectado com sucesso!", frame);
-                console.log("Subscription:", subscription);
-            },
-            function(error) {
-                console.error("Erro na conexão:", error);
-                setStatus("disconnected", "Falha na conexão");
-                reconnectBtn.style.display = 'block';
-                attemptReconnect();
-            }
-        );
-    }
-
-    function attemptReconnect() {
-        if (reconnectAttempts < maxReconnectAttempts) {
-            reconnectAttempts++;
-            setStatus("connecting", `Tentando reconectar (${reconnectAttempts}/${maxReconnectAttempts})...`);
-            setTimeout(connect, reconnectDelay);
-        } else {
-            setStatus("disconnected", "Desconectado - Máximo de tentativas atingido");
-            reconnectBtn.style.display = 'block';
         }
-    }
 
-    function showPromotion(promotion) {
-        const promotionElement = document.createElement('div');
-        promotionElement.className = 'promotion-card';
+    // ============= INICIALIZAÇÃO =============
+    window.addEventListener('load', async () => {
 
-        promotionElement.innerHTML = `
-            <div class="promotion-header">
-                <span>${promotion.productName || 'Produto não especificado'}</span>
-                <span class="department">${promotion.departament || 'Departamento não especificado'}</span>
-            </div>
-            <div>
-                <p><strong>de:</strong> R$ ${(promotion.originalPrice || 0).toFixed(2)}</p>
-                <p><strong>por:</strong> R$ ${(promotion.promotionalPrice || 0).toFixed(2)}</p>
-                <p><strong>Promoção válida até:</strong> ${promotion.expirationDate ? new Date(promotion.expirationDate).toLocaleDateString('pt-BR') : 'N/A'} ou enquanto durar os estoques. </p>
-            </div>
-        `;
+        await loadDepartments();
+            
+        elements.departmentSelect.addEventListener('change', () => {
+            state.selectedDepartment = elements.departmentSelect.value;
+            resetSlider();
+            if (state.stompClient?.connected) loadValidPromotions();
+        })  
 
-        // Adiciona no topo da lista
-        promotionsContainer.insertBefore(promotionElement, promotionsContainer.firstChild);
-    }
+        elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
+        elements.menuBtn.addEventListener('click', () => {
+            window.location.href = '/promotions/list-promotions.html';
+        })  
 
-    // Configura o botão de reconexão
-    reconnectBtn.addEventListener('click', function() {
-        reconnectAttempts = 0;
         connect();
     });
-
-    // Inicia a conexão quando a página carrega
-    window.addEventListener('load', function() {
-        console.log("Página carregada, iniciando conexão...");
-        connect();
-    });
-
-    // Limpeza ao sair da página
-    window.addEventListener('beforeunload', function() {
-        if (stompClient !== null) {
-            stompClient.disconnect();
-            console.log("Conexão WebSocket fechada");
-        }
-    });
-</script>
+    </script>
 </body>
 </html>

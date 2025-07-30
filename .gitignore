@@ -4,6 +4,13 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Local ###
+.env
+/uploads
+/PROMOWS-INSTALLER
+
+
+
 ### STS ###
 .apt_generated
 .classpath
