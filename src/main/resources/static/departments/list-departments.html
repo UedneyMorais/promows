@@ -67,11 +67,9 @@
             const tableContainer = document.getElementById('table-container');
             const departmentsBody = document.getElementById('departments-body');
             
-            // URL da API
             const API_URL = '/api/departments';
             
             try {
-                // Mostra o estado de carregamento
                 loadingElement.style.display = 'flex';
                 errorElement.style.display = 'none';
                 tableContainer.style.display = 'none';
@@ -79,7 +77,6 @@
 
                 console.log('[DEBUG] Fazendo requisição para:', API_URL);
                 
-                // Faz a requisição à API
                 const response = await fetch(API_URL, {
                     method: 'GET',
                     headers: {
@@ -93,7 +90,6 @@
                     url: response.url
                 });
 
-                // Verifica se a resposta foi bem sucedida
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('[DEBUG] Conteúdo do erro:', errorText);
@@ -101,7 +97,6 @@
                     throw new Error(`Erro ${response.status}: ${response.statusText || 'Falha na requisição'}`);
                 }
 
-                // Processa os dados JSON
                 const departments = await response.json();
                 console.log('[DEBUG] Dados recebidos:', departments);
 
@@ -156,11 +151,9 @@
                 tbody.appendChild(row);
             });
 
-            // Configura os eventos dos botões
             setupActionButtons();
         }
 
-        // Configura os eventos dos botões de ação
         function setupActionButtons() {
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -186,7 +179,7 @@
             
             try {
                 console.log(`Excluindo departamento ${id}`);
-                // Substitua pela URL correta da sua API para exclusão
+                
                 const response = await fetch(`/api/departments/${id}`, {
                     method: 'DELETE'
                 });

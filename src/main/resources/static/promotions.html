@@ -7,259 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins&display=swap" rel="stylesheet">
-
-<style>
-html, body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  height: 100%;
-  font-family: Arial, sans-serif;
-  background-color: #000;
-  color: #fff;
-}
-
-.status {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 10px;
-  border-radius: 5px;
-  z-index: 1000;
-  background-color: rgba(0,0,0,0.7);
-  transition: opacity 0.5s ease;
-}
-
-.connected { color: #28a745; }
-.disconnected { color: #dc3545; }
-.connecting { color: #ffc107; }
-
-#reconnect-btn {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    padding: 10px 20px;
-    cursor: pointer;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    z-index: 1000;
-    display: none;
-    transition: opacity 0.5s ease;
-}
-
-#department-selector {
-  position: absolute;
-  top: 60px;
-  left: 10px;
-  padding: 10px;
-  z-index: 1000;
-  background-color: rgba(0,0,0,0.7);
-  border-radius: 5px;
-}
-
-#department-selector select {
-  padding: 8px;
-  font-size: 16px;
-  border-radius: 5px;
-  background-color: #333;
-  color: white;
-  border: 1px solid #555;
-}
-
-#goto-menu, #reconnect-btn {
-            position: fixed;
-            top: 10px;
-            padding: 8px 15px;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            z-index: 1000;
-        }
-        
-#goto-menu {
-    left: 200px;
-    background-color: rgb(48, 47, 47);
-    color: white;
-}
-        
-
-#slider {
-  width: 100%;
-  height: 100%;
-  position: relative;
-}
-
-.slide {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  transition: opacity 1s ease-in-out;
-  opacity: 0;
-}
-
-.slide.active {
-  opacity: 1;
-  z-index: 1;
-}
-
-.slide, .promotion-card {
-  user-select: none;
-  -webkit-user-select: none;
-  -moz-user-select: none;
-  -ms-user-select: none;
-}
-
-.promotion-card {
-  width: 90%;
-  height: 90%;
-  box-sizing: border-box;
-  padding: 2vh 5vw;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.6);
-  text-align: center;
-  overflow: hidden;
-}
-
-.promotion-card h2 {
-  font-size: 15vmin; /* Usando vmin para melhor responsividade */
-  margin: 1vh 0;
-  color: #fca311;
-  font-family: "Poppins", sans-serif;
-  font-weight: 400;
-  max-width: 100%;
-  word-break: break-word;
-  line-height: 1.2;
-}
-
-.promotion-card originalPrice {
-  font-size: 5vmin;
-  margin: 1vh 0;
-  color: #fff;
-  text-decoration: line-through;
-  text-decoration-thickness: 0.3vmin;
-  opacity: 0.8;
-  font-family: "Poppins", sans-serif;
-  font-weight: 400;
-}
-
-.promotion-card promotionalPrice {
-  user-select: none; /* Padrão moderno */
-  -webkit-user-select: none; /* Chrome/Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE/Edge */
-  font-size: 18vmin;
-  margin: 1vh 0;
-  font-weight: bold;
-  color: #fca311;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
-  font-family: "Poppins", sans-serif;
-  font-weight: 400;
-  line-height: 1;
-  max-width: 100%;
-}
-
-.promotion-card .department {
-  font-size: 4vmin;
-  color: #e63946;
-  margin-bottom: 2vh;
-}
-
-.promotion-card p {
-  font-size: 4vmin;
-  margin: 1vh 0;
-  max-width: 100%;
-  word-break: break-word;
-}
-
-#fullscreen-btn {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  padding: 15px 25px;
-  background-color: rgba(255, 165, 0, 0.8);
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  z-index: 10000;
-  font-size: 16px;
-  font-weight: bold;
-  transition: opacity 0.5s ease;
-}
-
-#fullscreen-btn:hover {
-  background-color: rgba(255, 165, 0, 1);
-}
-
-.controls-hidden {
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
-#welcome-message {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.7);
-  z-index: 10;
-  font-size: 10vmin;
-  color: #fca311;
-  text-align: center;
-  padding: 20px;
-  word-break: break-word;
-}
-
-.slide-progress {
-  position: fixed;
-  bottom: 30px;
-  left: 30px;
-  width: 50px;
-  height: 50px;
-  z-index: 1000;
-  transition: opacity 0.5s;
-}
-
-.progress-circle {
-  width: 100%;
-  height: 100%;
-  transform: rotate(-90deg);
-}
-
-.progress-circle-bg {
-  fill: none;
-  stroke: rgba(255, 255, 255, 0.2);
-  stroke-width: 4;
-}
-
-.progress-circle-fill {
-  fill: none;
-  stroke: #2196F3;
-  stroke-width: 4;
-  stroke-linecap: round;
-  transition: stroke-dashoffset 0.1s linear;
-}
-
-body.fullscreen-no-cursor {
-  cursor: none;
-}
-
-</style>
+    <link rel="stylesheet" href="css/promotions/styles-promotions.css">
 </head>
 <body>
     <div id="status" class="status disconnected">Desconectado</div>
@@ -272,8 +20,7 @@ body.fullscreen-no-cursor {
     <button id="fullscreen-btn">TELA CHEIA</button>
     <div id="welcome-message">Seja bem-vindo!<br>Fique atento às nossas promoções</div>
     <div id="slider"></div>
-    
-    <!-- Contador de progresso circular -->
+
     <div class="slide-progress">
         <svg class="progress-circle" viewBox="0 0 36 36">
             <circle class="progress-circle-bg" cx="18" cy="18" r="16"></circle>
@@ -281,16 +28,14 @@ body.fullscreen-no-cursor {
         </svg>
     </div>
 
-
     <!-- Bibliotecas externas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
     <script>
+        
         // ============= CONFIGURAÇÕES GLOBAIS =============
         const serverAddress = window.location.hostname;
         const serverPort = window.location.port || '9090';
-        //Com Websocket sem SOckJs
-        //const socketEndpoint = `ws://${serverAddress}:${serverPort}/ws-promotions`;
         const socketEndpoint = `/ws-promotions`;
 
         const promotionsTopic = "/topic/promotions";
@@ -323,27 +68,26 @@ body.fullscreen-no-cursor {
             hideDelay: 3000,
             mouseTimeout: null,
             timeLeft: 0,
-            circumference: 2 * Math.PI * 16 // Circunferência do círculo (2πr)
+            circumference: 2 * Math.PI * 16
         };
-
 
         // ============= VARIÁVEIS GLOBAIS =============
         let stompClient = null;
         let currentSlide = 0;
-        const slideInterval = 8000; // Intervalo entre slides (8 segundos)
+        const slideInterval = 8000;
         let mouseTimeout;
-        const hideDelay = 3000; // Tempo para esconder controles em tela cheia
+        const hideDelay = 3000;
         let isFullscreen = false;
         let selectedDepartment = null;
-        let activePromotionIds = new Set(); // Armazena IDs de promoções ativas
+        let activePromotionIds = new Set();
         let slideIntervalId = null;
 
         // ============= FUNÇÕES AUXILIARES =============
         function formatDepartmentName(name) {
             return name
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Remove acentos
-                .replace(/[^a-zA-Z\s]/g, '') // Remove caracteres especiais
-                .toUpperCase(); // Padroniza para maiúsculas
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z\s]/g, '')
+                .toUpperCase();
         }
 
         function setStatus(status, message) {
@@ -379,7 +123,6 @@ body.fullscreen-no-cursor {
 
             } catch (error) {
                 console.error('Erro ao carregar departamentos:', error);
-                // Fallback básico
                 elements.departmentSelect.innerHTML = `
                     <option value="ALL">Todos os Departamentos</option>
                     <option value="PADARIA">Padaria</option>
@@ -393,30 +136,15 @@ body.fullscreen-no-cursor {
 
         async function loadValidPromotions() {
             try {
-
                 await fetch('/api/promotions/valid');
-                // const response = await fetch('/api/promotions/valid');
-                // if (!response.ok) throw new Error('Erro ao carregar promoções');
-                
-                // const promotions = await response.json();
-                // promotions.forEach(promotion => console.log(promotion));
-
-
-                // // promotions.filter(promotion => isPromotionValid(promotion))
-                // promotions.forEach(promotion => showPromotionSlide(promotion));
             } catch (error) {
                 console.error('Erro ao carregar promoções:', error);
             }
         }
 
         function showPromotionSlide(promotions) {
-            //if (!isPromotionValid(promotion)) return;
-            
             if(promotions){
-
                 resetSlider();
-
-
                 promotions.forEach(promotion => {
                     const promoDept = formatDepartmentName(promotion.department.departmentName);
                     const shouldShow = state.selectedDepartment === 'ALL' || promoDept === state.selectedDepartment;
@@ -453,12 +181,10 @@ body.fullscreen-no-cursor {
 
         function startSlideShow() {
             if (!state.slideIntervalId) {
-                // Configura o círculo de progresso
                 elements.progressCircle.style.strokeDasharray = state.circumference;
                 updateProgressCircle(100);
-                state.timeLeft = state.slideInterval / 1000; // Converte para segundos
+                state.timeLeft = state.slideInterval / 1000;
 
-                // Atualiza o contador a cada 100ms
                 state.progressIntervalId = setInterval(() => {
                     state.timeLeft -= 0.1;
                     const progress = (state.timeLeft / (state.slideInterval / 1000)) * 100;
@@ -467,7 +193,7 @@ body.fullscreen-no-cursor {
 
                 state.slideIntervalId = setInterval(() => {
                     updateSlideShow();
-                    state.timeLeft = state.slideInterval / 1000; // Reseta o contador
+                    state.timeLeft = state.slideInterval / 1000;
                     updateProgressCircle(100);
                 }, state.slideInterval);
             }
@@ -492,15 +218,13 @@ body.fullscreen-no-cursor {
                 clearInterval(state.progressIntervalId);
                 state.slideIntervalId = null;
                 state.progressIntervalId = null;
-                updateProgressCircle(100); // Volta ao completo
+                updateProgressCircle(100);
             }
         }
 
         function updateProgressCircle(percent) {
             const offset = state.circumference - (percent / 100) * state.circumference;
             elements.progressCircle.style.strokeDashoffset = offset;
-
-            // Muda a cor quando está perto de acabar
             if (percent < 20) {
                 elements.progressCircle.style.stroke = '#f44336';
             } else {
@@ -508,26 +232,41 @@ body.fullscreen-no-cursor {
             }
         }
 
-        // ============= FUNÇÕES DE TELA CHEIA =============    
+        // ============= FUNÇÕES DE TELA CHEIA =============   
+        
+        document.addEventListener('fullscreenchange', () => {
+            const isNowFullscreen = !!document.fullscreenElement;
+            state.isFullscreen = isNowFullscreen;
+            
+            if (isNowFullscreen) {
+                hideControls();
+                document.addEventListener('mousemove', handleMouseMove);
+                resetHideTimeout();
+            } else {
+                showControls();
+                document.removeEventListener('mousemove', handleMouseMove);
 
-        /** Alterna entre tela cheia e normal */
-        function toggleFullscreen() {
-                if (!state.isFullscreen) {
-                    document.documentElement.requestFullscreen()
-                        .then(() => {
-                            state.isFullscreen = true;
-                            document.addEventListener('mousemove', handleMouseMove);
-                            resetHideTimeout();
-                        })
-                        .catch(err => {
-                            console.error("Erro ao entrar em tela cheia:", err);
-                        });
-                } else {
-                    document.exitFullscreen();
+                document.body.classList.remove('fullscreen-no-cursor');
+            
+                if (state.mouseTimeout) {
+                    clearTimeout(state.mouseTimeout);
+                    state.mouseTimeout = null;
                 }
+            }
+        });
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error("Erro ao entrar em tela cheia:", err);
+                });
+            } else {
+                document.exitFullscreen().catch(err => {
+                    console.error("Erro ao sair da tela cheia:", err);
+                });
+            }
         }
 
-        /** Entra em modo tela cheia */
         function enterFullscreen() {
             const element = document.documentElement;
             if (element.requestFullscreen) {
@@ -543,7 +282,6 @@ body.fullscreen-no-cursor {
             }
         }
 
-        /** Sai do modo tela cheia */
         function exitFullscreen() {
             if (document.exitFullscreen) {
                 document.exitFullscreen();
@@ -552,19 +290,18 @@ body.fullscreen-no-cursor {
             showControls();
         }
 
-        /** Mostra o botão de tela cheia */
         function showFullscreenButton() {
             fullscreenBtn.style.display = 'block';
             fullscreenBtn.textContent = 'TELA CHEIA';
         }
 
-        /** Esconde o botão de tela cheia */
         function hideFullscreenButton() {
             fullscreenBtn.style.display = 'none';
         }
 
-        /** Esconde os controles na tela cheia */
         function hideControls() {
+            if (!state.isFullscreen) return;
+
             const controls = [
                 elements.status,
                 elements.reconnectBtn,
@@ -578,11 +315,9 @@ body.fullscreen-no-cursor {
                 if (control) control.classList.add('controls-hidden');
             });
     
-            // Esconde o cursor do mouse
             document.body.classList.add('fullscreen-no-cursor');
         }
 
-        /** Mostra os controles na tela cheia */
         function showControls() {
         const controls = [
             elements.status,
@@ -596,7 +331,6 @@ body.fullscreen-no-cursor {
         controls.forEach(control => {
             if (control) control.classList.remove('controls-hidden');
         });
-        // Mostra o cursor do mouse
          document.body.classList.remove('fullscreen-no-cursor');
     }
 
@@ -608,7 +342,6 @@ body.fullscreen-no-cursor {
     }
 
     function resetHideTimeout() {
-        //clearTimeout(state.mouseTimeout);
         state.mouseTimeout = setTimeout(() => {
             if (state.isFullscreen) {
                 hideControls();
@@ -624,7 +357,6 @@ body.fullscreen-no-cursor {
                 state.stompClient.disconnect();
             }
 
-            //const socket = new WebSocket(socketEndpoint);
             const socket = new SockJS(socketEndpoint);
             state.stompClient = Stomp.over(socket);
             state.stompClient.debug = () => {};
@@ -636,12 +368,6 @@ body.fullscreen-no-cursor {
                 state.stompClient.subscribe(promotionsTopic, message => {
                     try {
                         const promotion = JSON.parse(message.body);
-                        // if (isPromotionValid(promotion)) {
-                        //     showPromotionSlide(promotion);
-                        // }
-                        //resetSlider();
-                        
-
                         showPromotionSlide(promotion);
                     } catch (e) {
                         console.error("Erro ao processar mensagem:", e);
@@ -667,14 +393,12 @@ body.fullscreen-no-cursor {
         })  
 
         elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
-        //elements.reconnectBtn.addEventListener('click', connect);
         elements.menuBtn.addEventListener('click', () => {
             window.location.href = '/promotions/list-promotions.html';
         })  
 
         connect();
     });
- 
     </script>
 </body>
 </html>

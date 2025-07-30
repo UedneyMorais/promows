@@ -14,7 +14,7 @@
 }
 
 body {
-    font-family: 'Inter', sans-serif; /* Adiciona a fonte Inter ao body */
+    font-family: 'Inter', sans-serif;
 }
 
 .navbar {
@@ -47,7 +47,6 @@ body {
 
 .logo-icon {
   font-size: 2rem;
-  /* Mantive o tamanho, mas você pode ajustar se os novos ícones exigirem */
 }
 
 .nav-links {
@@ -79,7 +78,7 @@ body {
 }
 
 .nav-link i {
-  font-size: 1.25rem; /* Tamanho dos ícones */
+  font-size: 1.25rem;
 }
 
 .nav-button {

@@ -1,5 +1,4 @@
- /* Reset e Estilos Gerais */
- * {
+* {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -26,7 +25,6 @@ h1 {
   font-weight: 500;
 }
 
-/* Loading */
 .loading {
   display: flex;
   flex-direction: column;
@@ -50,7 +48,6 @@ h1 {
   100% { transform: rotate(360deg); }
 }
 
-/* Mensagens de erro */
 .error-message {
   background-color: #f8d7da;
   color: #721c24;
@@ -72,7 +69,6 @@ h1 {
   font-size: 0.9em;
 }
 
-/* Debug Info */
 .debug-info {
   background: #f8f9fa;
   padding: 12px;
@@ -93,7 +89,6 @@ h1 {
   padding-left: 20px;
 }
 
-/* Estilos da Tabela */
 .table-container {
   overflow-x: auto;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
@@ -151,7 +146,6 @@ h1 {
   margin-top: 5px;
 }
 
-/* Badges */
 .discount-badge {
   display: inline-block;
   background-color: #2ecc71;
@@ -181,7 +175,6 @@ h1 {
   color: #721c24;
 }
 
-/* Estilos para os botões */
 .retry-btn {
   padding: 8px 16px;
   background-color: #3498db;
@@ -231,7 +224,6 @@ h1 {
   background-color: #c0392b;
 }
 
-/* Responsividade */
 @media screen and (max-width: 768px) {
   .container {
       padding: 10px;
@@ -285,69 +277,65 @@ h1 {
       display: block;
   }
 
-/* Estilo para o container de loading */
-#loading-container {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba(255, 255, 255, 0.9);
-  padding: 20px 30px;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
+  #loading-container {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 20px 30px;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
 
-/* Estilo para o spinner de loading */
-#loading-spinner {
-  border: 5px solid #f3f3f3;
-  border-top: 5px solid #3498db;
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 15px;
-}
+  #loading-spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+  }
 
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
 
-/* Estilo para o texto de loading */
-#loading-text {
-  font-size: 18px;
-  font-weight: bold;
-  color: #333;
-}
+  #loading-text {
+    font-size: 18px;
+    font-weight: bold;
+    color: #333;
+  }
 
-/* Estilo para as mensagens de confirmação/erro */
-#message {
-  position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 15px 30px;
-  border-radius: 5px;
-  font-size: 16px;
-  font-weight: bold;
-  text-align: center;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-  z-index: 1000;
-  display: none;
-}
+  #message {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 15px 30px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    display: none;
+  }
 
-#message.success {
-  background-color: #4CAF50;
-  color: white;
-}
+  #message.success {
+    background-color: #4CAF50;
+    color: white;
+  }
 
-#message.error {
-  background-color: #f44336;
-  color: white;
-}
+  #message.error {
+    background-color: #f44336;
+    color: white;
+  }
 }

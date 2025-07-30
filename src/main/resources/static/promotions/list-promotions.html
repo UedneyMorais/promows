@@ -9,7 +9,6 @@
 </head>
 <body>
     <div class="container">
-
         <nav class="navbar">
             <div class="nav-container">
               <a href="../promotions.html" class="logo">
@@ -61,19 +60,15 @@
     </div>
 
     <script>
-
         document.getElementById('create-promotion').addEventListener('click', function() {
             if (confirm('Deseja criar uma nova promoção?')) {
                 window.location.href = '/promotions/edit-promotions.html';
             }
         });
 
-        // Função para formatar data no padrão brasileiro
         function formatDate(dateInput) {
-            // Se for um array no formato [ano, mês, dia, hora, minuto]
             if (Array.isArray(dateInput) && dateInput.length >= 5) {
                 const [year, month, day, hours, minutes] = dateInput;
-                // Mês no JavaScript é 0-based (janeiro = 0), então subtraímos 1
                 const date = new Date(year, month - 1, day, hours, minutes);
                 return date.toLocaleString('pt-BR', {
                     day: '2-digit',
@@ -83,7 +78,6 @@
                     minute: '2-digit'
                 });
             }
-            // Se for uma string de data ISO
             else if (typeof dateInput === 'string') {
                 const date = new Date(dateInput);
                 if (isNaN(date.getTime())) return 'Data inválida';
@@ -96,7 +90,6 @@
                     minute: '2-digit'
                 });
             }
-            // Se for um timestamp ou objeto Date
             else if (dateInput instanceof Date || typeof dateInput === 'number') {
                 const date = new Date(dateInput);
                 return date.toLocaleString('pt-BR', {
@@ -111,7 +104,6 @@
             return 'Sem data';
         }
 
-        // Função para formatar moeda
         function formatCurrency(value) {
             if (isNaN(value)) return 'R$ --,--';
             
@@ -121,18 +113,15 @@
             }).format(value);
         }
 
-        // Função principal para carregar as promoções
         async function loadPromotions() {
             const loadingElement = document.getElementById('loading');
             const errorElement = document.getElementById('error-message');
             const tableContainer = document.getElementById('table-container');
             const promotionsBody = document.getElementById('promotions-body');
             
-            // URL da API - SUBSTITUA PELA URL CORRETA USADA NO POSTMAN
             const API_URL = '/api/promotions';
             
             try {
-                // Mostra o estado de carregamento
                 loadingElement.style.display = 'flex';
                 errorElement.style.display = 'none';
                 tableContainer.style.display = 'none';
@@ -140,13 +129,10 @@
 
                 console.log('[DEBUG] Fazendo requisição para:', API_URL);
                 
-                // Faz a requisição à API
                 const response = await fetch(API_URL, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        // Adicione outros headers se necessário
-                        // 'Authorization': 'Bearer seu-token'
                     }
                 });
 
@@ -156,7 +142,6 @@
                     url: response.url
                 });
 
-                // Verifica se a resposta foi bem sucedida
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error('[DEBUG] Conteúdo do erro:', errorText);
@@ -164,7 +149,6 @@
                     throw new Error(`Erro ${response.status}: ${response.statusText || 'Falha na requisição'}`);
                 }
 
-                // Processa os dados JSON
                 const promotions = await response.json();
                 console.log('[DEBUG] Dados recebidos:', promotions);
 
@@ -174,7 +158,6 @@
                     return;
                 }
 
-                // Renderiza as promoções na tabela
                 renderPromotions(promotions);
                 tableContainer.style.display = 'block';
 
@@ -202,7 +185,6 @@
             }
         }
 
-        // Função para renderizar as promoções na tabela
         function renderPromotions(promotions) {
             const tbody = document.getElementById('promotions-body');
             tbody.innerHTML = '';
@@ -210,7 +192,6 @@
             promotions.forEach(promo => {
                 const row = document.createElement('tr');
                 
-                // Calcula o desconto percentual
                 const discount = promo.originalPrice && promo.promotionalPrice 
                     ? ((promo.originalPrice - promo.promotionalPrice) / promo.originalPrice * 100).toFixed(0)
                     : '0';
@@ -240,11 +221,9 @@
                 tbody.appendChild(row);
             });
 
-            // Configura os eventos dos botões
             setupActionButtons();
         }
 
-        // Configura os eventos dos botões de ação
         function setupActionButtons() {
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
@@ -261,18 +240,15 @@
             });
         }
 
-        // Função para editar promoção
         function editPromotion(id) {
             window.location.href = `/promotions/edit-promotions.html?id=${id}`;
         }
 
-        // Função para excluir promoção
         async function deletePromotion(id) {
             if (!confirm('Tem certeza que deseja excluir esta promoção?')) return;
             
             try {
                 console.log(`Excluindo promoção ${id}`);
-                // Substitua pela URL correta da sua API para exclusão
                 const response = await fetch(`/api/promotions/${id}`, {
                     method: 'DELETE'
                 });
@@ -280,8 +256,6 @@
                 if (!response.ok) {
                     throw new Error('Falha ao excluir promoção');
                 }
-
-                // Recarrega a lista após exclusão
                 loadPromotions();
             } catch (error) {
                 console.error('Erro ao excluir:', error);
@@ -290,14 +264,12 @@
             }
         }
 
-        // Evento para tentar novamente
         document.addEventListener('click', function(e) {
             if (e.target && e.target.id === 'retry-button') {
                 loadPromotions();
             }
         });
 
-        // Inicia o carregamento das promoções quando a página carrega
         document.addEventListener('DOMContentLoaded', loadPromotions);
     </script>
 </body>
