@@ -54,9 +54,8 @@ Via Git (Recomendado): Abra seu terminal/CMD e execute:
 
 Bash
 
-git clone https://github.com/seuusuario/seurepositorio.git
-cd seurepositorio
-(Lembre-se de substituir seuusuario/seurepositorio pelo caminho correto do seu repositório GitHub).
+git clone [https://github.com/UedneyMorais/promows.git] 
+cd promows
 
 Baixar Zip: Baixe o código-fonte como um arquivo .zip diretamente do GitHub, descompacte-o em uma pasta de sua preferência e navegue até ela via terminal/CMD.
 
@@ -66,9 +65,10 @@ Dentro da pasta raiz do projeto (onde está o arquivo docker-compose.yml), abra 
 
 Execute o comando:
 
-Bash
-
+```bash
 docker compose up -d
+```
+
 Este comando irá baixar as imagens necessárias (PostgreSQL e sua imagem da API Spring Boot), criar os containers e iniciá-los em segundo plano. Na primeira vez, isso pode levar alguns minutos.
 
 🌐 Acessando o Sistema
