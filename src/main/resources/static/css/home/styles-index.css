@@ -14,6 +14,8 @@ body.home-page {
   flex-direction: column;
   box-sizing: border-box;
   background: #fff;
+  cursor: default;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body.home-page #app-navbar-mount,
@@ -57,6 +59,15 @@ body.home-page .app-navbar {
   max-height: min(38vh, calc(100dvh - 5.75rem - 13rem));
   height: auto;
   object-fit: contain;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -webkit-user-drag: none;
+  cursor: default;
+}
+
+.home-landing__logo:focus {
+  outline: none;
 }
 
 /* Gradiente alinhado à marca da logo PNG (azul escuro → magenta → ciano) */
@@ -82,6 +93,10 @@ body.home-page .app-navbar {
   background-clip: text;
   color: transparent;
   -webkit-text-fill-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  cursor: default;
 }
 
 .home-social {

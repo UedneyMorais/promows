@@ -53,6 +53,16 @@ body {
   height: 2.85rem;
   width: auto;
   max-width: min(72vw, 260px);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-user-drag: none;
+}
+
+/* Texto vetorial da marca: não selecionar (evita I-beam ao clicar na logo) */
+.logo-svg text {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .nav-links {
@@ -86,6 +96,17 @@ body {
   border-radius: var(--rounded-md);
   cursor: pointer;
   transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
+  /* Evita cursor de texto a piscar ao clicar nos rótulos (Exibição / Configurações) */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-dropdown__trigger * {
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
 }
 
 .nav-dropdown__trigger:hover {

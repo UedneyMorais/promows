@@ -9,6 +9,11 @@ html, body {
   overflow: hidden;
   font-family: "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
   color: #fff;
+  /* Evita cursor de texto a piscar ao clicar (painel tipo TV, sem cópia) */
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  cursor: default;
 }
 
 .board-page {
@@ -269,6 +274,9 @@ html, body {
   height: auto;
   max-height: 100%;
   object-fit: contain;
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .feature-footer {
@@ -317,6 +325,9 @@ html, body {
   opacity: 0.42;
   pointer-events: none;
   filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.45));
+  -webkit-user-drag: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 /*
