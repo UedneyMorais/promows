@@ -1,0 +1,78 @@
+/* Cadastro da empresa — reutiliza base do formulário de promoções */
+.container-company {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1rem 1.5rem 3rem;
+}
+
+.panel {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1.5rem;
+}
+
+.panel h2 {
+  margin-top: 0;
+  color: #3498db;
+  font-size: 1.2rem;
+}
+
+.bg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.bg-card {
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  padding: 0.5rem;
+  text-align: center;
+  background: #f8f9fa;
+}
+
+.bg-card img {
+  width: 100%;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.bg-card .bg-actions {
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bg-card .bg-actions button {
+  font-size: 0.85rem;
+  padding: 0.35rem 0.5rem;
+}
+
+.bg-card.selected {
+  border-color: #27ae60;
+  box-shadow: 0 0 0 2px rgba(39, 174, 96, 0.35);
+}
+
+.logo-preview {
+  max-height: 100px;
+  max-width: 220px;
+  object-fit: contain;
+  margin-top: 0.5rem;
+}
+
+button.secondary-btn {
+  background: #7f8c8d;
+  color: #fff;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button.secondary-btn:hover {
+  background: #6c7a7b;
+}

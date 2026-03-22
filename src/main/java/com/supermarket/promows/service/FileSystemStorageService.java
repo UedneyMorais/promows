@@ -87,6 +87,24 @@ public class FileSystemStorageService implements StorageRepository {
 	    }
 	}
 
+	/**
+	 * Remove arquivo em {@code uploads/}. Ignora URLs absolutas ou valores vazios.
+	 */
+	public void deleteIfExists(String filename) {
+		if (filename == null || filename.isBlank()) {
+			return;
+		}
+		if (filename.startsWith("http://") || filename.startsWith("https://")) {
+			return;
+		}
+		try {
+			Path p = load(filename);
+			Files.deleteIfExists(p);
+		} catch (IOException e) {
+			throw new StorageException("Could not delete file: " + filename, e);
+		}
+	}
+
     @Override
     public Stream<Path> loadAll() {
 		try {

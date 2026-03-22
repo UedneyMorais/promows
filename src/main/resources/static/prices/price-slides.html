@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS — Preços em slide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Poppins&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../css/promotions/styles-promotions.css">
+    <link rel="stylesheet" href="../css/prices/styles-price-slides.css">
+</head>
+<body>
+    <div id="status" class="status disconnected">Carregando…</div>
+    <button type="button" id="refresh-btn">Atualizar</button>
+    <button id="goto-menu" type="button">Cadastro</button>
+    <button id="goto-board" type="button">Painel TV</button>
+    <button id="goto-promotions" type="button">Promoções</button>
+    <button id="fullscreen-btn" type="button">TELA CHEIA</button>
+    <div id="welcome-message">
+        Nenhum produto ativo no painel de preços.<br>
+        Cadastre itens em <strong>Cadastro</strong> ou abra o <strong>Painel TV</strong>.
+    </div>
+    <div id="slider"></div>
+
+    <div class="slide-progress">
+        <svg class="progress-circle" viewBox="0 0 36 36">
+            <circle class="progress-circle-bg" cx="18" cy="18" r="16"></circle>
+            <circle class="progress-circle-fill" cx="18" cy="18" r="16" stroke-dasharray="100 100" stroke-dashoffset="0"></circle>
+        </svg>
+    </div>
+
+    <script>
+        const DEFAULT_IMG = 'https://cdn.pixabay.com/photo/2018/08/30/14/46/food-3642376_1280.jpg';
+        const SLIDE_MS = 8000;
+        const POLL_MS = 20000;
+        const WELCOME_HTML =
+            'Nenhum produto ativo no painel de preços.<br>' +
+            'Cadastre itens em <strong>Cadastro</strong> ou abra o <strong>Painel TV</strong>.';
+
+        const elements = {
+            status: document.getElementById('status'),
+            slider: document.getElementById('slider'),
+            welcomeMessage: document.getElementById('welcome-message'),
+            progressCircle: document.querySelector('.progress-circle-fill'),
+            fullscreenBtn: document.getElementById('fullscreen-btn'),
+            refreshBtn: document.getElementById('refresh-btn')
+        };
+
+        const state = {
+            products: [],
+            currentSlide: 0,
+            slideIntervalId: null,
+            progressIntervalId: null,
+            pollIntervalId: null,
+            slideInterval: SLIDE_MS,
+            hideDelay: 3000,
+            mouseTimeout: null,
+            timeLeft: 0,
+            circumference: 2 * Math.PI * 16,
+            isFullscreen: false
+        };
+
+        function formatMoney(value) {
+            const n = Number(value);
+            const safe = Number.isFinite(n) ? n : 0;
+            return safe.toFixed(2).replace('.', ',');
+        }
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s == null ? '' : String(s);
+            return d.innerHTML;
+        }
+
+        function setStatus(ok, message) {
+            elements.status.textContent = message;
+            elements.status.className = 'status ' + (ok ? 'connected' : 'disconnected');
+        }
+
+        function resetSlider() {
+            document.querySelectorAll('.slide').forEach(slide => slide.remove());
+            state.currentSlide = 0;
+            stopSlideShow();
+        }
+
+        function buildSlides(products, resumeAfterId) {
+            resetSlider();
+            if (!products || products.length === 0) {
+                elements.welcomeMessage.innerHTML = WELCOME_HTML;
+                elements.welcomeMessage.style.display = 'flex';
+                setStatus(false, 'Nenhum produto ativo');
+                return;
+            }
+
+            elements.welcomeMessage.style.display = 'none';
+            const now = new Date().toLocaleTimeString('pt-BR');
+            setStatus(true, 'Atualizado — ' + now);
+
+            let startIndex = 0;
+            if (resumeAfterId != null) {
+                const idx = products.findIndex(p => p.id === resumeAfterId);
+                if (idx >= 0) startIndex = idx;
+            }
+
+            products.forEach((p, index) => {
+                const slide = document.createElement('div');
+                slide.className = 'slide';
+                slide.dataset.productId = p.id != null ? String(p.id) : String(index);
+                const imgUrl = (p.imageUrl || DEFAULT_IMG).replace(/'/g, "\\'");
+                slide.style.backgroundImage = "url('" + imgUrl + "')";
+
+                const cat = p.categoryLabel || '';
+                const desc = p.description || 'Produto';
+                const pack = p.packaging ? String(p.packaging).trim() : '';
+                const unit = p.unit ? String(p.unit).trim() : '';
+
+                slide.innerHTML = `
+                    <div class="promotion-card price-slide-card">
+                        ${cat ? `<p class="department">${escapeHtml(cat)}</p>` : ''}
+                        <h2>${escapeHtml(desc)}</h2>
+                        ${pack ? `<p>${escapeHtml(pack)}</p>` : ''}
+                        <p class="price-line">R$ ${formatMoney(p.price)}</p>
+                        ${unit ? `<p class="unit-line">${escapeHtml(unit)}</p>` : ''}
+                    </div>
+                `;
+                elements.slider.appendChild(slide);
+            });
+
+            state.currentSlide = startIndex;
+            const slides = document.querySelectorAll('.slide');
+            if (slides.length) {
+                slides[startIndex].classList.add('active');
+                startSlideShow();
+            }
+        }
+
+        function startSlideShow() {
+            if (state.slideIntervalId) return;
+
+            elements.progressCircle.style.strokeDasharray = state.circumference;
+            updateProgressCircle(100);
+            state.timeLeft = state.slideInterval / 1000;
+
+            state.progressIntervalId = setInterval(() => {
+                state.timeLeft -= 0.1;
+                const progress = (state.timeLeft / (state.slideInterval / 1000)) * 100;
+                updateProgressCircle(progress);
+            }, 100);
+
+            state.slideIntervalId = setInterval(() => {
+                updateSlideShow();
+                state.timeLeft = state.slideInterval / 1000;
+                updateProgressCircle(100);
+            }, state.slideInterval);
+        }
+
+        function updateSlideShow() {
+            const slides = document.querySelectorAll('.slide');
+            if (slides.length === 0) {
+                elements.welcomeMessage.style.display = 'flex';
+                stopSlideShow();
+                return;
+            }
+            slides.forEach(slide => slide.classList.remove('active'));
+            state.currentSlide = (state.currentSlide + 1) % slides.length;
+            slides[state.currentSlide].classList.add('active');
+        }
+
+        function stopSlideShow() {
+            if (state.slideIntervalId) {
+                clearInterval(state.slideIntervalId);
+                clearInterval(state.progressIntervalId);
+                state.slideIntervalId = null;
+                state.progressIntervalId = null;
+                updateProgressCircle(100);
+            }
+        }
+
+        function updateProgressCircle(percent) {
+            const offset = state.circumference - (percent / 100) * state.circumference;
+            elements.progressCircle.style.strokeDashoffset = offset;
+            elements.progressCircle.style.stroke = percent < 20 ? '#f44336' : '#2196F3';
+        }
+
+        async function loadBoard() {
+            const resumeId =
+                state.products.length && state.currentSlide >= 0
+                    ? state.products[state.currentSlide]?.id
+                    : null;
+            try {
+                const response = await fetch('/api/price-products/board');
+                if (!response.ok) throw new Error('API');
+                const data = await response.json();
+                state.products = Array.isArray(data) ? data : [];
+                buildSlides(state.products, resumeId);
+            } catch (e) {
+                console.error(e);
+                setStatus(false, 'Erro ao carregar preços');
+                resetSlider();
+                elements.welcomeMessage.innerHTML =
+                    '<strong>Falha ao carregar o painel de preços.</strong><br>Tente <strong>Atualizar</strong>.';
+                elements.welcomeMessage.style.display = 'flex';
+            }
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.error(err));
+            } else {
+                document.exitFullscreen().catch(err => console.error(err));
+            }
+        }
+
+        function hideControls() {
+            if (!state.isFullscreen) return;
+            [
+                elements.status,
+                elements.refreshBtn,
+                elements.fullscreenBtn,
+                document.getElementById('goto-menu'),
+                document.getElementById('goto-board'),
+                document.getElementById('goto-promotions'),
+                document.querySelector('.slide-progress')
+            ].forEach(el => {
+                if (el) el.classList.add('controls-hidden');
+            });
+            document.body.classList.add('fullscreen-no-cursor');
+        }
+
+        function showControls() {
+            [
+                elements.status,
+                elements.refreshBtn,
+                elements.fullscreenBtn,
+                document.getElementById('goto-menu'),
+                document.getElementById('goto-board'),
+                document.getElementById('goto-promotions'),
+                document.querySelector('.slide-progress')
+            ].forEach(el => {
+                if (el) el.classList.remove('controls-hidden');
+            });
+            document.body.classList.remove('fullscreen-no-cursor');
+        }
+
+        function handleMouseMove() {
+            if (state.isFullscreen) {
+                showControls();
+                if (state.mouseTimeout) clearTimeout(state.mouseTimeout);
+                state.mouseTimeout = setTimeout(() => {
+                    if (state.isFullscreen) hideControls();
+                }, state.hideDelay);
+            }
+        }
+
+        document.addEventListener('fullscreenchange', () => {
+            state.isFullscreen = !!document.fullscreenElement;
+            if (state.isFullscreen) {
+                hideControls();
+                document.addEventListener('mousemove', handleMouseMove);
+                handleMouseMove();
+            } else {
+                showControls();
+                document.removeEventListener('mousemove', handleMouseMove);
+                if (state.mouseTimeout) {
+                    clearTimeout(state.mouseTimeout);
+                    state.mouseTimeout = null;
+                }
+            }
+        });
+
+        async function applyCompanyBranding() {
+            try {
+                const r = await fetch('/api/company/public');
+                if (!r.ok) return;
+                const d = await r.json();
+                if (d.priceBoardBackgroundUrl) {
+                    const u = String(d.priceBoardBackgroundUrl).trim();
+                    const forCss = u.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                    document.body.style.setProperty(
+                        'background',
+                        'linear-gradient(rgba(0, 0, 0, 0.55), rgba(0, 0, 0, 0.62)), url("' + forCss + '") center / cover no-repeat',
+                        'important'
+                    );
+                }
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+
+        window.addEventListener('load', () => {
+            elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
+            elements.refreshBtn.addEventListener('click', () => loadBoard());
+
+            document.getElementById('goto-menu').addEventListener('click', () => {
+                window.location.href = '/prices/list-prices.html';
+            });
+            document.getElementById('goto-board').addEventListener('click', () => {
+                window.location.href = '/prices/price-board.html';
+            });
+            document.getElementById('goto-promotions').addEventListener('click', () => {
+                window.location.href = '/promotions.html';
+            });
+
+            applyCompanyBranding().then(() => {
+                loadBoard().then(() => {
+                    state.pollIntervalId = setInterval(loadBoard, POLL_MS);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

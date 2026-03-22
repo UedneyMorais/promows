@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS - Lista de preços (painel)</title>
+    <link rel="stylesheet" href="../css/menu/styles-nav.css">
+    <link rel="stylesheet" href="../css/promotions/styles-list-promotions.css">
+</head>
+<body>
+    <div class="container">
+        <nav class="navbar">
+            <div class="nav-container">
+                <a href="../promotions.html" class="logo">
+                    <span class="logo-icon">🏷️</span>
+                    <span>PromoWS</span>
+                </a>
+                <div class="nav-links">
+                    <a href="price-board.html" class="nav-link">
+                        <i>📺</i>
+                        <span>Painel TV</span>
+                    </a>
+                    <a href="price-slides.html" class="nav-link">
+                        <i>🎬</i>
+                        <span>Slides preços</span>
+                    </a>
+                    <a href="list-prices.html" class="nav-link">
+                        <i>💲</i>
+                        <span>Preços</span>
+                    </a>
+                    <a href="../promotions/list-promotions.html" class="nav-link">
+                        <i>🎯</i>
+                        <span>Promoções</span>
+                    </a>
+                    <a href="../departments/list-departments.html" class="nav-link">
+                        <i>📦</i>
+                        <span>Departamentos</span>
+                    </a>
+                    <a href="../company/company-settings.html" class="nav-link">
+                        <i>🏢</i>
+                        <span>Empresa</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <h1>Produtos do painel de preços</h1>
+
+        <button id="create-price" type="button" class="retry-btn">Novo produto</button>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Carregando produtos…</p>
+        </div>
+
+        <div id="error-message" class="error-message" style="display: none;"></div>
+
+        <div class="table-container" id="table-container" style="display: none;">
+            <table class="promotion-table">
+                <thead>
+                    <tr>
+                        <th>Ordem</th>
+                        <th>Categoria</th>
+                        <th>Descrição</th>
+                        <th>Preço</th>
+                        <th>Unidade</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="prices-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function formatCurrency(value) {
+            if (value == null || isNaN(Number(value))) return '—';
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
+        }
+
+        async function loadPrices() {
+            const loading = document.getElementById('loading');
+            const errorEl = document.getElementById('error-message');
+            const tableContainer = document.getElementById('table-container');
+            const tbody = document.getElementById('prices-body');
+
+            loading.style.display = 'flex';
+            errorEl.style.display = 'none';
+            tableContainer.style.display = 'none';
+            tbody.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/price-products');
+                if (!response.ok) throw new Error('Falha ao carregar produtos');
+
+                const list = await response.json();
+
+                if (!list || list.length === 0) {
+                    errorEl.textContent = 'Nenhum produto cadastrado no painel de preços.';
+                    errorEl.style.display = 'block';
+                    return;
+                }
+
+                list.forEach(p => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td data-label="Ordem">${p.sortOrder != null ? p.sortOrder : '—'}</td>
+                        <td data-label="Categoria"><strong>${escapeHtml(p.categoryLabel || '')}</strong></td>
+                        <td data-label="Descrição">${escapeHtml(p.description || '')}</td>
+                        <td data-label="Preço">${formatCurrency(p.price)}</td>
+                        <td data-label="Unidade">${escapeHtml(p.unit || '')}</td>
+                        <td data-label="Status">
+                            <span class="status-badge ${p.active ? 'active' : 'inactive'}">
+                                ${p.active ? 'Ativo' : 'Inativo'}
+                            </span>
+                        </td>
+                        <td data-label="Ações" class="actions">
+                            <button type="button" class="edit-btn" data-id="${p.id}">Editar</button>
+                            <button type="button" class="delete-btn" data-id="${p.id}">Excluir</button>
+                        </td>`;
+                    tbody.appendChild(row);
+                });
+
+                tbody.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', () => {
+                        window.location.href = `/prices/edit-prices.html?id=${btn.getAttribute('data-id')}`;
+                    });
+                });
+                tbody.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', () => deletePrice(btn.getAttribute('data-id')));
+                });
+
+                tableContainer.style.display = 'block';
+            } catch (e) {
+                errorEl.textContent = e.message || 'Erro ao carregar.';
+                errorEl.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s == null ? '' : String(s);
+            return d.innerHTML;
+        }
+
+        async function deletePrice(id) {
+            if (!confirm('Excluir este produto do painel de preços?')) return;
+            try {
+                const r = await fetch(`/api/price-products/${id}`, { method: 'DELETE' });
+                if (!r.ok) throw new Error('Falha ao excluir');
+                loadPrices();
+            } catch (e) {
+                document.getElementById('error-message').textContent = e.message;
+                document.getElementById('error-message').style.display = 'block';
+            }
+        }
+
+        document.getElementById('create-price').addEventListener('click', () => {
+            if (confirm('Cadastrar um novo produto no painel de preços?')) {
+                window.location.href = '/prices/edit-prices.html';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadPrices);
+    </script>
+</body>
+</html>

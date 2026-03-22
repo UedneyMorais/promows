@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS — Dados da empresa</title>
+    <link rel="stylesheet" href="../css/menu/styles-nav.css">
+    <link rel="stylesheet" href="../css/promotions/styles-edit-promotions.css">
+    <link rel="stylesheet" href="../css/company/styles-company-settings.css">
+</head>
+<body class="edit-mode">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../promotions.html" class="logo">
+                <span class="logo-icon">🏷️</span>
+                <span>PromoWS</span>
+            </a>
+            <div class="nav-links">
+                <a href="../prices/price-board.html" class="nav-link"><i>📺</i><span>Painel TV</span></a>
+                <a href="../prices/list-prices.html" class="nav-link"><i>💲</i><span>Preços</span></a>
+                <a href="company-settings.html" class="nav-link"><i>🏢</i><span>Empresa</span></a>
+                <a href="../promotions/list-promotions.html" class="nav-link"><i>🎯</i><span>Promoções</span></a>
+                <a href="../departments/list-departments.html" class="nav-link"><i>📦</i><span>Departamentos</span></a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-company">
+        <h1>Dados da empresa</h1>
+        <p style="color:#555;">Cadastre nome, endereço, telefone, <strong>logo</strong> e <strong>imagens de fundo</strong>. Escolha qual fundo usar no <strong>painel de preços (TV)</strong>.</p>
+
+        <div id="msg" class="error-message" style="display:none;margin-bottom:1rem;"></div>
+
+        <div id="block-no-company" class="panel" style="display:none;">
+            <h2>Primeiro cadastro</h2>
+            <p>Ainda não há empresa cadastrada. Preencha e salve para habilitar logo e fundos.</p>
+            <form id="formCreate">
+                <div class="form-group">
+                    <label class="required" for="cName">Nome da empresa</label>
+                    <input type="text" id="cName" required placeholder="Nome fantasia ou razão social">
+                </div>
+                <div class="form-group">
+                    <label for="cAddress">Endereço</label>
+                    <input type="text" id="cAddress" placeholder="Rua, número, bairro, cidade">
+                </div>
+                <div class="form-group">
+                    <label for="cPhone">Telefone</label>
+                    <input type="text" id="cPhone" placeholder="(00) 00000-0000">
+                </div>
+                <button type="submit">Cadastrar empresa</button>
+            </form>
+        </div>
+
+        <div id="block-company" style="display:none;">
+            <div class="panel">
+                <h2>Informações</h2>
+                <form id="formCompany">
+                    <input type="hidden" id="companyId">
+                    <div class="form-group">
+                        <label class="required" for="name">Nome</label>
+                        <input type="text" id="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="address">Endereço</label>
+                        <input type="text" id="address">
+                    </div>
+                    <div class="form-group">
+                        <label for="phone">Telefone</label>
+                        <input type="text" id="phone">
+                    </div>
+                    <button type="submit">Salvar dados</button>
+                </form>
+            </div>
+
+            <div class="panel">
+                <h2>Logo</h2>
+                <p><small>Aparece no canto do painel de preços (TV), quando configurado.</small></p>
+                <img id="logoPreview" class="logo-preview" alt="Logo" style="display:none;">
+                <div class="form-group">
+                    <label for="logoFile">Enviar logo (PNG, JPG…)</label>
+                    <input type="file" id="logoFile" accept="image/*">
+                </div>
+                <button type="button" id="btnLogo">Enviar logo</button>
+            </div>
+
+            <div class="panel">
+                <h2>Imagens de fundo</h2>
+                <p><small>Envie várias opções e escolha qual usar no painel de preços. A seleção vale para a tela <strong>Painel TV</strong> (<code>/prices/price-board.html</code>).</small></p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="bgFile">Arquivo</label>
+                        <input type="file" id="bgFile" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label for="bgLabel">Descrição (opcional)</label>
+                        <input type="text" id="bgLabel" placeholder="Ex.: Natal, Verão">
+                    </div>
+                </div>
+                <button type="button" id="btnBg">Adicionar fundo</button>
+                <p style="margin-top:1rem;">
+                    <button type="button" id="btnClearBg" class="secondary-btn">Remover fundo personalizado do painel TV (voltar ao padrão do sistema)</button>
+                </p>
+
+                <h3 style="margin-top:1.5rem;font-size:1rem;">Fundos cadastrados</h3>
+                <div id="bgGrid" class="bg-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay" style="display:none;"></div>
+    <div id="loading-container" style="display:none;">
+        <div id="loading-spinner"></div>
+        <span id="loading-text">Processando…</span>
+    </div>
+
+    <script>
+        let companyId = null;
+
+        function showLoading(show) {
+            document.getElementById('overlay').style.display = show ? 'block' : 'none';
+            document.getElementById('loading-container').style.display = show ? 'flex' : 'none';
+        }
+
+        function showMsg(text, ok) {
+            const el = document.getElementById('msg');
+            el.textContent = text;
+            el.style.display = 'block';
+            el.style.background = ok ? '#d4edda' : '#f8d7da';
+            el.style.color = ok ? '#155724' : '#721c24';
+            el.style.padding = '0.75rem';
+            el.style.borderRadius = '6px';
+        }
+
+        function hideMsg() {
+            document.getElementById('msg').style.display = 'none';
+        }
+
+        async function loadCompany() {
+            hideMsg();
+            const r = await fetch('/api/company');
+            if (r.status === 204) {
+                document.getElementById('block-no-company').style.display = 'block';
+                document.getElementById('block-company').style.display = 'none';
+                return;
+            }
+            if (!r.ok) {
+                showMsg('Erro ao carregar empresa.', false);
+                return;
+            }
+            const c = await r.json();
+            companyId = c.id;
+            document.getElementById('block-no-company').style.display = 'none';
+            document.getElementById('block-company').style.display = 'block';
+            document.getElementById('companyId').value = c.id;
+            document.getElementById('name').value = c.name || '';
+            document.getElementById('address').value = c.address || '';
+            document.getElementById('phone').value = c.phone || '';
+            const lp = document.getElementById('logoPreview');
+            if (c.logoUrl) {
+                lp.src = c.logoUrl;
+                lp.style.display = 'block';
+            } else {
+                lp.style.display = 'none';
+            }
+            renderBackgrounds(c.backgroundImages || [], c.selectedPriceBoardBackgroundId);
+        }
+
+        function renderBackgrounds(images, selectedId) {
+            const grid = document.getElementById('bgGrid');
+            grid.innerHTML = '';
+            if (!images.length) {
+                grid.innerHTML = '<p style="color:#777;">Nenhuma imagem de fundo. Envie acima.</p>';
+                return;
+            }
+            images.forEach(img => {
+                const card = document.createElement('div');
+                card.className = 'bg-card' + (selectedId === img.id ? ' selected' : '');
+                card.innerHTML = `
+                    <img src="${img.url}" alt="">
+                    <div>${img.label ? escapeHtml(img.label) : '—'}</div>
+                    <div class="bg-actions">
+                        <button type="button" class="use-bg" data-id="${img.id}">Usar no painel TV</button>
+                        <button type="button" class="del-bg secondary-btn" data-id="${img.id}">Remover</button>
+                    </div>`;
+                grid.appendChild(card);
+            });
+            grid.querySelectorAll('.use-bg').forEach(btn => {
+                btn.addEventListener('click', () => setPriceBoardBg(Number(btn.getAttribute('data-id'))));
+            });
+            grid.querySelectorAll('.del-bg').forEach(btn => {
+                btn.addEventListener('click', () => deleteBg(Number(btn.getAttribute('data-id'))));
+            });
+        }
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        async function setPriceBoardBg(id) {
+            showLoading(true);
+            try {
+                const r = await fetch('/api/company/' + companyId + '/price-board-background', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ backgroundImageId: id })
+                });
+                if (!r.ok) throw new Error((await r.json()).message || 'Erro');
+                showMsg('Fundo do painel TV atualizado.', true);
+                await loadCompany();
+            } catch (e) {
+                showMsg(e.message || 'Falha ao salvar.', false);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function deleteBg(id) {
+            if (!confirm('Remover esta imagem de fundo?')) return;
+            showLoading(true);
+            try {
+                const r = await fetch('/api/company/' + companyId + '/backgrounds/' + id, { method: 'DELETE' });
+                if (!r.ok) throw new Error((await r.json()).message || 'Erro');
+                showMsg('Imagem removida.', true);
+                await loadCompany();
+            } catch (e) {
+                showMsg(e.message || 'Falha ao remover.', false);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        document.getElementById('formCreate').addEventListener('submit', async e => {
+            e.preventDefault();
+            showLoading(true);
+            hideMsg();
+            try {
+                const body = {
+                    name: document.getElementById('cName').value.trim(),
+                    address: document.getElementById('cAddress').value.trim(),
+                    phone: document.getElementById('cPhone').value.trim()
+                };
+                const r = await fetch('/api/company', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                if (!r.ok) {
+                    const err = await r.json().catch(() => ({}));
+                    throw new Error(err.message || 'Não foi possível cadastrar.');
+                }
+                showMsg('Empresa cadastrada.', true);
+                await loadCompany();
+            } catch (err) {
+                showMsg(err.message, false);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('formCompany').addEventListener('submit', async e => {
+            e.preventDefault();
+            showLoading(true);
+            hideMsg();
+            try {
+                const id = document.getElementById('companyId').value;
+                const r = await fetch('/api/company/' + id, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: document.getElementById('name').value.trim(),
+                        address: document.getElementById('address').value.trim(),
+                        phone: document.getElementById('phone').value.trim()
+                    })
+                });
+                if (!r.ok) throw new Error((await r.json()).message || 'Erro');
+                showMsg('Dados salvos.', true);
+                await loadCompany();
+            } catch (err) {
+                showMsg(err.message, false);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('btnLogo').addEventListener('click', async () => {
+            const f = document.getElementById('logoFile').files[0];
+            if (!f) {
+                showMsg('Escolha um arquivo.', false);
+                return;
+            }
+            showLoading(true);
+            hideMsg();
+            try {
+                const fd = new FormData();
+                fd.append('file', f);
+                const r = await fetch('/api/company/' + companyId + '/logo', { method: 'POST', body: fd });
+                if (!r.ok) throw new Error((await r.json()).message || 'Erro');
+                showMsg('Logo enviado.', true);
+                document.getElementById('logoFile').value = '';
+                await loadCompany();
+            } catch (err) {
+                showMsg(err.message, false);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('btnClearBg').addEventListener('click', async () => {
+            if (!confirm('O painel de preços voltará a usar o fundo padrão (imagem estática do sistema), até você escolher outro fundo.')) return;
+            showLoading(true);
+            hideMsg();
+            try {
+                const r = await fetch('/api/company/' + companyId + '/price-board-background', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ backgroundImageId: null })
+                });
+                if (!r.ok) throw new Error((await r.json()).message || 'Erro');
+                showMsg('Seleção de fundo limpa. O painel TV usará o padrão.', true);
+                await loadCompany();
+            } catch (e) {
+                showMsg(e.message || 'Falha.', false);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.getElementById('btnBg').addEventListener('click', async () => {
+            const f = document.getElementById('bgFile').files[0];
+            if (!f) {
+                showMsg('Escolha uma imagem.', false);
+                return;
+            }
+            showLoading(true);
+            hideMsg();
+            try {
+                const fd = new FormData();
+                fd.append('file', f);
+                const label = document.getElementById('bgLabel').value.trim();
+                let url = '/api/company/' + companyId + '/backgrounds';
+                if (label) url += '?label=' + encodeURIComponent(label);
+                const r = await fetch(url, { method: 'POST', body: fd });
+                if (!r.ok) throw new Error((await r.json()).message || 'Erro');
+                showMsg('Fundo adicionado.', true);
+                document.getElementById('bgFile').value = '';
+                document.getElementById('bgLabel').value = '';
+                await loadCompany();
+            } catch (err) {
+                showMsg(err.message, false);
+            } finally {
+                showLoading(false);
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', loadCompany);
+    </script>
+</body>
+</html>

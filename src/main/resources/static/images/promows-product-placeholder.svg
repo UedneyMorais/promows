@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e293b"/>
+      <stop offset="100%" style="stop-color:#334155"/>
+    </linearGradient>
+  </defs>
+  <rect width="400" height="300" fill="url(#g)" rx="12"/>
+  <text x="200" y="130" text-anchor="middle" fill="#94a3b8" font-family="Segoe UI,Arial,sans-serif" font-size="22" font-weight="700">PromoWS</text>
+  <text x="200" y="165" text-anchor="middle" fill="#64748b" font-family="Segoe UI,Arial,sans-serif" font-size="13">Imagem do produto</text>
+</svg>

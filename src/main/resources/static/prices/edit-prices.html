@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS - Editar/Criar preço (painel)</title>
+    <link rel="stylesheet" href="../css/menu/styles-nav.css">
+    <link rel="stylesheet" href="../css/promotions/styles-edit-promotions.css">
+</head>
+<body class="edit-mode">
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="../promotions.html" class="logo">
+                <span class="logo-icon">🏷️</span>
+                <span>PromoWS</span>
+            </a>
+            <div class="nav-links">
+                <a href="price-board.html" class="nav-link">
+                    <i>📺</i>
+                    <span>Painel TV</span>
+                </a>
+                <a href="price-slides.html" class="nav-link">
+                    <i>🎬</i>
+                    <span>Slides preços</span>
+                </a>
+                <a href="list-prices.html" class="nav-link">
+                    <i>💲</i>
+                    <span>Lista de preços</span>
+                </a>
+                <a href="../promotions/list-promotions.html" class="nav-link">
+                    <i>🎯</i>
+                    <span>Promoções</span>
+                </a>
+                <a href="../departments/list-departments.html" class="nav-link">
+                    <i>📦</i>
+                    <span>Departamentos</span>
+                </a>
+                <a href="../company/company-settings.html" class="nav-link">
+                    <i>🏢</i>
+                    <span>Empresa</span>
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <h1 id="pageTitle">Editar/Criar produto</h1>
+
+    <form id="priceForm" method="post" enctype="multipart/form-data" accept-charset="UTF-8">
+        <input type="hidden" id="productId" value="">
+
+        <div class="form-group">
+            <label for="categoryLabel" class="required">Categoria (faixa superior)</label>
+            <input type="text" id="categoryLabel" placeholder="ex.: BOVINOS, SUÍNOS" value="BOVINOS" required>
+        </div>
+
+        <div class="form-group">
+            <label for="description" class="required">Descrição do produto</label>
+            <input type="text" id="description" placeholder="ex.: CONTRA FILE" required>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="packaging">Embalagem</label>
+                <input type="text" id="packaging" placeholder="opcional">
+            </div>
+            <div class="form-group">
+                <label for="unit" class="required">Unidade</label>
+                <input type="text" id="unit" value="kg" placeholder="kg, un…" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label for="price" class="required">Preço (R$)</label>
+                <input type="number" id="price" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="sortOrder">Ordem na lista</label>
+                <input type="number" id="sortOrder" min="0" step="1" placeholder="vazio = fim da lista">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="active">Status no painel</label>
+            <select id="active">
+                <option value="true">Ativo</option>
+                <option value="false">Inativo</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="imageUpload">Imagem do produto</label>
+            <input type="file" id="imageUpload" accept="image/*">
+            <small>Formatos aceitos: JPG, PNG, GIF. Imagem opcional. Tamanho máximo no servidor: 25MB.</small>
+            <div id="imagePreview" style="margin-top: 10px; display: none;">
+                <img id="previewImage" src="#" alt="Pré-visualização" style="max-width: 200px; max-height: 200px;">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <button type="submit">Salvar</button>
+            <button type="button" id="cancelButton" class="secondary-btn">Cancelar</button>
+        </div>
+    </form>
+
+    <div class="overlay" id="overlay" style="display: none;"></div>
+    <div id="loading-container" style="display: none;">
+        <div id="loading-spinner"></div>
+        <span id="loading-text">Processando…</span>
+        <p>Por favor, aguarde</p>
+    </div>
+    <div id="message"></div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('priceForm').setAttribute('enctype', 'multipart/form-data');
+            const urlParams = new URLSearchParams(window.location.search);
+            const productId = urlParams.get('id');
+            document.getElementById('productId').value = productId || '';
+
+            if (productId) {
+                document.getElementById('pageTitle').textContent = 'Editar produto';
+                loadProduct(productId).catch(() => {
+                    showMessage('Erro ao carregar o produto.', 'error');
+                });
+            } else {
+                document.getElementById('pageTitle').textContent = 'Novo produto';
+                document.getElementById('priceForm').reset();
+                document.getElementById('categoryLabel').value = 'BOVINOS';
+                document.getElementById('unit').value = 'kg';
+                document.getElementById('active').value = 'true';
+            }
+
+            document.getElementById('priceForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (productId) updateProduct();
+                else createProduct();
+            });
+
+            document.getElementById('cancelButton').addEventListener('click', function() {
+                window.location.href = 'list-prices.html';
+            });
+
+            document.getElementById('imageUpload').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        document.getElementById('previewImage').src = e.target.result;
+                        document.getElementById('imagePreview').style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        });
+
+        function showLoading() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('loading-container').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('loading-container').style.display = 'none';
+        }
+
+        function buildPriceFormData(data, imageFile) {
+            const formData = new FormData();
+            formData.append('product', JSON.stringify(data));
+            if (imageFile && imageFile.size > 0) {
+                formData.append('file', imageFile, imageFile.name || 'produto.jpg');
+            }
+            return formData;
+        }
+
+        async function loadProduct(id) {
+            const response = await fetch(`/api/price-products/${id}`);
+            if (!response.ok) throw new Error('Erro ao carregar');
+            const p = await response.json();
+            document.getElementById('categoryLabel').value = p.categoryLabel || '';
+            document.getElementById('description').value = p.description || '';
+            document.getElementById('packaging').value = p.packaging || '';
+            document.getElementById('unit').value = p.unit || 'kg';
+            document.getElementById('price').value = p.price != null ? p.price : '';
+            document.getElementById('sortOrder').value = p.sortOrder != null ? p.sortOrder : '';
+            document.getElementById('active').value = p.active ? 'true' : 'false';
+            if (p.imageUrl) {
+                document.getElementById('previewImage').src = p.imageUrl;
+                document.getElementById('imagePreview').style.display = 'block';
+            }
+        }
+
+        function collectPayload() {
+            const so = document.getElementById('sortOrder').value.trim();
+            return {
+                categoryLabel: document.getElementById('categoryLabel').value.trim(),
+                description: document.getElementById('description').value.trim(),
+                packaging: document.getElementById('packaging').value.trim(),
+                unit: document.getElementById('unit').value.trim(),
+                price: parseFloat(document.getElementById('price').value),
+                sortOrder: so === '' ? null : parseInt(so, 10),
+                active: document.getElementById('active').value === 'true'
+            };
+        }
+
+        async function createProduct() {
+            document.getElementById('message').style.display = 'none';
+            showLoading();
+            const imageFile = document.getElementById('imageUpload').files[0];
+            try {
+                if (!document.getElementById('priceForm').checkValidity()) {
+                    throw new Error('Preencha os campos obrigatórios corretamente.');
+                }
+                const data = collectPayload();
+                const formData = buildPriceFormData(data, imageFile);
+                const response = await fetch('/api/price-products', { method: 'POST', body: formData });
+                if (!response.ok) {
+                    let msg = 'Erro ao salvar';
+                    try {
+                        const err = await response.json();
+                        msg = err.message || msg;
+                    } catch (e) { /* ignore */ }
+                    throw new Error(msg);
+                }
+                showMessage('Produto cadastrado com sucesso!', 'success');
+                document.getElementById('priceForm').reset();
+            } catch (error) {
+                console.error(error);
+                showMessage('Erro: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        async function updateProduct() {
+            document.getElementById('message').style.display = 'none';
+            showLoading();
+            const id = document.getElementById('productId').value;
+            const imageFile = document.getElementById('imageUpload').files[0];
+            try {
+                if (!document.getElementById('priceForm').checkValidity()) {
+                    throw new Error('Preencha os campos obrigatórios corretamente.');
+                }
+                const data = collectPayload();
+                const formData = buildPriceFormData(data, imageFile);
+                const response = await fetch(`/api/price-products/${id}`, { method: 'PUT', body: formData });
+                if (!response.ok) {
+                    let msg = 'Erro ao atualizar';
+                    try {
+                        const err = await response.json();
+                        msg = err.message || msg;
+                    } catch (e) { /* ignore */ }
+                    throw new Error(msg);
+                }
+                showMessage('Produto atualizado com sucesso!', 'success');
+            } catch (error) {
+                console.error(error);
+                showMessage('Erro: ' + error.message, 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.innerHTML = '<span>' + text + '</span>';
+            messageDiv.className = type;
+            messageDiv.style.display = 'block';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (type === 'success') {
+                setTimeout(function() {
+                    messageDiv.style.display = 'none';
+                    window.location.href = 'list-prices.html';
+                }, 1000);
+            } else {
+                setTimeout(function() {
+                    messageDiv.style.display = 'none';
+                }, 5000);
+            }
+        }
+    </script>
+</body>
+</html>

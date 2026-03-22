@@ -17,6 +17,8 @@
         <select id="department-select" style="display: none;"></select>
     </div>
     <button id="goto-menu">Menu</button>
+    <button id="goto-prices" type="button">Preços TV</button>
+    <button id="goto-price-slides" type="button">Slides preços</button>
     <button id="fullscreen-btn">TELA CHEIA</button>
     <div id="welcome-message">Seja bem-vindo!<br>Fique atento às nossas promoções</div>
     <div id="slider"></div>
@@ -337,6 +339,8 @@
                 elements.reconnectBtn,
                 elements.fullscreenBtn,
                 elements.menuBtn,
+                document.getElementById('goto-prices'),
+                document.getElementById('goto-price-slides'),
                 document.getElementById('department-selector'),
                 document.querySelector('.slide-progress')
             ];
@@ -354,6 +358,8 @@
             elements.reconnectBtn,
             elements.fullscreenBtn,
             elements.menuBtn,
+            document.getElementById('goto-prices'),
+            document.getElementById('goto-price-slides'),
             document.getElementById('department-selector'),
             document.querySelector('.slide-progress')
         ];
@@ -425,6 +431,14 @@
         elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
         elements.menuBtn.addEventListener('click', () => {
             window.location.href = '/promotions/list-promotions.html';
+        });
+
+        document.getElementById('goto-prices').addEventListener('click', () => {
+            window.location.href = '/prices/price-board.html';
+        });
+
+        document.getElementById('goto-price-slides').addEventListener('click', () => {
+            window.location.href = '/prices/price-slides.html';
         });
 
         elements.reconnectBtn.addEventListener('click', () => connect());

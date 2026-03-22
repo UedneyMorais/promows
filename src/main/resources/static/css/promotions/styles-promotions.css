@@ -57,7 +57,7 @@ html, body {
   border: 1px solid #555;
 }
 
-#goto-menu, #reconnect-btn {
+#goto-menu, #goto-prices, #reconnect-btn {
             position: fixed;
             top: 10px;
             padding: 8px 15px;
@@ -72,7 +72,26 @@ html, body {
     background-color: rgb(48, 47, 47);
     color: white;
 }
-        
+
+#goto-prices {
+    left: 380px;
+    background-color: rgb(48, 47, 47);
+    color: white;
+}
+
+#goto-price-slides {
+    position: fixed;
+    top: 10px;
+    left: 510px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    z-index: 1000;
+    background-color: rgb(48, 47, 47);
+    color: white;
+}
+
 
 #slider {
   width: 100%;
