@@ -11,11 +11,18 @@
     <link rel="stylesheet" href="../css/prices/styles-price-slides.css">
 </head>
 <body>
+    <script>
+        (function () {
+            const p = new URLSearchParams(window.location.search);
+            if (p.get('kiosk') === '1') document.body.classList.add('kiosk-mode');
+        })();
+    </script>
     <div id="status" class="status disconnected">Carregando…</div>
     <button type="button" id="refresh-btn">Atualizar</button>
     <button id="goto-menu" type="button">Cadastro</button>
     <button id="goto-board" type="button">Painel TV</button>
     <button id="goto-promotions" type="button">Promoções</button>
+    <button id="goto-tv-kiosk" type="button">TV promo + preços</button>
     <button id="fullscreen-btn" type="button">TELA CHEIA</button>
     <div id="welcome-message">
         Nenhum produto ativo no painel de preços.<br>
@@ -165,6 +172,13 @@
             slides.forEach(slide => slide.classList.remove('active'));
             state.currentSlide = (state.currentSlide + 1) % slides.length;
             slides[state.currentSlide].classList.add('active');
+            if (window.parent !== window) {
+                try {
+                    window.parent.postMessage({ type: 'price-slide-end', slideIndex: state.currentSlide }, '*');
+                } catch (err) {
+                    /* ignore */
+                }
+            }
         }
 
         function stopSlideShow() {
@@ -221,6 +235,7 @@
                 document.getElementById('goto-menu'),
                 document.getElementById('goto-board'),
                 document.getElementById('goto-promotions'),
+                document.getElementById('goto-tv-kiosk'),
                 document.querySelector('.slide-progress')
             ].forEach(el => {
                 if (el) el.classList.add('controls-hidden');
@@ -236,6 +251,7 @@
                 document.getElementById('goto-menu'),
                 document.getElementById('goto-board'),
                 document.getElementById('goto-promotions'),
+                document.getElementById('goto-tv-kiosk'),
                 document.querySelector('.slide-progress')
             ].forEach(el => {
                 if (el) el.classList.remove('controls-hidden');
@@ -300,6 +316,9 @@
             });
             document.getElementById('goto-promotions').addEventListener('click', () => {
                 window.location.href = '/promotions.html';
+            });
+            document.getElementById('goto-tv-kiosk').addEventListener('click', () => {
+                window.location.href = '/tv-kiosk.html';
             });
 
             applyCompanyBranding().then(() => {

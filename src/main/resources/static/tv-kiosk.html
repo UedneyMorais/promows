@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PromoWS — TV (promoções + preços)</title>
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+            background: #000;
+            overflow: hidden;
+            font-family: system-ui, sans-serif;
+        }
+        #kiosk-frame-wrap {
+            position: fixed;
+            inset: 0;
+            z-index: 1;
+            opacity: 1;
+            transition: opacity 0.5s ease-in-out;
+            background: #000;
+        }
+        #kiosk-frame-wrap.is-hidden {
+            opacity: 0;
+        }
+        #kiosk-frame {
+            position: absolute;
+            inset: 0;
+            border: 0;
+            width: 100%;
+            height: 100%;
+        }
+        #toolbar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        #toolbar a {
+            color: #e2e8f0;
+            text-decoration: none;
+            padding: 8px 14px;
+            background: rgba(0, 0, 0, 0.55);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        #toolbar a:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+        #toolbar button {
+            padding: 8px 14px;
+            cursor: pointer;
+            background: rgba(255, 140, 0, 0.85);
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-weight: 700;
+        }
+        html.fullscreen-mode #toolbar {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s ease;
+        }
+        html.fullscreen-mode.fullscreen-ui-visible #toolbar {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="toolbar">
+        <button type="button" id="btn-fullscreen">Tela cheia</button>
+        <a href="/promotions.html">Sair</a>
+    </div>
+    <div id="kiosk-frame-wrap">
+        <iframe id="kiosk-frame" title="Conteúdo TV" src="/promotions.html?kiosk=1"></iframe>
+    </div>
+
+    <script>
+        const ROTATE_MS = 10_000;
+        /** Tempo do fade-out antes de trocar o src (deve combinar com transition do CSS) */
+        const FADE_MS = 500;
+        const KIOSK_URLS = [
+            '/promotions.html?kiosk=1',
+            '/prices/price-board.html?kiosk=1'
+        ];
+
+        const wrap = document.getElementById('kiosk-frame-wrap');
+        const frame = document.getElementById('kiosk-frame');
+        let urlIndex = 0;
+        let rotateTimer = null;
+        let loadFallbackTimer = null;
+
+        function clearRotateTimer() {
+            if (rotateTimer) {
+                clearTimeout(rotateTimer);
+                rotateTimer = null;
+            }
+        }
+
+        function clearLoadFallback() {
+            if (loadFallbackTimer) {
+                clearTimeout(loadFallbackTimer);
+                loadFallbackTimer = null;
+            }
+        }
+
+        function scheduleNextRotation() {
+            clearRotateTimer();
+            rotateTimer = setTimeout(() => {
+                rotateTimer = null;
+                urlIndex = (urlIndex + 1) % KIOSK_URLS.length;
+                const nextUrl = KIOSK_URLS[urlIndex];
+
+                wrap.classList.add('is-hidden');
+                setTimeout(() => {
+                    frame.src = nextUrl;
+
+                    let swapFinished = false;
+                    function finishSwap() {
+                        if (swapFinished) return;
+                        swapFinished = true;
+                        clearLoadFallback();
+                        wrap.classList.remove('is-hidden');
+                        scheduleNextRotation();
+                    }
+
+                    frame.addEventListener('load', finishSwap, { once: true });
+                    loadFallbackTimer = setTimeout(finishSwap, 12_000);
+                }, FADE_MS);
+            }, ROTATE_MS);
+        }
+
+        scheduleNextRotation();
+
+        let fullscreenUiTimer = null;
+        const FULLSCREEN_UI_IDLE_MS = 3500;
+
+        function isFullscreenActive() {
+            return Boolean(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement
+            );
+        }
+
+        function syncFullscreenModeClass() {
+            const on = isFullscreenActive();
+            document.documentElement.classList.toggle('fullscreen-mode', on);
+            if (!on) {
+                document.documentElement.classList.remove('fullscreen-ui-visible');
+                clearTimeout(fullscreenUiTimer);
+            }
+        }
+
+        function onFullscreenPointerMove() {
+            if (!document.documentElement.classList.contains('fullscreen-mode')) return;
+            document.documentElement.classList.add('fullscreen-ui-visible');
+            clearTimeout(fullscreenUiTimer);
+            fullscreenUiTimer = setTimeout(() => {
+                document.documentElement.classList.remove('fullscreen-ui-visible');
+            }, FULLSCREEN_UI_IDLE_MS);
+        }
+
+        function onFullscreenChange() {
+            requestAnimationFrame(() => {
+                setTimeout(syncFullscreenModeClass, 0);
+            });
+        }
+
+        document.addEventListener('fullscreenchange', onFullscreenChange);
+        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
+        document.addEventListener('mozfullscreenchange', onFullscreenChange);
+        document.addEventListener('MSFullscreenChange', onFullscreenChange);
+        document.addEventListener('mousemove', onFullscreenPointerMove, { passive: true });
+        syncFullscreenModeClass();
+
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            const el = document.documentElement;
+            if (!isFullscreenActive()) {
+                const req =
+                    el.requestFullscreen ||
+                    el.webkitRequestFullscreen ||
+                    el.mozRequestFullScreen ||
+                    el.msRequestFullscreen;
+                if (req) req.call(el).catch(() => {});
+            } else {
+                const exit =
+                    document.exitFullscreen ||
+                    document.webkitExitFullscreen ||
+                    document.mozCancelFullScreen ||
+                    document.msExitFullscreen;
+                if (exit) exit.call(document);
+            }
+        });
+    </script>
+</body>
+</html>

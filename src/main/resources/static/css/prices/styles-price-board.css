@@ -303,6 +303,11 @@ html, body {
   gap: 8px;
 }
 
+/* Dentro do iframe da TV (/tv-kiosk.html): só o painel, sem botões */
+body.kiosk-mode .board-toolbar {
+  display: none !important;
+}
+
 /* Tela cheia: UI e cursor ocultos até mover o mouse (.fullscreen-ui-visible) */
 html.fullscreen-mode:not(.fullscreen-ui-visible) .board-toolbar {
   display: none !important;

@@ -10,6 +10,12 @@
     <link rel="stylesheet" href="css/promotions/styles-promotions.css">
 </head>
 <body>
+    <script>
+        (function () {
+            const p = new URLSearchParams(window.location.search);
+            if (p.get('kiosk') === '1') document.body.classList.add('kiosk-mode');
+        })();
+    </script>
     <div id="status" class="status disconnected">Desconectado</div>
     <button id="reconnect-btn">Reconectar</button>
     <div id="department-selector">
@@ -19,6 +25,7 @@
     <button id="goto-menu">Menu</button>
     <button id="goto-prices" type="button">Preços TV</button>
     <button id="goto-price-slides" type="button">Slides preços</button>
+    <button id="goto-tv-kiosk" type="button">TV promo + preços</button>
     <button id="fullscreen-btn">TELA CHEIA</button>
     <div id="welcome-message">Seja bem-vindo!<br>Fique atento às nossas promoções</div>
     <div id="slider"></div>
@@ -242,6 +249,13 @@
             slides.forEach(slide => slide.classList.remove('active'));
             state.currentSlide = (state.currentSlide + 1) % slides.length;
             slides[state.currentSlide].classList.add('active');
+            if (window.parent !== window) {
+                try {
+                    window.parent.postMessage({ type: 'promo-slide-end', slideIndex: state.currentSlide }, '*');
+                } catch (err) {
+                    /* ignore */
+                }
+            }
         }
 
         function stopSlideShow() {
@@ -341,6 +355,7 @@
                 elements.menuBtn,
                 document.getElementById('goto-prices'),
                 document.getElementById('goto-price-slides'),
+                document.getElementById('goto-tv-kiosk'),
                 document.getElementById('department-selector'),
                 document.querySelector('.slide-progress')
             ];
@@ -360,6 +375,7 @@
             elements.menuBtn,
             document.getElementById('goto-prices'),
             document.getElementById('goto-price-slides'),
+            document.getElementById('goto-tv-kiosk'),
             document.getElementById('department-selector'),
             document.querySelector('.slide-progress')
         ];
@@ -439,6 +455,10 @@
 
         document.getElementById('goto-price-slides').addEventListener('click', () => {
             window.location.href = '/prices/price-slides.html';
+        });
+
+        document.getElementById('goto-tv-kiosk').addEventListener('click', () => {
+            window.location.href = '/tv-kiosk.html';
         });
 
         elements.reconnectBtn.addEventListener('click', () => connect());

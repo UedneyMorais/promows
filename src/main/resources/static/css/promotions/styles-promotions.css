@@ -92,6 +92,19 @@ html, body {
     color: white;
 }
 
+#goto-tv-kiosk {
+    position: fixed;
+    top: 10px;
+    left: 640px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    z-index: 1000;
+    background-color: rgb(48, 47, 47);
+    color: white;
+}
+
 
 #slider {
   width: 100%;
@@ -265,4 +278,20 @@ html, body {
 
 body.fullscreen-no-cursor {
   cursor: none;
+}
+
+/* Modo iframe na TV combinada (?kiosk=1): só o carrossel */
+body.kiosk-mode #status,
+body.kiosk-mode #reconnect-btn,
+body.kiosk-mode #department-selector,
+body.kiosk-mode #goto-menu,
+body.kiosk-mode #goto-prices,
+body.kiosk-mode #goto-price-slides,
+body.kiosk-mode #goto-tv-kiosk,
+body.kiosk-mode #fullscreen-btn,
+body.kiosk-mode #refresh-btn,
+body.kiosk-mode #goto-board,
+body.kiosk-mode #goto-promotions,
+body.kiosk-mode .slide-progress {
+  display: none !important;
 }

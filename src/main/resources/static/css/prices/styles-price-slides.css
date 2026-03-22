@@ -40,6 +40,19 @@
     color: white;
 }
 
+#goto-tv-kiosk {
+    position: fixed;
+    top: 10px;
+    left: 640px;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    z-index: 1000;
+    background-color: rgb(48, 47, 47);
+    color: white;
+}
+
 .price-slide-card .price-line {
     font-size: 14vmin;
     margin: 2vh 0;

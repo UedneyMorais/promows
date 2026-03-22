@@ -7,11 +7,18 @@
     <link rel="stylesheet" href="/css/prices/styles-price-board.css">
 </head>
 <body>
+    <script>
+        (function () {
+            const p = new URLSearchParams(window.location.search);
+            if (p.get('kiosk') === '1') document.body.classList.add('kiosk-mode');
+        })();
+    </script>
     <div class="board-page">
     <img id="boardLogo" class="board-client-logo" alt="" style="display:none">
     <div class="board-toolbar">
         <button type="button" id="btn-fullscreen" title="Tela cheia">Tela cheia</button>
         <button type="button" id="btn-slides" title="Preços em slide (tela cheia)">Slides</button>
+        <button type="button" id="btn-tv-kiosk" title="TV: promoções e preços em sequência">TV combo</button>
         <button type="button" id="btn-company" title="Dados da empresa">Empresa</button>
         <button type="button" id="btn-admin" title="Cadastro">Cadastro</button>
     </div>
@@ -185,6 +192,9 @@
         });
         document.getElementById('btn-slides').addEventListener('click', () => {
             window.location.href = '/prices/price-slides.html';
+        });
+        document.getElementById('btn-tv-kiosk').addEventListener('click', () => {
+            window.location.href = '/tv-kiosk.html';
         });
         document.getElementById('btn-company').addEventListener('click', () => {
             window.location.href = '/company/company-settings.html';
