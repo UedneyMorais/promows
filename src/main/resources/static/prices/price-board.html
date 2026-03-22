@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Painel de preços</title>
+    <link rel="stylesheet" href="/css/prices/styles-price-board.css">
+</head>
+<body>
+    <div class="board-page">
+    <img id="boardLogo" class="board-client-logo" alt="" style="display:none">
+    <div class="board-toolbar">
+        <button type="button" id="btn-fullscreen" title="Tela cheia">Tela cheia</button>
+        <button type="button" id="btn-slides" title="Preços em slide (tela cheia)">Slides</button>
+        <button type="button" id="btn-company" title="Dados da empresa">Empresa</button>
+        <button type="button" id="btn-admin" title="Cadastro">Cadastro</button>
+    </div>
+    <div class="price-board-root" id="root">
+        <div class="board-left">
+            <div class="board-category" id="categoryTitle">CARREGANDO…</div>
+            <div class="board-table-wrap">
+                <table class="board-table">
+                    <thead>
+                        <tr>
+                            <th>Produto</th>
+                            <th class="col-price">Preço</th>
+                        </tr>
+                    </thead>
+                    <tbody id="boardRows"></tbody>
+                </table>
+            </div>
+        </div>
+        <div class="board-right">
+            <div class="feature-card" id="featureCard" style="display:none;">
+                <div class="feature-badge" id="featureBadge">OFERTA</div>
+                <h2 class="feature-title" id="featureTitle">—</h2>
+                <p class="feature-pack" id="featurePack"></p>
+                <div class="feature-image-wrap">
+                    <img id="featureImg" alt="" src="">
+                </div>
+                <div class="feature-footer">
+                    <span class="feature-price" id="featurePrice">0,00</span>
+                    <span class="feature-unit" id="featureUnit">kg</span>
+                </div>
+            </div>
+            <div class="board-empty" id="emptyState" style="display:none;">
+                Nenhum produto ativo no painel. Cadastre itens em <strong>Cadastro</strong>.
+            </div>
+        </div>
+    </div>
+    </div>
+    <script>
+        const SLIDE_MS = 7000;
+        const REFRESH_MS = 20000;
+        const DEFAULT_IMG = '/images/promows-product-placeholder.svg';
+
+        let products = [];
+        let slideIndex = 0;
+        let slideTimer = null;
+        let refreshTimer = null;
+
+        function moneyBR(n) {
+            const v = Number(n);
+            if (!Number.isFinite(v)) return '0,00';
+            return v.toFixed(2).replace('.', ',');
+        }
+
+        function rowLabel(p) {
+            const parts = [p.description, p.packaging, p.unit].filter(Boolean);
+            return parts.join(' ').trim();
+        }
+
+        function render() {
+            const tbody = document.getElementById('boardRows');
+            const empty = document.getElementById('emptyState');
+            const card = document.getElementById('featureCard');
+            tbody.innerHTML = '';
+
+            if (!products.length) {
+                empty.style.display = 'block';
+                card.style.display = 'none';
+                document.getElementById('categoryTitle').textContent = 'PAINEL DE PREÇOS';
+                return;
+            }
+
+            empty.style.display = 'none';
+            card.style.display = 'flex';
+            slideIndex = Math.min(slideIndex, products.length - 1);
+
+            products.forEach((p, i) => {
+                const tr = document.createElement('tr');
+                tr.dataset.index = String(i);
+                if (i === slideIndex) tr.classList.add('row-active');
+                tr.innerHTML = `
+                    <td class="col-label">${escapeHtml(rowLabel(p))}</td>
+                    <td class="col-price"><span class="price-pill">${moneyBR(p.price)}</span></td>`;
+                tbody.appendChild(tr);
+            });
+
+            const cur = products[slideIndex];
+            document.getElementById('categoryTitle').textContent = cur.categoryLabel || 'OFERTAS';
+            document.getElementById('featureBadge').textContent = 'OFERTA';
+            document.getElementById('featureTitle').textContent = (cur.description || '').toUpperCase();
+            const packLine = [cur.packaging, cur.unit].filter(Boolean).join(' · ');
+            document.getElementById('featurePack').textContent = packLine;
+            document.getElementById('featurePrice').textContent = moneyBR(cur.price);
+            document.getElementById('featureUnit').textContent = cur.unit || '';
+            const img = document.getElementById('featureImg');
+            img.src = cur.imageUrl || DEFAULT_IMG;
+            img.alt = cur.description || '';
+        }
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s;
+            return d.innerHTML;
+        }
+
+        function nextSlide() {
+            if (!products.length) return;
+            slideIndex = (slideIndex + 1) % products.length;
+            render();
+        }
+
+        function startTimers() {
+            if (slideTimer) clearInterval(slideTimer);
+            slideTimer = setInterval(nextSlide, SLIDE_MS);
+            if (refreshTimer) clearInterval(refreshTimer);
+            refreshTimer = setInterval(loadData, REFRESH_MS);
+        }
+
+        async function loadData() {
+            try {
+                const r = await fetch('/api/price-products/board');
+                if (!r.ok) throw new Error('API');
+                const data = await r.json();
+                products = Array.isArray(data) ? data : [];
+                render();
+            } catch (e) {
+                console.error(e);
+                document.getElementById('categoryTitle').textContent = 'ERRO AO CARREGAR';
+            }
+        }
+
+        let fullscreenUiHideTimer;
+        const FULLSCREEN_UI_IDLE_MS = 3500;
+
+        function syncFullscreenModeClass() {
+            const on = Boolean(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.msFullscreenElement
+            );
+            const html = document.documentElement;
+            html.classList.toggle('fullscreen-mode', on);
+            if (!on) {
+                html.classList.remove('fullscreen-ui-visible');
+                clearTimeout(fullscreenUiHideTimer);
+            }
+        }
+
+        function onFullscreenPointerMove() {
+            if (!document.documentElement.classList.contains('fullscreen-mode')) return;
+            document.documentElement.classList.add('fullscreen-ui-visible');
+            clearTimeout(fullscreenUiHideTimer);
+            fullscreenUiHideTimer = setTimeout(() => {
+                document.documentElement.classList.remove('fullscreen-ui-visible');
+            }, FULLSCREEN_UI_IDLE_MS);
+        }
+
+        document.addEventListener('fullscreenchange', syncFullscreenModeClass);
+        document.addEventListener('webkitfullscreenchange', syncFullscreenModeClass);
+        document.addEventListener('mousemove', onFullscreenPointerMove, { passive: true });
+        syncFullscreenModeClass();
+
+        document.getElementById('btn-fullscreen').addEventListener('click', () => {
+            const el = document.documentElement;
+            if (!document.fullscreenElement) {
+                const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
+                if (req) req.call(el).catch(() => {});
+            } else {
+                const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
+                if (exit) exit.call(document);
+            }
+        });
+        document.getElementById('btn-slides').addEventListener('click', () => {
+            window.location.href = '/prices/price-slides.html';
+        });
+        document.getElementById('btn-company').addEventListener('click', () => {
+            window.location.href = '/company/company-settings.html';
+        });
+        document.getElementById('btn-admin').addEventListener('click', () => {
+            window.location.href = '/prices/list-prices.html';
+        });
+
+        async function applyCompanyBranding() {
+            try {
+                const r = await fetch('/api/company/public');
+                if (!r.ok) return;
+                const d = await r.json();
+                const root = document.getElementById('root');
+                if (d.priceBoardBackgroundUrl) {
+                    const u = String(d.priceBoardBackgroundUrl).trim();
+                    const forCss = u.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+                    root.style.setProperty(
+                        'background',
+                        'linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.55)), url("' + forCss + '") center / cover no-repeat',
+                        'important'
+                    );
+                } else {
+                    root.style.removeProperty('background');
+                }
+                if (d.logoUrl) {
+                    const logo = document.getElementById('boardLogo');
+                    logo.src = d.logoUrl;
+                    logo.alt = d.companyName || 'Logo';
+                    logo.style.display = 'block';
+                }
+            } catch (e) {
+                console.warn('Falha ao carregar marca da empresa:', e);
+            }
+        }
+
+        applyCompanyBranding().then(() => loadData().then(startTimers));
+    </script>
+</body>
+</html>

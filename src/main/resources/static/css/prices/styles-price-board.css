@@ -1,0 +1,383 @@
+/* Painel de preços estilo TV — lista à esquerda, destaque à direita */
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  overflow: hidden;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, system-ui, sans-serif;
+  color: #fff;
+}
+
+.board-page {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.price-board-root {
+  display: flex;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  /* Fundo padrão do sistema (sem foto genérica): identidade PromoWS em tons escuros */
+  background-color: #0b1220;
+  background-image: linear-gradient(
+      165deg,
+      rgba(15, 23, 42, 0.98) 0%,
+      rgba(30, 41, 59, 0.96) 42%,
+      rgba(15, 23, 42, 0.99) 100%
+    ),
+    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.18), transparent 55%);
+}
+
+.board-left {
+  flex: 1 1 38%;
+  min-width: 0;
+  max-width: min(820px, 52vw);
+  display: flex;
+  flex-direction: column;
+  padding: 1.2vh 1vw;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.board-category {
+  background: #c41e1e;
+  color: #fff;
+  font-weight: 800;
+  font-size: clamp(1.1rem, 2.1vw, 1.65rem);
+  letter-spacing: 0.1em;
+  font-stretch: expanded;
+  text-align: center;
+  padding: 0.55rem 0.85rem;
+  border-radius: 6px;
+  margin-bottom: 0.55rem;
+  text-transform: uppercase;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.board-table-wrap {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+}
+
+.board-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-size: clamp(0.95rem, 1.65vw, 1.35rem);
+  font-weight: 600;
+  font-stretch: semi-expanded;
+  letter-spacing: 0.045em;
+}
+
+.board-table thead th {
+  text-align: left;
+  padding: 0.55rem 0.75rem;
+  color: #f0f0f0;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  font-stretch: expanded;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.board-table tbody tr {
+  transition: background 0.35s ease, transform 0.25s ease;
+}
+
+.board-table tbody td {
+  padding: 0.45rem 0.75rem;
+  vertical-align: middle;
+  font-weight: 600;
+  font-stretch: semi-expanded;
+}
+
+.board-table thead th:first-child,
+.board-table tbody td:first-child {
+  width: 68%;
+}
+
+.board-table thead th.col-price,
+.board-table tbody td.col-price {
+  width: 32%;
+}
+
+.board-table tbody tr.row-active {
+  background: rgba(255, 255, 255, 0.22);
+  transform: scale(1.01);
+}
+
+.board-table tbody tr.row-active td {
+  font-weight: 800;
+}
+
+.col-label {
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-stretch: expanded;
+  word-break: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.col-price {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.price-pill {
+  display: inline-block;
+  background: #c41e1e;
+  color: #fff;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 800;
+  min-width: 5rem;
+  text-align: center;
+  font-size: 1.02em;
+  letter-spacing: 0.05em;
+  font-stretch: expanded;
+}
+
+.board-right {
+  flex: 1 1 62%;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  padding: 1.2vh 1.4vw;
+  min-width: 0;
+  min-height: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+/* Preenche a coluna direita; tamanho só muda com a viewport (CSS), sem JS */
+.feature-card {
+  flex: 1 1 auto;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  color: #f8fafc;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  max-height: min(100dvh, 1240px);
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.feature-badge {
+  align-self: center;
+  margin-top: 1rem;
+  background: #c41e1e;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  padding: 0.4rem 1.5rem;
+  border-radius: 6px;
+  font-size: clamp(1rem, 1.85vw, 1.4rem);
+}
+
+.feature-title {
+  text-align: center;
+  font-size: clamp(1.5rem, 3.2vw, 2.75rem);
+  font-weight: 800;
+  color: #fecaca;
+  text-transform: uppercase;
+  margin: 0.65rem 0 0.45rem;
+  padding: 0 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  line-height: 1.12;
+  letter-spacing: 0.06em;
+  font-stretch: semi-expanded;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
+.feature-pack {
+  text-align: center;
+  font-size: clamp(0.9rem, 1.45vw, 1.1rem);
+  color: rgba(255, 255, 255, 0.78);
+  margin: 0 0 0.55rem;
+  padding: 0 0.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  letter-spacing: 0.04em;
+  font-stretch: semi-expanded;
+  overflow-wrap: break-word;
+}
+
+/* Foto colada nas bordas laterais do card — sem card interno */
+.feature-image-wrap {
+  flex: 1 1 0;
+  min-height: 0;
+  align-self: stretch;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  overflow: hidden;
+}
+
+.feature-image-wrap img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.feature-footer {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  padding: 1rem 0.45rem 1.1rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.feature-price {
+  font-size: clamp(2.5rem, 5.8vw, 4.5rem);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  font-stretch: expanded;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.feature-unit {
+  font-size: clamp(1.05rem, 2.1vw, 1.55rem);
+  font-weight: 800;
+  color: #fecaca;
+  letter-spacing: 0.05em;
+  font-stretch: semi-expanded;
+}
+
+.board-client-logo {
+  position: fixed;
+  top: 10px;
+  left: 12px;
+  z-index: 10;
+  max-height: 56px;
+  max-width: min(220px, 28vw);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  display: none;
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+}
+
+.board-toolbar {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+  display: flex;
+  gap: 8px;
+}
+
+/* Tela cheia: UI e cursor ocultos até mover o mouse (.fullscreen-ui-visible) */
+html.fullscreen-mode:not(.fullscreen-ui-visible) .board-toolbar {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.fullscreen-mode:not(.fullscreen-ui-visible) .board-client-logo {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+html.fullscreen-mode.fullscreen-ui-visible .board-toolbar {
+  display: flex !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+html.fullscreen-mode.fullscreen-ui-visible .board-client-logo {
+  visibility: visible !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html.fullscreen-mode:not(.fullscreen-ui-visible),
+html.fullscreen-mode:not(.fullscreen-ui-visible) body {
+  cursor: none !important;
+}
+
+html.fullscreen-mode:not(.fullscreen-ui-visible) * {
+  cursor: none !important;
+}
+
+html.fullscreen-mode.fullscreen-ui-visible,
+html.fullscreen-mode.fullscreen-ui-visible body {
+  cursor: auto !important;
+}
+
+html.fullscreen-mode.fullscreen-ui-visible .board-toolbar button {
+  cursor: pointer !important;
+}
+
+.board-toolbar button {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.board-empty {
+  padding: 2rem;
+  text-align: center;
+  font-size: 1.1rem;
+  color: #eee;
+}
+
+@media (max-width: 900px) {
+  .price-board-root {
+    flex-direction: column;
+  }
+  .board-left {
+    max-width: none;
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: min(40vh, 480px);
+  }
+  .board-right {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
+  .feature-card {
+    max-height: none;
+  }
+}
