@@ -87,7 +87,7 @@
         <div class="form-group">
             <label for="imageUpload">Imagem do Produto:</label>
             <input type="file" id="imageUpload" accept="image/*">
-            <small>Formatos aceitos: JPG, PNG, GIF. Tamanho máximo: 5MB</small>
+            <small>Formatos aceitos: JPG, PNG, GIF, HEIC (celular). Tamanho máximo no servidor: 25MB.</small>
             <div id="imagePreview" style="margin-top: 10px; display: none;">
                 <img id="previewImage" src="#" alt="Pré-visualização da imagem" style="max-width: 200px; max-height: 200px;">
             </div>
@@ -162,6 +162,22 @@
         function hideLoading() {
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('loading-container').style.display = 'none';
+        }
+
+        /**
+         * Multipart para mobile e desktop: JSON como texto simples (sem Blob).
+         * Blob com application/json vira "arquivo" em vários navegadores e o Spring
+         * tenta ligar MultipartFile a String. Arquivo com nome explícito no append.
+         * Não defina Content-Type no fetch — o browser define boundary.
+         */
+        function buildPromotionFormData(promotionData, imageFile) {
+            const formData = new FormData();
+            formData.append('promotion', JSON.stringify(promotionData));
+            if (imageFile && imageFile.size > 0) {
+                const filename = imageFile.name || 'promocao.jpg';
+                formData.append('file', imageFile, filename);
+            }
+            return formData;
         }
 
         async function loadDepartments() {
@@ -309,11 +325,7 @@
                     throw new Error('O preço promocional deve ser menor que o original');
                 }
 
-                const formData = new FormData();
-                formData.append('promotion', JSON.stringify(promotionData));
-                if (imageFile) {
-                    formData.append('file', imageFile);
-                }
+                const formData = buildPromotionFormData(promotionData, imageFile);
 
                 const response = await fetch(`/api/promotions/${promotionId}`, {
                     method: 'PUT',
@@ -321,8 +333,12 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Erro ao atualizar promoção');
+                    let msg = 'Erro ao atualizar promoção';
+                    try {
+                        const err = await response.json();
+                        msg = err.message || msg;
+                    } catch (e) { /* ignore */ }
+                    throw new Error(msg);
                 }
 
                 showMessage('Promoção atualizada com sucesso!', 'success');
@@ -376,9 +392,11 @@
                     throw new Error('O preço promocional deve ser menor que o original');
                 }
 
-                const formData = new FormData();
-                formData.append('promotion', JSON.stringify(promotionData));
-                formData.append('file', imageFile);
+                if (!imageFile || imageFile.size === 0) {
+                    throw new Error('Selecione uma foto da promoção.');
+                }
+
+                const formData = buildPromotionFormData(promotionData, imageFile);
 
                 const response = await fetch('/api/promotions', {
                     method: 'POST',
@@ -386,8 +404,12 @@
                 });
 
                 if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.message || 'Erro ao cadastrar promoção');
+                    let msg = 'Erro ao cadastrar promoção';
+                    try {
+                        const err = await response.json();
+                        msg = err.message || msg;
+                    } catch (e) { /* ignore */ }
+                    throw new Error(msg);
                 }
 
                 showMessage('Promoção cadastrada com sucesso!', 'success');

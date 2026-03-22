@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
+
+import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.UrlResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileSystemUtils;
@@ -41,6 +43,7 @@ public class FileSystemStorageService implements StorageRepository {
 		this.rootLocation = Path.of(properties.getLocation());
 	}
 
+    @PostConstruct
     @Override
     public void init() {
         try {
@@ -57,7 +60,14 @@ public class FileSystemStorageService implements StorageRepository {
 	            throw new StorageException("Failed to store empty file.");
 	        }
 
-	        String safeFilename = SlugUtil.slugifyFileName(file.getOriginalFilename());
+	        String originalName = file.getOriginalFilename();
+	        if (originalName == null || originalName.isBlank()) {
+	            throw new StorageException("Cannot store file with empty filename.");
+	        }
+
+	        Files.createDirectories(this.rootLocation);
+
+	        String safeFilename = SlugUtil.slugifyFileName(originalName);
 
 	        Path destinationFile = this.rootLocation.resolve(Path.of(safeFilename))
 	                .normalize().toAbsolutePath();

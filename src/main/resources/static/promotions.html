@@ -28,9 +28,9 @@
         </svg>
     </div>
 
-    <!-- Bibliotecas externas -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <!-- SockJS antes do Stomp (Stomp usa o cliente SockJS) -->
     <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
     <script>
         
         // ============= CONFIGURAÇÕES GLOBAIS =============
@@ -63,6 +63,7 @@
             progressIntervalId: null,
             isFullscreen: false,
             selectedDepartment: null,
+            departmentKeyById: new Map(),
             activePromotionIds: new Set(),
             slideInterval: 8000, // 8 segundos
             hideDelay: 3000,
@@ -84,10 +85,18 @@
 
         // ============= FUNÇÕES AUXILIARES =============
         function formatDepartmentName(name) {
-            return name
+            if (name == null || String(name).trim() === '') return '';
+            return String(name)
                 .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
                 .replace(/[^a-zA-Z\s]/g, '')
                 .toUpperCase();
+        }
+
+        /** Evita erro se Jackson enviar BigDecimal como string no JSON */
+        function formatMoney(value) {
+            const n = Number(value);
+            const safe = Number.isFinite(n) ? n : 0;
+            return safe.toFixed(2).replace('.', ',');
         }
 
         function setStatus(status, message) {
@@ -109,11 +118,14 @@
                 if (!response.ok) throw new Error('Erro na API');
                 
                 const departments = await response.json();
+                state.departmentKeyById = new Map();
                 elements.departmentSelect.innerHTML = '';
                 elements.departmentSelect.add(new Option('Todos os Departamentos', 'ALL'));
                 
                 departments.forEach(dept => {
-                    const option = new Option(dept.departmentName, formatDepartmentName(dept.departmentName));
+                    const key = formatDepartmentName(dept.departmentName);
+                    state.departmentKeyById.set(Number(dept.id), key);
+                    const option = new Option(dept.departmentName, key);
                     elements.departmentSelect.add(option);
                 });
 
@@ -136,47 +148,65 @@
 
         async function loadValidPromotions() {
             try {
-                await fetch('/api/promotions/valid');
+                const response = await fetch('/api/promotions/valid');
+                if (!response.ok) throw new Error('Erro na API');
+                const promotions = await response.json();
+                showPromotionSlide(promotions);
             } catch (error) {
                 console.error('Erro ao carregar promoções:', error);
             }
         }
 
+        function resolvePromotionDeptKey(promotion) {
+            const name = promotion.department?.departmentName;
+            let key = formatDepartmentName(name);
+            if (!key && promotion.departmentId != null && state.departmentKeyById?.size) {
+                key = state.departmentKeyById.get(Number(promotion.departmentId)) ?? '';
+            }
+            return key;
+        }
+
         function showPromotionSlide(promotions) {
-            if(promotions){
-                resetSlider();
-                promotions.forEach(promotion => {
-                    const promoDept = formatDepartmentName(promotion.department.departmentName);
+            if (promotions == null) return;
+            const list = Array.isArray(promotions) ? promotions : [promotions];
+            resetSlider();
+            list.forEach(promotion => {
+                try {
+                    const pid = promotion.id != null ? String(promotion.id) : '';
+                    const promoDept = resolvePromotionDeptKey(promotion);
                     const shouldShow = state.selectedDepartment === 'ALL' || promoDept === state.selectedDepartment;
 
-                    if (shouldShow && !state.activePromotionIds.has(promotion.id)) {
-                        state.activePromotionIds.add(promotion.id);
+                    if (shouldShow && pid && !state.activePromotionIds.has(pid)) {
+                        state.activePromotionIds.add(pid);
                         elements.welcomeMessage.style.display = 'none';
 
                         const slide = document.createElement('div');
                         slide.className = 'slide';
-                        slide.dataset.promotionId = promotion.id;
-                        slide.style.backgroundImage = `url('${promotion.imageUrl || defaultImage}')`;
+                        slide.dataset.promotionId = pid;
+                        const imgUrl = (promotion.imageUrl || defaultImage).replace(/'/g, "\\'");
+                        slide.style.backgroundImage = `url('${imgUrl}')`;
 
                         slide.innerHTML = `
                             <div class="promotion-card">
                                 <h2>${promotion.productName || 'Promoção'}</h2>
-                                <p><strong>de R$:</strong> <originalPrice>${(promotion.originalPrice || 0).toFixed(2).replace('.', ',')} </originalPrice></p>
-                                <p><strong>por R$:</strong> <promotionalPrice> ${(promotion.promotionalPrice || 0).toFixed(2).replace('.', ',') }</promotionalPrice></p>
+                                <p><strong>de R$:</strong> <span class="orig">${formatMoney(promotion.originalPrice)}</span></p>
+                                <p><strong>por R$:</strong> <span class="promo">${formatMoney(promotion.promotionalPrice)}</span></p>
                                 ${promotion.expirationDate ? `<p><strong>Válido até:</strong> ${new Date(promotion.expirationDate).toLocaleDateString('pt-BR')}</p>` : ''}
                             </div>
                         `;
 
                         elements.slider.appendChild(slide);
-                        
+
                         if (document.querySelectorAll('.slide').length === 1) {
                             startSlideShow();
                             slide.classList.add('active');
                             state.currentSlide = 0;
                         }
                     }
-            })
-            }
+                } catch (err) {
+                    console.error('Erro ao montar slide da promoção:', promotion, err);
+                }
+            });
         }
 
         function startSlideShow() {
@@ -367,8 +397,8 @@
 
                 state.stompClient.subscribe(promotionsTopic, message => {
                     try {
-                        const promotion = JSON.parse(message.body);
-                        showPromotionSlide(promotion);
+                        const promotions = JSON.parse(message.body);
+                        showPromotionSlide(promotions);
                     } catch (e) {
                         console.error("Erro ao processar mensagem:", e);
                     }
@@ -395,7 +425,9 @@
         elements.fullscreenBtn.addEventListener('click', toggleFullscreen);
         elements.menuBtn.addEventListener('click', () => {
             window.location.href = '/promotions/list-promotions.html';
-        })  
+        });
+
+        elements.reconnectBtn.addEventListener('click', () => connect());
 
         connect();
     });

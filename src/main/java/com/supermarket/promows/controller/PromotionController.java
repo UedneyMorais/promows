@@ -2,7 +2,6 @@ package com.supermarket.promows.controller;
 
 import com.supermarket.promows.dto.PromotionDTO;
 import com.supermarket.promows.exception.PromotionNotFoundException;
-import com.supermarket.promows.service.FileSystemStorageService;
 import com.supermarket.promows.service.PromotionService;
 
 import org.springframework.http.HttpStatus;
@@ -19,14 +18,16 @@ import java.util.List;
 public class PromotionController {
     private final PromotionService promotionService;
 
-    public PromotionController(PromotionService promotionService, FileSystemStorageService fileSystemStorageService) {
+    public PromotionController(PromotionService promotionService) {
         this.promotionService = promotionService;
     }
 
     //@PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
              produces = MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8")
-    public ResponseEntity<PromotionDTO> createPromotion(@RequestPart("promotion") String promotionDTO, @RequestPart("file") MultipartFile file){
+    public ResponseEntity<PromotionDTO> createPromotion(
+            @RequestParam("promotion") String promotionDTO,
+            @RequestParam("file") MultipartFile file) {
         PromotionDTO createdPromotion = promotionService.createPromotion(promotionDTO, file);
         return new ResponseEntity<PromotionDTO>(createdPromotion, HttpStatus.CREATED);
     }
@@ -45,26 +46,15 @@ public class PromotionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<PromotionDTO> getPromotionById(@PathVariable Long id) {
-
-        PromotionDTO loadedPromotion = promotionService.getPromotionById(id);
-
-        if (loadedPromotion != null) {
-            return new ResponseEntity<>(loadedPromotion, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+        return ResponseEntity.ok(promotionService.getPromotionById(id));
     }
 
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, value = "/{id}")
-    public ResponseEntity<PromotionDTO> updatePromotionById(@RequestPart("promotion") String promotionDTO, @RequestPart(value = "file", required = false) MultipartFile file, @PathVariable Long id) {
-
-        PromotionDTO updatedPromotion = promotionService.updatePromotionById(promotionDTO,file, id);
-
-        if (updatedPromotion != null) {
-            return new ResponseEntity<>(updatedPromotion, HttpStatus.OK);
-        } else {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public ResponseEntity<PromotionDTO> updatePromotionById(
+            @PathVariable Long id,
+            @RequestParam("promotion") String promotionDTO,
+            @RequestParam(value = "file", required = false) MultipartFile file) {
+        return ResponseEntity.ok(promotionService.updatePromotionById(promotionDTO, file, id));
     }
 
     @DeleteMapping("/{id}")

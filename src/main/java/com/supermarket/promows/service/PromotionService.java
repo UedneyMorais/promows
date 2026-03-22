@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -44,8 +43,7 @@ public class PromotionService {
 
         PromotionDTO promotionDTO;
         try {
-            String fixedJson = new String(promotionJson.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
-            promotionDTO = objectMapper.readValue(fixedJson, PromotionDTO.class);
+            promotionDTO = objectMapper.readValue(promotionJson, PromotionDTO.class);
         } catch (IOException e) {
             throw new JsonConverterDTOException(e, PromotionDTO.class);
         }
@@ -112,48 +110,52 @@ public class PromotionService {
 
 
     @Transactional
-    public List<PromotionDTO> getAllValidPromotions(){
-        return getAndSendValidPromotions();
+    public List<PromotionDTO> getAllValidPromotions() {
+        return loadValidPromotionDtos();
+    }
+
+    /**
+     * Lista promoções ativas e não expiradas (para REST e para o slide).
+     */
+    private List<PromotionDTO> loadValidPromotionDtos() {
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        List<Promotion> loadedPromotions = promotionRepository.findAll().stream()
+                .filter(Promotion::isActive)
+                .filter(promotion -> promotion.getExpirationDate() != null
+                        && !promotion.getExpirationDate().isBefore(now))
+                .collect(Collectors.toList());
+
+        return loadedPromotions.stream()
+                .map(promotion -> {
+                    PromotionDTO dto = new PromotionDTO();
+                    dto.setId(promotion.getId());
+                    dto.setProductName(promotion.getProductName());
+                    dto.setProductEan(promotion.getProductEan());
+                    dto.setProductDescription(promotion.getProductDescription());
+                    dto.setProductUnitTypeMessage(promotion.getProductUnitTypeMessage());
+                    dto.setOriginalPrice(promotion.getOriginalPrice());
+                    dto.setPromotionalPrice(promotion.getPromotionalPrice());
+                    dto.setExpirationDate(promotion.getExpirationDate());
+                    dto.setCustomerLimit(promotion.getCustomerLimit());
+                    dto.setImageUrl(fileSystemStorageService.getUrl(promotion.getImageUrl()));
+                    dto.setActive(promotion.isActive());
+                    dto.setDepartmentId(promotion.getDepartment().getId());
+                    dto.setCreatedAt(promotion.getCreatedAt());
+
+                    DepartmentDTO departmentDTO = new DepartmentDTO();
+                    departmentDTO.setId(promotion.getDepartment().getId());
+                    departmentDTO.setDepartmentName(promotion.getDepartment().getDepartmentName());
+                    dto.setDepartment(departmentDTO);
+
+                    return dto;
+                })
+                .toList();
     }
 
     public List<PromotionDTO> getAndSendValidPromotions() {
-        List<Promotion> loadedPromotions = promotionRepository.findAll().stream()
-                .filter(Promotion::isActive)
-                .filter(promotion -> promotion.getExpirationDate() != null && promotion.getExpirationDate().isAfter(java.time.LocalDateTime.now()))
-                .collect(Collectors.toList());
-
-
-        List<PromotionDTO> promotionsToSend = loadedPromotions.stream()
-           .map(promotion -> {
-               PromotionDTO dto = new PromotionDTO();
-               dto.setId(promotion.getId());
-               dto.setProductName(promotion.getProductName());
-               dto.setProductEan(promotion.getProductEan());
-               dto.setProductDescription(promotion.getProductDescription());
-               dto.setProductUnitTypeMessage(promotion.getProductUnitTypeMessage());
-               dto.setOriginalPrice(promotion.getOriginalPrice());
-               dto.setPromotionalPrice(promotion.getPromotionalPrice());
-               dto.setExpirationDate(promotion.getExpirationDate());
-               dto.setCustomerLimit(promotion.getCustomerLimit());
-               dto.setImageUrl(fileSystemStorageService.getUrl(promotion.getImageUrl()));
-               dto.setActive(promotion.isActive());
-               dto.setDepartmentId(promotion.getDepartment().getId());
-               dto.setCreatedAt(promotion.getCreatedAt());
-
-               DepartmentDTO departmentDTO = new DepartmentDTO();
-               departmentDTO.setId(promotion.getDepartment().getId());
-               departmentDTO.setDepartmentName(promotion.getDepartment().getDepartmentName());
-               dto.setDepartment(departmentDTO);
-            
-               return dto;
-           })
-           .toList();
-        
-            if (!promotionsToSend.isEmpty()) {
-                messagingTemplate.convertAndSend("/topic/promotions", promotionsToSend );
-            }
-
-        return promotionsToSend; 
+        List<PromotionDTO> promotionsToSend = loadValidPromotionDtos();
+        messagingTemplate.convertAndSend("/topic/promotions", promotionsToSend);
+        return promotionsToSend;
     }
 
 
@@ -193,8 +195,7 @@ public class PromotionService {
         // Parse JSON manualmente
         PromotionDTO promotionDTO;
         try {
-            String fixedJson = new String(promotionJson.getBytes(StandardCharsets.ISO_8859_1), StandardCharsets.UTF_8);
-            promotionDTO = objectMapper.readValue(fixedJson, PromotionDTO.class);
+            promotionDTO = objectMapper.readValue(promotionJson, PromotionDTO.class);
         } catch (IOException e) {
             throw new JsonConverterDTOException(e, PromotionDTO.class);
         }

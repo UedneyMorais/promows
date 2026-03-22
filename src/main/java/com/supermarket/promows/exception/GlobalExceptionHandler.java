@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.MultipartException;
 
 import com.supermarket.promows.model.ErrorResponse;
@@ -62,11 +63,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleMaxUpload(MaxUploadSizeExceededException ex, HttpServletRequest request) {
+        ErrorResponse errorResponse = new ErrorResponse(
+            HttpStatus.PAYLOAD_TOO_LARGE,
+            "Imagem muito grande. Tente outra foto ou reduza o tamanho (máx. configurado no servidor).",
+            LocalDateTime.now(),
+            request.getRequestURI()
+        );
+        return new ResponseEntity<>(errorResponse, HttpStatus.PAYLOAD_TOO_LARGE);
+    }
+
     @ExceptionHandler(MultipartException.class)
     public ResponseEntity<ErrorResponse> handleSpringMultipartException(MultipartException ex, HttpServletRequest request) {
         ErrorResponse errorResponse = new ErrorResponse(
             HttpStatus.BAD_REQUEST,
-            "A requisição precisa ser multipart/form-data.",
+            "Falha ao processar multipart/form-data. Verifique se enviou a imagem e os dados (ou se o arquivo não excede o limite).",
             LocalDateTime.now(),
             request.getRequestURI()
         );
