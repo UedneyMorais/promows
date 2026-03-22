@@ -117,14 +117,14 @@ html, body {
 
 .board-table tbody tr.row-active {
   background: rgba(255, 255, 255, 0.22);
-  transform: scale(1.01);
 }
 
-.board-table tbody tr.row-active td {
+.board-table tbody tr.row-active td.col-label {
   font-weight: 800;
 }
 
 .col-label {
+  color: #fff;
   text-transform: uppercase;
   letter-spacing: 0.09em;
   font-stretch: expanded;
@@ -138,18 +138,28 @@ html, body {
   white-space: nowrap;
 }
 
+.board-table tbody td.col-price {
+  font-weight: 800;
+}
+
 .price-pill {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
   background: #c41e1e;
   color: #fff;
-  padding: 0.3rem 0.65rem;
+  padding: 0.3rem 0.5rem;
   border-radius: 999px;
   font-weight: 800;
-  min-width: 5rem;
+  width: 10rem;
+  min-width: 10rem;
+  max-width: 10rem;
   text-align: center;
   font-size: 1.02em;
   letter-spacing: 0.05em;
   font-stretch: expanded;
+  font-variant-numeric: tabular-nums;
 }
 
 .board-right {
@@ -203,7 +213,7 @@ html, body {
   text-align: center;
   font-size: clamp(1.5rem, 3.2vw, 2.75rem);
   font-weight: 800;
-  color: #fecaca;
+  color: #fff;
   text-transform: uppercase;
   margin: 0.65rem 0 0.45rem;
   padding: 0 0.5rem;
@@ -215,6 +225,12 @@ html, body {
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   overflow-wrap: break-word;
   word-break: break-word;
+}
+
+/* id + !important: garante branco sobre qualquer regra posterior (ex.: h2 em outro CSS) */
+#featureTitle.feature-title {
+  color: #fff !important;
+  -webkit-text-fill-color: #fff;
 }
 
 .feature-pack {
@@ -232,6 +248,7 @@ html, body {
 
 /* Foto colada nas bordas laterais do card — sem card interno */
 .feature-image-wrap {
+  position: relative;
   flex: 1 1 0;
   min-height: 0;
   align-self: stretch;
@@ -244,7 +261,9 @@ html, body {
   overflow: hidden;
 }
 
-.feature-image-wrap img {
+.feature-image-wrap #featureImg {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
@@ -275,23 +294,42 @@ html, body {
 .feature-unit {
   font-size: clamp(1.05rem, 2.1vw, 1.55rem);
   font-weight: 800;
-  color: #fecaca;
+  color: #fff;
   letter-spacing: 0.05em;
   font-stretch: semi-expanded;
 }
 
+/* Marca d'água: parte inferior da foto; left maior fora de tela cheia */
 .board-client-logo {
-  position: fixed;
-  top: 10px;
-  left: 12px;
-  z-index: 10;
-  max-height: 56px;
-  max-width: min(220px, 28vw);
+  position: absolute;
+  left: 9.05%;
+  bottom: 10px;
+  top: auto;
+  right: auto;
+  transform: none;
+  z-index: 2;
   width: auto;
   height: auto;
+  max-width: min(48%, 180px);
+  max-height: min(28%, 100px);
   object-fit: contain;
   display: none;
-  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
+  opacity: 0.42;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.45));
+}
+
+/*
+ * Tela cheia: posição da marca d'água + sempre visível (não esconder com a toolbar).
+ */
+html.fullscreen-mode .board-client-logo,
+html:fullscreen .board-client-logo,
+html:-webkit-full-screen .board-client-logo {
+  left: 1% !important;
+  bottom: 3.5% !important;
+  visibility: visible !important;
+  opacity: 0.42 !important;
+  pointer-events: none !important;
 }
 
 /* Base .board-toolbar em /css/menu/styles-display-toolbar.css (compartilhado com promotions.html) */
@@ -300,12 +338,6 @@ html, body {
 html.fullscreen-mode:not(.fullscreen-ui-visible) .board-toolbar {
   display: none !important;
   visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-html.fullscreen-mode:not(.fullscreen-ui-visible) .board-client-logo {
-  visibility: hidden !important;
-  opacity: 0 !important;
   pointer-events: none !important;
 }
 
@@ -323,12 +355,6 @@ html.fullscreen-mode.fullscreen-ui-visible .board-ws-status {
 html.fullscreen-mode.fullscreen-ui-visible .board-toolbar {
   display: flex !important;
   visibility: visible !important;
-  pointer-events: auto !important;
-}
-
-html.fullscreen-mode.fullscreen-ui-visible .board-client-logo {
-  visibility: visible !important;
-  opacity: 1 !important;
   pointer-events: auto !important;
 }
 
@@ -350,28 +376,45 @@ html.fullscreen-mode.fullscreen-ui-visible .board-toolbar button {
   cursor: pointer !important;
 }
 
+/*
+ * Indicador de conexão: mesmo bloco visual que .kiosk-live-status em tv-kiosk.html.
+ * Tamanho em px (não rem): styles-nav.css define body com Inter; rem segue o root e pode parecer maior.
+ * #ws-status reforça especificidade sobre herança de body.
+ */
+#ws-status.board-ws-status,
 .board-ws-status {
   position: fixed;
   bottom: 10px;
   right: 10px;
-  z-index: 15;
-  font-size: 0.75rem;
+  z-index: 10020;
+  box-sizing: border-box;
+  margin: 0;
   padding: 4px 10px;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.55);
   color: #94a3b8;
   border: 1px solid rgba(255, 255, 255, 0.12);
   pointer-events: none;
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  font-style: normal;
+  line-height: 1.25;
+  letter-spacing: normal;
+  -webkit-font-smoothing: antialiased;
 }
 
+#ws-status.connected,
 .board-ws-status.connected {
   color: #86efac;
 }
 
+#ws-status.disconnected,
 .board-ws-status.disconnected {
   color: #fca5a5;
 }
 
+#ws-status.connecting,
 .board-ws-status.connecting {
   color: #fde047;
 }

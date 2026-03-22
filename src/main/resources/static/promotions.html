@@ -19,14 +19,40 @@
         })();
     </script>
     <div id="status" class="status disconnected">Desconectado</div>
-    <div id="department-selector">
-        <div id="department-loading">Carregando departamentos...</div>
-        <select id="department-select" style="display: none;"></select>
-    </div>
     <div class="board-toolbar">
         <button type="button" id="reconnect-btn">Reconectar</button>
-        <button type="button" id="fullscreen-btn">TELA CHEIA</button>
-        <div id="display-app-nav-mount"></div>
+        <div class="board-toolbar__actions">
+            <button type="button" id="fullscreen-btn">TELA CHEIA</button>
+            <div class="board-toolbar__menu-row">
+                <div id="department-selector" class="board-toolbar__department" aria-label="Filtrar por departamento">
+                    <div id="department-loading" class="board-toolbar__department-loading">Carregando departamentos...</div>
+                    <!-- Select nativo escondido: browsers ignoram CSS no <select>; UI = mesmo padrão dos menus Exibição/Config -->
+                    <div id="department-dd-root" class="display-dropdown nav-dropdown board-toolbar__department-dd" data-dropdown hidden>
+                        <button
+                            type="button"
+                            class="display-dropdown__trigger nav-dropdown__trigger board-toolbar__department-trigger"
+                            id="department-dd-trigger"
+                            aria-expanded="false"
+                            aria-haspopup="true"
+                            aria-controls="department-dd-panel"
+                        >
+                            <span class="nav-dropdown__trigger-ico" aria-hidden="true">🏷️</span>
+                            <span id="department-dd-label">Todos os Departamentos</span>
+                            <span class="nav-dropdown__caret" aria-hidden="true"></span>
+                        </button>
+                        <div
+                            class="display-dropdown__panel nav-dropdown__panel board-toolbar__department-panel"
+                            id="department-dd-panel"
+                            role="menu"
+                            aria-labelledby="department-dd-trigger"
+                            hidden
+                        ></div>
+                    </div>
+                    <select id="department-select" tabindex="-1" aria-hidden="true" hidden></select>
+                </div>
+                <div id="display-app-nav-mount"></div>
+            </div>
+        </div>
     </div>
     <script src="/js/menu/nav-dropdowns.js" defer></script>
     <script src="/js/menu/display-toolbar.js" defer></script>
@@ -79,10 +105,15 @@
             slideInterval: 8000, // 8 segundos
             hideDelay: 3000,
             mouseTimeout: null,
+            /** Evita auto-ocultar enquanto o ponteiro está sobre a barra (menus/dropdowns) */
+            toolbarPointerInside: false,
+            rafMouseMoveScheduled: false,
             timeLeft: 0,
             circumference: 2 * Math.PI * 16,
             /** Evita reset do carrossel quando o WS reenvia a mesma lista (ex.: TV webOS) */
-            lastPromotionsSignature: null
+            lastPromotionsSignature: null,
+            /** Logo da empresa (marca d'água no card) — preenchido em applyCompanyBranding */
+            clientLogoUrl: null
         };
 
         // ============= VARIÁVEIS GLOBAIS =============
@@ -125,6 +156,44 @@
             stopSlideShow();
         }
 
+        function buildDepartmentDropdownFromSelect() {
+            const panel = document.getElementById('department-dd-panel');
+            const label = document.getElementById('department-dd-label');
+            const sel = elements.departmentSelect;
+            if (!panel || !sel) return;
+            panel.innerHTML = '';
+            for (let i = 0; i < sel.options.length; i++) {
+                const opt = sel.options[i];
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'nav-dropdown__item display-dropdown__item board-toolbar__department-item';
+                b.setAttribute('role', 'menuitem');
+                b.setAttribute('data-dept-value', opt.value);
+                b.textContent = opt.text;
+                panel.appendChild(b);
+            }
+            const idx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
+            if (label && sel.options[idx]) label.textContent = sel.options[idx].text;
+        }
+
+        function wireDepartmentDropdownOnce() {
+            const panel = document.getElementById('department-dd-panel');
+            if (!panel || panel.dataset.wired === 'true') return;
+            panel.dataset.wired = 'true';
+            panel.addEventListener('click', function (e) {
+                const btn = e.target.closest('[data-dept-value]');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const val = btn.getAttribute('data-dept-value');
+                elements.departmentSelect.value = val;
+                const label = document.getElementById('department-dd-label');
+                if (label) label.textContent = btn.textContent.trim();
+                if (typeof window.closeAllNavDropdowns === 'function') window.closeAllNavDropdowns();
+                elements.departmentSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        }
+
         async function loadDepartments() {
             try {
                 const response = await fetch('/api/departments');
@@ -142,8 +211,16 @@
                     elements.departmentSelect.add(option);
                 });
 
-                elements.departmentLoading.style.display = 'none';
-                elements.departmentSelect.style.display = 'block';
+                buildDepartmentDropdownFromSelect();
+                elements.departmentLoading.hidden = true;
+                const ddRoot = document.getElementById('department-dd-root');
+                if (ddRoot) ddRoot.hidden = false;
+                wireDepartmentDropdownOnce();
+                /* initNavDropdowns usa querySelectorAll no container: não inclui o próprio nó — passar o pai #department-selector */
+                const deptWrap = document.getElementById('department-selector');
+                if (typeof window.initNavDropdowns === 'function' && deptWrap) {
+                    window.initNavDropdowns(deptWrap);
+                }
                 state.selectedDepartment = elements.departmentSelect.value;
 
             } catch (error) {
@@ -153,8 +230,15 @@
                     <option value="PADARIA">Padaria</option>
                     <option value="ACOUGUE">Açougue</option>
                 `;
-                elements.departmentLoading.style.display = 'none';
-                elements.departmentSelect.style.display = 'block';
+                buildDepartmentDropdownFromSelect();
+                elements.departmentLoading.hidden = true;
+                const ddRoot = document.getElementById('department-dd-root');
+                if (ddRoot) ddRoot.hidden = false;
+                wireDepartmentDropdownOnce();
+                const deptWrap = document.getElementById('department-selector');
+                if (typeof window.initNavDropdowns === 'function' && deptWrap) {
+                    window.initNavDropdowns(deptWrap);
+                }
                 state.selectedDepartment = "ALL";
             }
         }
@@ -216,8 +300,17 @@
                         const imgUrl = (promotion.imageUrl || defaultImage).replace(/'/g, "\\'");
                         slide.style.backgroundImage = `url('${imgUrl}')`;
 
+                        const logoUrl = state.clientLogoUrl;
+                        const logoBlock =
+                            logoUrl && String(logoUrl).trim()
+                                ? `<img class="promotion-card__logo" src="${String(logoUrl)
+                                      .replace(/&/g, '&amp;')
+                                      .replace(/"/g, '&quot;')}" alt="" aria-hidden="true">`
+                                : '';
+
                         slide.innerHTML = `
                             <div class="promotion-card">
+                                ${logoBlock}
                                 <h2>${promotion.productName || 'Promoção'}</h2>
                                 <p><strong>de R$:</strong> <span class="orig">${formatMoney(promotion.originalPrice)}</span></p>
                                 <p><strong>por R$:</strong> <span class="promo">${formatMoney(promotion.promotionalPrice)}</span></p>
@@ -313,8 +406,13 @@
         function onPromotionsFullscreenEvent() {
             const isNowFullscreen = isPromotionsFullscreen();
             state.isFullscreen = isNowFullscreen;
+            document.documentElement.classList.toggle('fullscreen-mode', isNowFullscreen);
 
             if (isNowFullscreen) {
+                if (state.mouseTimeout) {
+                    clearTimeout(state.mouseTimeout);
+                    state.mouseTimeout = null;
+                }
                 hideControls();
                 document.addEventListener('mousemove', handleMouseMove);
                 resetHideTimeout();
@@ -412,11 +510,11 @@
 
         function hideControls() {
             if (!state.isFullscreen) return;
+            if (state.toolbarPointerInside) return;
 
             const controls = [
                 elements.status,
                 document.querySelector('.board-toolbar'),
-                document.getElementById('department-selector'),
                 document.querySelector('.slide-progress')
             ];
             
@@ -428,33 +526,58 @@
         }
 
         function showControls() {
-        const controls = [
-            elements.status,
-            document.querySelector('.board-toolbar'),
-            document.getElementById('department-selector'),
-            document.querySelector('.slide-progress')
-        ];
-        
-        controls.forEach(control => {
-            if (control) control.classList.remove('controls-hidden');
-        });
-         document.body.classList.remove('fullscreen-no-cursor');
-    }
-
-    function handleMouseMove() {
-        if (state.isFullscreen) {
-            showControls();
-            resetHideTimeout();
-        }
-    }
-
-    function resetHideTimeout() {
-        state.mouseTimeout = setTimeout(() => {
-            if (state.isFullscreen) {
-                hideControls();
+            const toolbar = document.querySelector('.board-toolbar');
+            if (toolbar && !toolbar.classList.contains('controls-hidden')) {
+                return;
             }
-        }, state.hideDelay);
-    }
+            const controls = [
+                elements.status,
+                document.querySelector('.board-toolbar'),
+                document.querySelector('.slide-progress')
+            ];
+        
+            controls.forEach(control => {
+                if (control) control.classList.remove('controls-hidden');
+            });
+            document.body.classList.remove('fullscreen-no-cursor');
+        }
+
+        function handleMouseMove(e) {
+            if (!state.isFullscreen) return;
+            if (state.rafMouseMoveScheduled) return;
+            state.rafMouseMoveScheduled = true;
+            requestAnimationFrame(function () {
+                state.rafMouseMoveScheduled = false;
+                showControls();
+                var tb = document.querySelector('.board-toolbar');
+                if (e && typeof e.clientX === 'number' && tb) {
+                    var el = document.elementFromPoint(e.clientX, e.clientY);
+                    var st = elements.status;
+                    var prog = document.querySelector('.slide-progress');
+                    state.toolbarPointerInside = !!(
+                        el &&
+                        ((tb === el || tb.contains(el)) ||
+                            (st && (st === el || st.contains(el))) ||
+                            (prog && (prog === el || prog.contains(el))))
+                    );
+                }
+                resetHideTimeout();
+            });
+        }
+
+        function resetHideTimeout() {
+            if (state.mouseTimeout) {
+                clearTimeout(state.mouseTimeout);
+                state.mouseTimeout = null;
+            }
+            if (state.toolbarPointerInside) return;
+            state.mouseTimeout = setTimeout(function () {
+                state.mouseTimeout = null;
+                if (state.isFullscreen) {
+                    hideControls();
+                }
+            }, state.hideDelay);
+        }
 
     // ============= WEBSOCKET =============
         function connect(){
@@ -489,9 +612,23 @@
 
         }
 
+        async function applyCompanyBranding() {
+            try {
+                const r = await fetch('/api/company/public');
+                if (!r.ok) return;
+                const d = await r.json();
+                const u = d.logoUrl != null ? String(d.logoUrl).trim() : '';
+                state.clientLogoUrl = u || null;
+            } catch (e) {
+                console.warn('Falha ao carregar marca da empresa:', e);
+            }
+        }
+
     // ============= INICIALIZAÇÃO =============
     window.addEventListener('load', async () => {
 
+        await applyCompanyBranding();
+        document.documentElement.classList.toggle('fullscreen-mode', isPromotionsFullscreen());
         await loadDepartments();
             
         elements.departmentSelect.addEventListener('change', () => {

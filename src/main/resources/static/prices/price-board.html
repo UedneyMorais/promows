@@ -16,10 +16,13 @@
         })();
     </script>
     <div class="board-page">
-    <img id="boardLogo" class="board-client-logo" alt="" style="display:none">
     <div class="board-toolbar">
-        <button type="button" id="btn-fullscreen" title="Tela cheia">Tela cheia</button>
-        <div id="display-app-nav-mount"></div>
+        <div class="board-toolbar__actions">
+            <button type="button" id="btn-fullscreen" title="Tela cheia">TELA CHEIA</button>
+            <div class="board-toolbar__menu-row">
+                <div id="display-app-nav-mount"></div>
+            </div>
+        </div>
     </div>
     <div class="price-board-root" id="root">
         <div class="board-left">
@@ -43,9 +46,10 @@
                 <p class="feature-pack" id="featurePack"></p>
                 <div class="feature-image-wrap">
                     <img id="featureImg" alt="" src="">
+                    <img id="boardLogo" class="board-client-logo" alt="" style="display:none">
                 </div>
                 <div class="feature-footer">
-                    <span class="feature-price" id="featurePrice">0,00</span>
+                    <span class="feature-price" id="featurePrice">R$ 0,00</span>
                     <span class="feature-unit" id="featureUnit">kg</span>
                 </div>
             </div>
@@ -79,8 +83,8 @@
 
         function moneyBR(n) {
             const v = Number(n);
-            if (!Number.isFinite(v)) return '0,00';
-            return v.toFixed(2).replace('.', ',');
+            if (!Number.isFinite(v)) return 'R$ 0,00';
+            return 'R$ ' + v.toFixed(2).replace('.', ',');
         }
 
         function rowLabel(p) {

@@ -51,24 +51,7 @@ html, body {
     transition: opacity 0.5s ease;
 }
 
-#department-selector {
-  position: absolute;
-  top: 60px;
-  left: 10px;
-  padding: 10px;
-  z-index: 1000;
-  background-color: rgba(0,0,0,0.7);
-  border-radius: 5px;
-}
-
-#department-selector select {
-  padding: 8px;
-  font-size: 16px;
-  border-radius: 5px;
-  background-color: #333;
-  color: white;
-  border: 1px solid #555;
-}
+/* Seletor de departamento: estilos em /css/menu/styles-display-toolbar.css (.board-toolbar__department) */
 
 #slider {
   width: 100%;
@@ -103,6 +86,7 @@ html, body {
 }
 
 .promotion-card {
+  position: relative;
   width: 90%;
   height: 90%;
   box-sizing: border-box;
@@ -116,6 +100,30 @@ html, body {
   overflow: hidden;
 }
 
+/* Marca d'água no canto do card — mesmos limites que .board-client-logo (price-board) */
+.promotion-card__logo {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  z-index: 2;
+  width: auto;
+  height: auto;
+  max-width: min(48%, 180px);
+  max-height: min(28%, 100px);
+  object-fit: contain;
+  opacity: 0.42;
+  pointer-events: none;
+  filter: drop-shadow(0 1px 4px rgba(0, 0, 0, 0.45));
+}
+
+html.fullscreen-mode .promotion-card__logo,
+html:fullscreen .promotion-card__logo,
+html:-webkit-full-screen .promotion-card__logo {
+  left: 8px;
+  bottom: 8px;
+  opacity: 0.42;
+}
+
 .promotion-card h2 {
   font-size: 15vmin; /* Usando vmin para melhor responsividade */
   margin: 1vh 0;
@@ -127,31 +135,28 @@ html, body {
   line-height: 1.2;
 }
 
-.promotion-card originalPrice {
-  font-size: 5vmin;
-  margin: 1vh 0;
+/* Valores: "de R$" (menor) vs "por R$" (maior) — classes usadas em promotions.html */
+.promotion-card .orig {
+  font-size: 4vmin;
   color: #fff;
   text-decoration: line-through;
-  text-decoration-thickness: 0.3vmin;
-  opacity: 0.8;
+  text-decoration-thickness: 0.25vmin;
+  opacity: 0.85;
   font-family: "Poppins", sans-serif;
   font-weight: 400;
 }
 
-.promotion-card promotionalPrice {
-  user-select: none; /* Padrão moderno */
-  -webkit-user-select: none; /* Chrome/Safari */
-  -moz-user-select: none; /* Firefox */
-  -ms-user-select: none; /* IE/Edge */
-  font-size: 18vmin;
-  margin: 1vh 0;
-  font-weight: bold;
+.promotion-card .promo {
+  font-size: 9vmin;
+  font-weight: 700;
   color: #fca311;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.35);
   font-family: "Poppins", sans-serif;
-  font-weight: 400;
-  line-height: 1;
+  line-height: 1.05;
   max-width: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+  -moz-user-select: none;
 }
 
 .promotion-card .department {
@@ -232,4 +237,11 @@ body.kiosk-mode #department-selector,
 body.kiosk-mode .board-toolbar,
 body.kiosk-mode .slide-progress {
   display: none !important;
+}
+
+/* Não mostrar “Seja bem-vindo” ao trocar de iframe no tv-kiosk (evita flash na transição) */
+body.kiosk-mode #welcome-message {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
 }

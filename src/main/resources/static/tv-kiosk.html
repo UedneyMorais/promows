@@ -70,8 +70,12 @@
 </head>
 <body>
     <div class="board-toolbar">
-        <button type="button" id="btn-fullscreen">Tela cheia</button>
-        <div id="display-app-nav-mount"></div>
+        <div class="board-toolbar__actions">
+            <button type="button" id="btn-fullscreen" title="Tela cheia">TELA CHEIA</button>
+            <div class="board-toolbar__menu-row">
+                <div id="display-app-nav-mount"></div>
+            </div>
+        </div>
     </div>
     <div id="kiosk-live-status" class="kiosk-live-status" role="status" aria-live="off">Conectado -</div>
     <div id="kiosk-frame-wrap">
@@ -81,7 +85,7 @@
     <script src="/js/menu/nav-dropdowns.js" defer></script>
     <script src="/js/menu/display-toolbar.js" defer></script>
     <script>
-        const ROTATE_MS = 10000;
+        const ROTATE_MS = 30000;
         /** Tempo do fade-out antes de trocar o src (deve combinar com transition do CSS) */
         const FADE_MS = 500;
         const KIOSK_URLS = [
@@ -180,6 +184,25 @@
             );
         }
 
+        /**
+         * O fullscreen é no documento do kiosk (pai). O iframe (promotions / price-board)
+         * não recebe :fullscreen no próprio html — precisamos espelhar .fullscreen-mode
+         * no documentElement do iframe para o CSS da logo e da barra bater com a página aberta sozinha.
+         */
+        function syncIframeFullscreenClass() {
+            var on = isFullscreenActive();
+            try {
+                var f = document.getElementById('kiosk-frame');
+                var doc = f && f.contentDocument;
+                var root = doc && doc.documentElement;
+                if (!root) return;
+                root.classList.toggle('fullscreen-mode', on);
+                if (!on) root.classList.remove('fullscreen-ui-visible');
+            } catch (e) {
+                /* cross-origin */
+            }
+        }
+
         function syncKioskFullscreenClass() {
             var on = isFullscreenActive();
             document.documentElement.classList.toggle('fullscreen-mode', on);
@@ -187,6 +210,7 @@
                 document.documentElement.classList.remove('fullscreen-ui-visible');
                 if (fullscreenUiTimer) clearTimeout(fullscreenUiTimer);
             }
+            syncIframeFullscreenClass();
         }
 
         function onKioskFullscreenPointerMove() {
@@ -204,6 +228,10 @@
         document.addEventListener('MSFullscreenChange', syncKioskFullscreenClass);
         document.addEventListener('mousemove', onKioskFullscreenPointerMove, false);
         syncKioskFullscreenClass();
+
+        frame.addEventListener('load', function () {
+            syncIframeFullscreenClass();
+        });
 
         function requestKioskFullscreen(el) {
             var fn =

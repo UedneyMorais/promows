@@ -4,12 +4,39 @@
   position: fixed;
   top: 8px;
   right: 8px;
+  left: auto;
   z-index: 1000;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
+  max-width: calc(100vw - 16px);
+  /* Não usar overflow:auto/hidden: corta os painéis absolutos dos dropdowns */
+  overflow: visible;
+}
+
+/* Promoções: tela cheia | [departamento + Exibição + Config] na horizontal */
+.board-toolbar__actions {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  max-width: min(100%, calc(100vw - 16px));
+  overflow: visible;
+  width: max-content;
+}
+
+.board-toolbar__menu-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: visible;
 }
 
 body.kiosk-mode .board-toolbar {
@@ -21,7 +48,8 @@ body.kiosk-mode .board-toolbar {
   display: none;
 }
 
-.board-toolbar button {
+/* Não aplicar o estilo “cinza genérico” ao botão Tela cheia (ids dedicados) */
+.board-toolbar button:not(#fullscreen-btn):not(#btn-fullscreen) {
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
   border: 1px solid rgba(255, 255, 255, 0.25);
@@ -32,24 +60,35 @@ body.kiosk-mode .board-toolbar {
   font-family: inherit;
 }
 
-/* Tela cheia: mesmo visual que em promotions.html (laranja) — também em price-board (#btn-fullscreen) */
-.board-toolbar #fullscreen-btn,
-.board-toolbar #btn-fullscreen {
+/*
+ * Tela cheia — promoções, price-board e tv-kiosk: filho direto de .board-toolbar__actions.
+ * Mesmo visual: laranja + altura alinhada aos pills Exibição / Config.
+ */
+.board-toolbar .board-toolbar__actions > #fullscreen-btn,
+.board-toolbar .board-toolbar__actions > #btn-fullscreen {
   position: static;
-  padding: 15px 25px;
-  background-color: rgba(255, 165, 0, 0.8);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-height: 2.25rem;
+  margin: 0;
+  padding: 8px 14px;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  flex-shrink: 0;
   color: #fff;
+  background-color: rgba(255, 165, 0, 0.8);
   border: none;
   border-radius: 5px;
-  font-size: 16px;
-  font-weight: bold;
   cursor: pointer;
   transition: opacity 0.5s ease, background-color 0.2s ease;
-  font-family: inherit;
 }
 
-.board-toolbar #fullscreen-btn:hover,
-.board-toolbar #btn-fullscreen:hover {
+.board-toolbar .board-toolbar__actions > #fullscreen-btn:hover,
+.board-toolbar .board-toolbar__actions > #btn-fullscreen:hover {
   background-color: rgba(255, 165, 0, 1);
 }
 
@@ -74,7 +113,7 @@ body.kiosk-mode .board-toolbar {
   align-items: center;
   gap: 6px;
   padding: 8px 12px;
-  font-family: inherit;
+  font-family: 'Inter', system-ui, sans-serif;
   font-size: 0.82rem;
   font-weight: 600;
   color: #f9fafb;
@@ -184,35 +223,127 @@ body.kiosk-mode .board-toolbar {
   outline-offset: 0;
 }
 
-/* Painel de preços: toolbar em linha */
+/* Promoções: filtro de departamento — mesma linha e mesmo visual dos dropdowns */
+.board-toolbar__department {
+  position: static;
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  align-self: center;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  z-index: auto;
+}
+
+.board-toolbar__department-loading {
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 12px;
+  box-sizing: border-box;
+  min-height: 2.25rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f9fafb;
+  background: rgba(55, 65, 81, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.board-toolbar__department-loading[hidden] {
+  display: none !important;
+}
+
+/* UI customizada (botão + painel): igual aos menus Exibição / Config — <select> nativo não aceita o mesmo CSS */
+.board-toolbar__department-dd {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.board-toolbar__department-trigger {
+  min-width: 10.5rem;
+  max-width: min(36vw, 18rem);
+}
+
+.board-toolbar__department-trigger #department-dd-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: min(28vw, 14rem);
+}
+
+.board-toolbar__department-panel {
+  min-width: min(100%, 18rem);
+}
+
+.board-toolbar__department-item {
+  width: 100%;
+  border: none;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+/* Valor mantido só para lógica; UI é o botão + painel */
+#department-select {
+  display: none !important;
+}
+
+/* O nav não pode ser bloco a 100% da linha — encolhe ao conteúdo (dropdowns) */
 .board-toolbar .display-app-nav {
-  flex: 1 1 auto;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
 }
 
+/* Uma linha: Exibição + Config lado a lado (sem empilhar e empurrar o seletor de departamento) */
 .board-toolbar .display-dropdowns {
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: flex-end;
-  align-items: flex-start;
+  align-items: center;
+  gap: 8px;
 }
 
 @media (max-width: 900px) {
   .board-toolbar {
     left: 8px;
     right: 8px;
-    justify-content: flex-start;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
   }
 
-  .display-dropdowns {
-    align-items: stretch;
+  .board-toolbar__actions {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    max-width: min(100%, calc(100vw - 16px));
+  }
+
+  .board-toolbar .display-dropdowns {
+    flex-wrap: nowrap;
   }
 
   .display-dropdown__trigger,
   .display-app-nav .nav-dropdown__trigger {
-    width: 100%;
-    justify-content: space-between;
     border-radius: 10px;
+  }
+
+  .board-toolbar__department-loading {
+    border-radius: 10px;
+  }
+
+  .board-toolbar__department-trigger {
+    max-width: none;
   }
 
   .display-dropdown__panel,
