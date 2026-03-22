@@ -1,0 +1,224 @@
+/* Barra de exibição: igual ao painel de preços — linha no canto superior direito */
+
+.board-toolbar {
+  position: fixed;
+  top: 8px;
+  right: 8px;
+  z-index: 1000;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+body.kiosk-mode .board-toolbar {
+  display: none !important;
+}
+
+.board-toolbar #reconnect-btn {
+  position: static;
+  display: none;
+}
+
+.board-toolbar button {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+}
+
+/* Tela cheia: mesmo visual que em promotions.html (laranja) — também em price-board (#btn-fullscreen) */
+.board-toolbar #fullscreen-btn,
+.board-toolbar #btn-fullscreen {
+  position: static;
+  padding: 15px 25px;
+  background-color: rgba(255, 165, 0, 0.8);
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: opacity 0.5s ease, background-color 0.2s ease;
+  font-family: inherit;
+}
+
+.board-toolbar #fullscreen-btn:hover,
+.board-toolbar #btn-fullscreen:hover {
+  background-color: rgba(255, 165, 0, 1);
+}
+
+.display-app-nav {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.display-dropdowns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.display-dropdown {
+  position: relative;
+}
+
+.display-dropdown__trigger,
+.display-app-nav .nav-dropdown__trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #f9fafb;
+  background: rgba(55, 65, 81, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.display-dropdown__trigger:hover,
+.display-app-nav .nav-dropdown__trigger:hover {
+  background: rgba(79, 70, 229, 0.55);
+  border-color: rgba(199, 210, 254, 0.5);
+}
+
+.display-dropdown__trigger:focus-visible,
+.display-app-nav .nav-dropdown__trigger:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 2px;
+}
+
+.display-dropdown.is-open .display-dropdown__trigger,
+.display-dropdown.is-open .nav-dropdown__trigger,
+.display-app-nav .nav-dropdown__trigger[aria-expanded='true'] {
+  background: rgba(99, 102, 241, 0.65);
+  border-color: rgba(199, 210, 254, 0.65);
+  box-shadow: 0 0 0 1px rgba(165, 180, 252, 0.4);
+}
+
+.display-dropdown__trigger--cfg,
+.display-app-nav .display-dropdown__trigger--cfg {
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.display-dropdown.is-open .display-dropdown__trigger--cfg,
+.display-app-nav .display-dropdown__trigger--cfg[aria-expanded='true'] {
+  background: rgba(51, 65, 85, 0.98);
+  border-color: rgba(148, 163, 184, 0.45);
+}
+
+.display-app-nav .nav-dropdown__caret {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-left: 4px solid transparent;
+  border-right: 4px solid transparent;
+  border-top: 5px solid currentColor;
+  opacity: 0.75;
+  transition: transform 0.2s ease;
+}
+
+.display-dropdown.is-open .nav-dropdown__caret {
+  transform: rotate(180deg);
+}
+
+.display-dropdown__panel,
+.display-app-nav .nav-dropdown__panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: auto;
+  min-width: 13rem;
+  padding: 6px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 23, 42, 0.96);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  z-index: 1100;
+}
+
+.display-dropdown__panel--cfg,
+.display-app-nav .display-dropdown__panel--cfg {
+  border-color: rgba(148, 163, 184, 0.25);
+  background: rgba(15, 23, 42, 0.98);
+}
+
+.display-dropdown__item,
+.display-app-nav .nav-dropdown__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.display-app-nav .nav-dropdown__item-ico {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.display-dropdown__item:hover,
+.display-app-nav .nav-dropdown__item:hover {
+  background: rgba(79, 70, 229, 0.45);
+  color: #fff;
+}
+
+.display-dropdown__item:focus-visible,
+.display-app-nav .nav-dropdown__item:focus-visible {
+  outline: 2px solid #a5b4fc;
+  outline-offset: 0;
+}
+
+/* Painel de preços: toolbar em linha */
+.board-toolbar .display-app-nav {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.board-toolbar .display-dropdowns {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .board-toolbar {
+    left: 8px;
+    right: 8px;
+    justify-content: flex-start;
+  }
+
+  .display-dropdowns {
+    align-items: stretch;
+  }
+
+  .display-dropdown__trigger,
+  .display-app-nav .nav-dropdown__trigger {
+    width: 100%;
+    justify-content: space-between;
+    border-radius: 10px;
+  }
+
+  .display-dropdown__panel,
+  .display-app-nav .nav-dropdown__panel {
+    left: 0;
+    right: 0;
+    min-width: 0;
+  }
+}

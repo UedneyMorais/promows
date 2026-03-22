@@ -18,12 +18,7 @@ body {
   padding: 20px;
 }
 
-h1 {
-  text-align: center;
-  margin-bottom: 30px;
-  color: #2c3e50;
-  font-weight: 500;
-}
+/* Título da página: /css/common/list-page-title.css (carregado por último nas páginas de lista) */
 
 .loading {
   display: flex;

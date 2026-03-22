@@ -6,49 +6,15 @@
     <title>PromoWS - Lista de preços (painel)</title>
     <link rel="stylesheet" href="../css/menu/styles-nav.css">
     <link rel="stylesheet" href="../css/promotions/styles-list-promotions.css">
+    <link rel="stylesheet" href="../css/common/list-page-title.css">
+    <script src="/js/menu/nav-dropdowns.js" defer></script>
+    <script src="/js/menu/app-navbar.js" defer></script>
 </head>
-<body>
+<body data-nav-active="cfg-prices">
     <div class="container">
-        <nav class="navbar">
-            <div class="nav-container">
-                <a href="../promotions.html" class="logo">
-                    <span class="logo-icon">🏷️</span>
-                    <span>PromoWS</span>
-                </a>
-                <div class="nav-links">
-                    <a href="price-board.html" class="nav-link">
-                        <i>📺</i>
-                        <span>Painel TV</span>
-                    </a>
-                    <a href="price-slides.html" class="nav-link">
-                        <i>🎬</i>
-                        <span>Slides preços</span>
-                    </a>
-                    <a href="../tv-kiosk.html" class="nav-link">
-                        <i>📡</i>
-                        <span>TV promo + preços</span>
-                    </a>
-                    <a href="list-prices.html" class="nav-link">
-                        <i>💲</i>
-                        <span>Preços</span>
-                    </a>
-                    <a href="../promotions/list-promotions.html" class="nav-link">
-                        <i>🎯</i>
-                        <span>Promoções</span>
-                    </a>
-                    <a href="../departments/list-departments.html" class="nav-link">
-                        <i>📦</i>
-                        <span>Departamentos</span>
-                    </a>
-                    <a href="../company/company-settings.html" class="nav-link">
-                        <i>🏢</i>
-                        <span>Empresa</span>
-                    </a>
-                </div>
-            </div>
-        </nav>
+        <div id="app-navbar-mount"></div>
 
-        <h1>Produtos do painel de preços</h1>
+        <h1 class="page-title">Produtos do painel de preços</h1>
 
         <button id="create-price" type="button" class="retry-btn">Novo produto</button>
 

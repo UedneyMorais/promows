@@ -294,19 +294,7 @@ html, body {
   filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.5));
 }
 
-.board-toolbar {
-  position: fixed;
-  top: 8px;
-  right: 8px;
-  z-index: 10;
-  display: flex;
-  gap: 8px;
-}
-
-/* Dentro do iframe da TV (/tv-kiosk.html): só o painel, sem botões */
-body.kiosk-mode .board-toolbar {
-  display: none !important;
-}
+/* Base .board-toolbar em /css/menu/styles-display-toolbar.css (compartilhado com promotions.html) */
 
 /* Tela cheia: UI e cursor ocultos até mover o mouse (.fullscreen-ui-visible) */
 html.fullscreen-mode:not(.fullscreen-ui-visible) .board-toolbar {
@@ -319,6 +307,17 @@ html.fullscreen-mode:not(.fullscreen-ui-visible) .board-client-logo {
   visibility: hidden !important;
   opacity: 0 !important;
   pointer-events: none !important;
+}
+
+html.fullscreen-mode:not(.fullscreen-ui-visible) .board-ws-status {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.fullscreen-mode.fullscreen-ui-visible .board-ws-status {
+  display: block !important;
+  visibility: visible !important;
 }
 
 html.fullscreen-mode.fullscreen-ui-visible .board-toolbar {
@@ -351,14 +350,34 @@ html.fullscreen-mode.fullscreen-ui-visible .board-toolbar button {
   cursor: pointer !important;
 }
 
-.board-toolbar button {
+.board-ws-status {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  z-index: 15;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border-radius: 6px;
   background: rgba(0, 0, 0, 0.55);
-  color: #fff;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  padding: 0.4rem 0.75rem;
-  border-radius: 8px;
-  cursor: pointer;
-  font-size: 0.85rem;
+  color: #94a3b8;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  pointer-events: none;
+}
+
+.board-ws-status.connected {
+  color: #86efac;
+}
+
+.board-ws-status.disconnected {
+  color: #fca5a5;
+}
+
+.board-ws-status.connecting {
+  color: #fde047;
+}
+
+body.kiosk-mode .board-ws-status {
+  display: none;
 }
 
 .board-empty {

@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PromoWS — TV (promoções + preços)</title>
+    <link rel="stylesheet" href="/css/menu/styles-nav.css">
+    <link rel="stylesheet" href="/css/menu/styles-display-toolbar.css">
     <style>
         html, body {
             margin: 0;
@@ -12,9 +14,13 @@
             overflow: hidden;
             font-family: system-ui, sans-serif;
         }
+        /* top/left/right/bottom em vez de inset: compatível com WebKit/Chromium mais antigos (TV webOS) */
         #kiosk-frame-wrap {
             position: fixed;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             z-index: 1;
             opacity: 1;
             transition: opacity 0.5s ease-in-out;
@@ -25,62 +31,57 @@
         }
         #kiosk-frame {
             position: absolute;
-            inset: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
             border: 0;
             width: 100%;
             height: 100%;
         }
-        #toolbar {
+        /* Barra sempre visível (TV sem rato para “revelar” UI em fullscreen) e acima do iframe */
+        .board-toolbar {
+            z-index: 10050;
+        }
+        /* Mesmo papel do board-ws-status / status de promoções: canto inferior direito */
+        .kiosk-live-status {
             position: fixed;
-            top: 10px;
+            bottom: 10px;
             right: 10px;
-            z-index: 20;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        #toolbar a {
-            color: #e2e8f0;
-            text-decoration: none;
-            padding: 8px 14px;
+            z-index: 10020;
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            border-radius: 6px;
             background: rgba(0, 0, 0, 0.55);
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        #toolbar a:hover {
-            background: rgba(255, 255, 255, 0.12);
-        }
-        #toolbar button {
-            padding: 8px 14px;
-            cursor: pointer;
-            background: rgba(255, 140, 0, 0.85);
-            color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-weight: 700;
-        }
-        html.fullscreen-mode #toolbar {
-            opacity: 0;
+            color: #86efac;
+            border: 1px solid rgba(255, 255, 255, 0.12);
             pointer-events: none;
-            transition: opacity 0.35s ease;
+            font-family: system-ui, sans-serif;
         }
-        html.fullscreen-mode.fullscreen-ui-visible #toolbar {
-            opacity: 1;
-            pointer-events: auto;
+        html.fullscreen-mode:not(.fullscreen-ui-visible) .kiosk-live-status {
+            display: none !important;
+            visibility: hidden !important;
+        }
+        html.fullscreen-mode.fullscreen-ui-visible .kiosk-live-status {
+            display: block !important;
+            visibility: visible !important;
         }
     </style>
 </head>
 <body>
-    <div id="toolbar">
+    <div class="board-toolbar">
         <button type="button" id="btn-fullscreen">Tela cheia</button>
-        <a href="/promotions.html">Sair</a>
+        <div id="display-app-nav-mount"></div>
     </div>
+    <div id="kiosk-live-status" class="kiosk-live-status" role="status" aria-live="off">Conectado -</div>
     <div id="kiosk-frame-wrap">
         <iframe id="kiosk-frame" title="Conteúdo TV" src="/promotions.html?kiosk=1"></iframe>
     </div>
 
+    <script src="/js/menu/nav-dropdowns.js" defer></script>
+    <script src="/js/menu/display-toolbar.js" defer></script>
     <script>
-        const ROTATE_MS = 10_000;
+        const ROTATE_MS = 10000;
         /** Tempo do fade-out antes de trocar o src (deve combinar com transition do CSS) */
         const FADE_MS = 500;
         const KIOSK_URLS = [
@@ -116,10 +117,8 @@
                 const nextUrl = KIOSK_URLS[urlIndex];
 
                 wrap.classList.add('is-hidden');
-                setTimeout(() => {
-                    frame.src = nextUrl;
-
-                    let swapFinished = false;
+                setTimeout(function () {
+                    var swapFinished = false;
                     function finishSwap() {
                         if (swapFinished) return;
                         swapFinished = true;
@@ -128,16 +127,49 @@
                         scheduleNextRotation();
                     }
 
-                    frame.addEventListener('load', finishSwap, { once: true });
-                    loadFallbackTimer = setTimeout(finishSwap, 12_000);
+                    function onFrameLoad() {
+                        frame.removeEventListener('load', onFrameLoad);
+                        finishSwap();
+                    }
+
+                    /* Listener antes do src: em TVs/navegadores antigos o load pode disparar ao
+                       carregar do cache antes de anexarmos o handler (tela preta permanente). */
+                    frame.addEventListener('load', onFrameLoad);
+                    frame.src = nextUrl;
+
+                    function tryFinishIfCached() {
+                        try {
+                            var d = frame.contentDocument;
+                            if (d && d.readyState === 'complete') {
+                                frame.removeEventListener('load', onFrameLoad);
+                                finishSwap();
+                            }
+                        } catch (e) {
+                            /* cross-origin */
+                        }
+                    }
+                    setTimeout(tryFinishIfCached, 0);
+                    setTimeout(tryFinishIfCached, 150);
+
+                    loadFallbackTimer = setTimeout(finishSwap, 12000);
                 }, FADE_MS);
             }, ROTATE_MS);
         }
 
         scheduleNextRotation();
 
+        (function kioskConnectionLabel() {
+            var el = document.getElementById('kiosk-live-status');
+            if (!el) return;
+            function tick() {
+                el.textContent = 'Conectado - ' + new Date().toLocaleTimeString();
+            }
+            tick();
+            setInterval(tick, 1000);
+        })();
+
         let fullscreenUiTimer = null;
-        const FULLSCREEN_UI_IDLE_MS = 3500;
+        var FULLSCREEN_UI_IDLE_MS = 3500;
 
         function isFullscreenActive() {
             return Boolean(
@@ -148,53 +180,66 @@
             );
         }
 
-        function syncFullscreenModeClass() {
-            const on = isFullscreenActive();
+        function syncKioskFullscreenClass() {
+            var on = isFullscreenActive();
             document.documentElement.classList.toggle('fullscreen-mode', on);
             if (!on) {
                 document.documentElement.classList.remove('fullscreen-ui-visible');
-                clearTimeout(fullscreenUiTimer);
+                if (fullscreenUiTimer) clearTimeout(fullscreenUiTimer);
             }
         }
 
-        function onFullscreenPointerMove() {
+        function onKioskFullscreenPointerMove() {
             if (!document.documentElement.classList.contains('fullscreen-mode')) return;
             document.documentElement.classList.add('fullscreen-ui-visible');
-            clearTimeout(fullscreenUiTimer);
-            fullscreenUiTimer = setTimeout(() => {
+            if (fullscreenUiTimer) clearTimeout(fullscreenUiTimer);
+            fullscreenUiTimer = setTimeout(function () {
                 document.documentElement.classList.remove('fullscreen-ui-visible');
             }, FULLSCREEN_UI_IDLE_MS);
         }
 
-        function onFullscreenChange() {
-            requestAnimationFrame(() => {
-                setTimeout(syncFullscreenModeClass, 0);
-            });
+        document.addEventListener('fullscreenchange', syncKioskFullscreenClass);
+        document.addEventListener('webkitfullscreenchange', syncKioskFullscreenClass);
+        document.addEventListener('mozfullscreenchange', syncKioskFullscreenClass);
+        document.addEventListener('MSFullscreenChange', syncKioskFullscreenClass);
+        document.addEventListener('mousemove', onKioskFullscreenPointerMove, false);
+        syncKioskFullscreenClass();
+
+        function requestKioskFullscreen(el) {
+            var fn =
+                el.requestFullscreen ||
+                el.webkitRequestFullscreen ||
+                el.webkitRequestFullScreen ||
+                el.mozRequestFullScreen ||
+                el.msRequestFullscreen;
+            return fn ? fn.call(el) : null;
         }
 
-        document.addEventListener('fullscreenchange', onFullscreenChange);
-        document.addEventListener('webkitfullscreenchange', onFullscreenChange);
-        document.addEventListener('mozfullscreenchange', onFullscreenChange);
-        document.addEventListener('MSFullscreenChange', onFullscreenChange);
-        document.addEventListener('mousemove', onFullscreenPointerMove, { passive: true });
-        syncFullscreenModeClass();
+        function exitKioskFullscreen() {
+            var fn =
+                document.exitFullscreen ||
+                document.webkitExitFullscreen ||
+                document.webkitCancelFullScreen ||
+                document.mozCancelFullScreen ||
+                document.msExitFullscreen;
+            return fn ? fn.call(document) : null;
+        }
 
-        document.getElementById('btn-fullscreen').addEventListener('click', () => {
-            const el = document.documentElement;
+        document.getElementById('btn-fullscreen').addEventListener('click', function () {
             if (!isFullscreenActive()) {
-                const req =
-                    el.requestFullscreen ||
-                    el.webkitRequestFullscreen ||
-                    el.mozRequestFullScreen ||
-                    el.msRequestFullscreen;
-                if (req) req.call(el).catch(() => {});
+                var el = document.documentElement;
+                var p = requestKioskFullscreen(el);
+                if (!p && document.body) {
+                    p = requestKioskFullscreen(document.body);
+                }
+                if (p && typeof p.catch === 'function') {
+                    p.catch(function () {});
+                }
             } else {
-                const exit =
-                    document.exitFullscreen ||
-                    document.webkitExitFullscreen ||
-                    document.mozCancelFullScreen ||
-                    document.msExitFullscreen;
-                if (exit) exit.call(document);
+                var ex = exitKioskFullscreen();
+                if (ex && typeof ex.catch === 'function') {
+                    ex.catch(function () {});
+                }
             }
         });
     </script>

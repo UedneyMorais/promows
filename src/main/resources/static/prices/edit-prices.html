@@ -6,46 +6,11 @@
     <title>PromoWS - Editar/Criar preço (painel)</title>
     <link rel="stylesheet" href="../css/menu/styles-nav.css">
     <link rel="stylesheet" href="../css/promotions/styles-edit-promotions.css">
+    <script src="/js/menu/nav-dropdowns.js" defer></script>
+    <script src="/js/menu/app-navbar.js" defer></script>
 </head>
-<body class="edit-mode">
-    <nav class="navbar">
-        <div class="nav-container">
-            <a href="../promotions.html" class="logo">
-                <span class="logo-icon">🏷️</span>
-                <span>PromoWS</span>
-            </a>
-            <div class="nav-links">
-                <a href="price-board.html" class="nav-link">
-                    <i>📺</i>
-                    <span>Painel TV</span>
-                </a>
-                <a href="price-slides.html" class="nav-link">
-                    <i>🎬</i>
-                    <span>Slides preços</span>
-                </a>
-                <a href="../tv-kiosk.html" class="nav-link">
-                    <i>📡</i>
-                    <span>TV promo + preços</span>
-                </a>
-                <a href="list-prices.html" class="nav-link">
-                    <i>💲</i>
-                    <span>Lista de preços</span>
-                </a>
-                <a href="../promotions/list-promotions.html" class="nav-link">
-                    <i>🎯</i>
-                    <span>Promoções</span>
-                </a>
-                <a href="../departments/list-departments.html" class="nav-link">
-                    <i>📦</i>
-                    <span>Departamentos</span>
-                </a>
-                <a href="../company/company-settings.html" class="nav-link">
-                    <i>🏢</i>
-                    <span>Empresa</span>
-                </a>
-            </div>
-        </div>
-    </nav>
+<body class="edit-mode" data-nav-active="cfg-prices">
+    <div id="app-navbar-mount"></div>
 
     <h1 id="pageTitle">Editar/Criar produto</h1>
 

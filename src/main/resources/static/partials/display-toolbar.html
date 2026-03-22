@@ -1,0 +1,64 @@
+<div id="display-app-nav" class="display-app-nav" role="navigation" aria-label="Navegação">
+    <div class="display-dropdowns">
+        <div class="display-dropdown nav-dropdown" data-dropdown>
+            <button
+                type="button"
+                class="display-dropdown__trigger nav-dropdown__trigger"
+                id="display-dd-exibicao"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-controls="display-panel-exibicao"
+            >
+                <span class="nav-dropdown__trigger-ico" aria-hidden="true">🎬</span>
+                <span>Exibição</span>
+                <span class="nav-dropdown__caret" aria-hidden="true"></span>
+            </button>
+            <div
+                class="display-dropdown__panel nav-dropdown__panel"
+                id="display-panel-exibicao"
+                role="menu"
+                aria-labelledby="display-dd-exibicao"
+                hidden
+            >
+                <a href="/promotions.html" class="nav-dropdown__item display-dropdown__item" role="menuitem">
+                    <span class="nav-dropdown__item-ico" aria-hidden="true">🎬</span>
+                    <span>Slide de promoções</span>
+                </a>
+                <a href="/prices/price-board.html" class="nav-dropdown__item display-dropdown__item" role="menuitem">
+                    <span class="nav-dropdown__item-ico" aria-hidden="true">🎬</span>
+                    <span>Slide de preços</span>
+                </a>
+                <a href="/tv-kiosk.html" class="nav-dropdown__item display-dropdown__item" role="menuitem">
+                    <span class="nav-dropdown__item-ico" aria-hidden="true">🎬</span>
+                    <span>Slide de promoção + preços</span>
+                </a>
+            </div>
+        </div>
+        <div class="display-dropdown nav-dropdown" data-dropdown>
+            <button
+                type="button"
+                class="display-dropdown__trigger nav-dropdown__trigger display-dropdown__trigger--cfg"
+                id="display-dd-config"
+                aria-expanded="false"
+                aria-haspopup="true"
+                aria-controls="display-panel-config"
+            >
+                <span class="nav-dropdown__trigger-ico" aria-hidden="true">⚙️</span>
+                <span>Configurações</span>
+                <span class="nav-dropdown__caret" aria-hidden="true"></span>
+            </button>
+            <div
+                class="display-dropdown__panel nav-dropdown__panel display-dropdown__panel--cfg"
+                id="display-panel-config"
+                role="menu"
+                aria-labelledby="display-dd-config"
+                hidden
+            >
+                <a href="/promotions/list-promotions.html" class="nav-dropdown__item display-dropdown__item" role="menuitem">Promoções</a>
+                <a href="/departments/list-departments.html" class="nav-dropdown__item display-dropdown__item" role="menuitem">Departamentos</a>
+                <a href="/prices/list-prices.html" class="nav-dropdown__item display-dropdown__item" role="menuitem">Preços</a>
+                <a href="/company/company-settings.html" class="nav-dropdown__item display-dropdown__item" role="menuitem">Empresa</a>
+            </div>
+        </div>
+    </div>
+</div>

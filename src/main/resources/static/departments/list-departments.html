@@ -6,46 +6,14 @@
     <title>PromoWS - Lista de Departamentos</title>
     <link rel="stylesheet" href="../css/menu/styles-nav.css">
     <link rel="stylesheet" href="../css/departments/styles-list-departments.css">
-
+    <link rel="stylesheet" href="../css/common/list-page-title.css">
+    <script src="/js/menu/nav-dropdowns.js" defer></script>
+    <script src="/js/menu/app-navbar.js" defer></script>
 </head>
-<body>
+<body data-nav-active="cfg-departments">
     <div class="container">
-        <nav class="navbar">
-            <div class="nav-container">
-              <a href="../promotions.html" class="logo">
-                <span class="logo-icon">🏷️</span>
-                <span>PromoWS</span>
-              </a>
-              
-              <div class="nav-links">
-                <a href="../promotions/list-promotions.html" class="nav-link">
-                  <i>🎯</i>
-                  <span>Promoções</span>
-                </a>
-                <a href="../departments/list-departments.html" class="nav-link">
-                  <i>📦</i>
-                  <span>Departamentos</span>
-                </a>
-                <a href="../prices/list-prices.html" class="nav-link">
-                  <i>💲</i>
-                  <span>Preços</span>
-                </a>
-                <a href="../prices/price-slides.html" class="nav-link">
-                  <i>🎬</i>
-                  <span>Slides preços</span>
-                </a>
-                <a href="../tv-kiosk.html" class="nav-link">
-                  <i>📡</i>
-                  <span>TV promo + preços</span>
-                </a>
-                <a href="../company/company-settings.html" class="nav-link">
-                  <i>🏢</i>
-                  <span>Empresa</span>
-                </a>
-              </div>
-            </div>
-        </nav>
-        <h1>Departamentos Cadastrados</h1>
+        <div id="app-navbar-mount"></div>
+        <h1 class="page-title">Departamentos cadastrados</h1>
         <button id="create-department" class="retry-btn">Novo Departamento</a></button>
         
         <div id="loading" class="loading">

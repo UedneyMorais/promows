@@ -1,0 +1,122 @@
+/* Página inicial: cabe na viewport sem barra de rolagem vertical */
+
+html.home-page {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+body.home-page {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  background: #fff;
+}
+
+body.home-page #app-navbar-mount,
+body.home-page .app-navbar {
+  flex-shrink: 0;
+}
+
+.home-landing {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem 1.25rem;
+  /* Branco sólido para alinhar ao fundo da logo PNG */
+  background: #fff;
+  box-sizing: border-box;
+}
+
+.home-landing__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  width: min(100%, 72rem);
+  margin: 0 auto;
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
+/* Largura máx. + altura máx. para caber abaixo do menu (sem scroll). */
+.home-landing__logo {
+  display: block;
+  flex-shrink: 1;
+  min-height: 0;
+  margin: 0 0 0.75rem;
+  width: auto;
+  max-width: min(88vw, 64rem);
+  max-height: min(38vh, calc(100vh - 5.75rem - 13rem));
+  max-height: min(38vh, calc(100dvh - 5.75rem - 13rem));
+  height: auto;
+  object-fit: contain;
+}
+
+/* Gradiente alinhado à marca da logo PNG (azul escuro → magenta → ciano) */
+.home-landing__tagline {
+  margin: 0 auto 1rem;
+  flex-shrink: 0;
+  max-width: 42rem;
+  padding: 0 0.5rem;
+  font-size: clamp(1.25rem, 2.8vw, 2.25rem);
+  font-weight: 600;
+  line-height: 1.45;
+  letter-spacing: -0.02em;
+  background: linear-gradient(
+    90deg,
+    #0c1929 0%,
+    #1e3a8a 22%,
+    #6d28d9 42%,
+    #c026d3 52%,
+    #2563eb 72%,
+    #38bdf8 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
+.home-social {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem 1.25rem;
+  flex-shrink: 0;
+}
+
+.home-social__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--primary-color, #6366f1);
+  text-decoration: none;
+  border-radius: var(--rounded-md, 0.5rem);
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  box-shadow: var(--shadow-md, 0 4px 6px -1px rgba(0, 0, 0, 0.08));
+  transition: color var(--transition-fast, 0.2s ease), border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.home-social__link:hover {
+  color: var(--primary-hover, #4338ca);
+  border-color: #c7d2fe;
+  box-shadow: var(--shadow-lg, 0 10px 15px -3px rgba(0, 0, 0, 0.08));
+}
+
+.home-social__ico {
+  font-size: 1.1rem;
+  line-height: 1;
+}

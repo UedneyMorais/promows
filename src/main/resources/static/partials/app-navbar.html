@@ -1,0 +1,124 @@
+<nav class="navbar app-navbar" role="navigation" aria-label="PromoWS">
+    <div class="nav-container">
+        <a href="/" class="logo" title="Página inicial PromoWS">
+            <!-- SVG inline: evita 404 e problemas de <text> em <img> em alguns browsers/TV -->
+            <svg
+                class="logo-svg"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 248 52"
+                width="248"
+                height="52"
+                role="img"
+                aria-labelledby="navLogoTitle"
+                focusable="false"
+            >
+                <title id="navLogoTitle">PromoWS</title>
+                <defs>
+                    <linearGradient id="navLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#4f46e5"/>
+                        <stop offset="55%" stop-color="#6366f1"/>
+                        <stop offset="100%" stop-color="#0891b2"/>
+                    </linearGradient>
+                    <linearGradient id="navLogoText" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#0f172a"/>
+                        <stop offset="42%" stop-color="#4338ca"/>
+                        <stop offset="72%" stop-color="#6366f1"/>
+                        <stop offset="100%" stop-color="#0891b2"/>
+                    </linearGradient>
+                    <filter id="navLogoShadow" x="-10%" y="-10%" width="120%" height="120%">
+                        <feDropShadow dx="0" dy="1" stdDeviation="1.2" flood-opacity="0.18"/>
+                    </filter>
+                </defs>
+                <g filter="url(#navLogoShadow)">
+                    <rect x="2" y="4" width="42" height="42" rx="11" fill="url(#navLogoGrad)"/>
+                    <path d="M15 17 L30 25 L15 33 Z" fill="#fff"/>
+                    <path d="M33 15c2.5 2.5 3.8 5.6 3.8 9s-1.3 6.5-3.8 9" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity="0.85"/>
+                    <path d="M38 11c3.5 4 5.2 8.8 5.2 14.5S41.5 37 38 41" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" opacity="0.55"/>
+                </g>
+                <text
+                    x="52"
+                    y="36"
+                    font-family="Segoe UI, ui-sans-serif, system-ui, sans-serif"
+                    font-size="24"
+                    font-weight="800"
+                    letter-spacing="-0.03em"
+                    fill="url(#navLogoText)"
+                >PromoWS</text>
+            </svg>
+        </a>
+        <div class="nav-dropdowns">
+            <div class="nav-dropdown" data-dropdown>
+                <button
+                    type="button"
+                    class="nav-dropdown__trigger"
+                    id="nav-dd-exibicao"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-controls="nav-panel-exibicao"
+                >
+                    <span class="nav-dropdown__trigger-ico" aria-hidden="true">🎬</span>
+                    <span>Exibição</span>
+                    <span class="nav-dropdown__caret" aria-hidden="true"></span>
+                </button>
+                <div
+                    class="nav-dropdown__panel"
+                    id="nav-panel-exibicao"
+                    role="menu"
+                    aria-labelledby="nav-dd-exibicao"
+                    hidden
+                >
+                    <a href="/promotions.html" class="nav-dropdown__item" role="menuitem" data-nav="disp-promo">
+                        <span class="nav-dropdown__item-ico" aria-hidden="true">🎬</span>
+                        <span>Slide de promoções</span>
+                    </a>
+                    <a href="/prices/price-board.html" class="nav-dropdown__item" role="menuitem" data-nav="disp-prices">
+                        <span class="nav-dropdown__item-ico" aria-hidden="true">🎬</span>
+                        <span>Slide de preços</span>
+                    </a>
+                    <a href="/tv-kiosk.html" class="nav-dropdown__item" role="menuitem" data-nav="disp-tv">
+                        <span class="nav-dropdown__item-ico" aria-hidden="true">🎬</span>
+                        <span>Slide de promoção + preços</span>
+                    </a>
+                </div>
+            </div>
+            <div class="nav-dropdown" data-dropdown>
+                <button
+                    type="button"
+                    class="nav-dropdown__trigger nav-dropdown__trigger--config"
+                    id="nav-dd-config"
+                    aria-expanded="false"
+                    aria-haspopup="true"
+                    aria-controls="nav-panel-config"
+                >
+                    <span class="nav-dropdown__trigger-ico" aria-hidden="true">⚙️</span>
+                    <span>Configurações</span>
+                    <span class="nav-dropdown__caret" aria-hidden="true"></span>
+                </button>
+                <div
+                    class="nav-dropdown__panel nav-dropdown__panel--config"
+                    id="nav-panel-config"
+                    role="menu"
+                    aria-labelledby="nav-dd-config"
+                    hidden
+                >
+                    <a href="/promotions/list-promotions.html" class="nav-dropdown__item" role="menuitem" data-nav="cfg-promotions">
+                        <span class="nav-dropdown__item-ico" aria-hidden="true">🎯</span>
+                        <span>Promoções</span>
+                    </a>
+                    <a href="/departments/list-departments.html" class="nav-dropdown__item" role="menuitem" data-nav="cfg-departments">
+                        <span class="nav-dropdown__item-ico" aria-hidden="true">📦</span>
+                        <span>Departamentos</span>
+                    </a>
+                    <a href="/prices/list-prices.html" class="nav-dropdown__item" role="menuitem" data-nav="cfg-prices">
+                        <span class="nav-dropdown__item-ico" aria-hidden="true">🛒</span>
+                        <span>Preços</span>
+                    </a>
+                    <a href="/company/company-settings.html" class="nav-dropdown__item" role="menuitem" data-nav="cfg-company">
+                        <span class="nav-dropdown__item-ico" aria-hidden="true">🏢</span>
+                        <span>Empresa</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>

@@ -7,6 +7,7 @@ import com.supermarket.promows.exception.PriceBoardProductNotFoundException;
 import com.supermarket.promows.model.PriceBoardProduct;
 import com.supermarket.promows.repository.PriceBoardProductRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,14 +20,26 @@ public class PriceBoardProductService {
     private final PriceBoardProductRepository repository;
     private final FileSystemStorageService fileSystemStorageService;
     private final ObjectMapper objectMapper;
+    private final SimpMessagingTemplate messagingTemplate;
 
     public PriceBoardProductService(
             PriceBoardProductRepository repository,
             FileSystemStorageService fileSystemStorageService,
-            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper,
+            SimpMessagingTemplate messagingTemplate) {
         this.repository = repository;
         this.fileSystemStorageService = fileSystemStorageService;
         this.objectMapper = objectMapper;
+        this.messagingTemplate = messagingTemplate;
+    }
+
+    /**
+     * Lista ativa do painel (REST + WebSocket). Mesmo payload de {@code GET /api/price-products/board}.
+     */
+    public List<PriceBoardProductDTO> getAndSendActiveBoardProducts() {
+        List<PriceBoardProductDTO> list = findAllActiveForBoard();
+        messagingTemplate.convertAndSend("/topic/price-board", list);
+        return list;
     }
 
     @Transactional
@@ -48,6 +61,7 @@ public class PriceBoardProductService {
             entity.setImageFilename(fileSystemStorageService.store(file));
         }
         PriceBoardProduct saved = repository.save(entity);
+        getAndSendActiveBoardProducts();
         return toDto(saved);
     }
 
@@ -66,7 +80,9 @@ public class PriceBoardProductService {
         if (file != null && !file.isEmpty()) {
             entity.setImageFilename(fileSystemStorageService.store(file));
         }
-        return toDto(repository.save(entity));
+        PriceBoardProductDTO result = toDto(repository.save(entity));
+        getAndSendActiveBoardProducts();
+        return result;
     }
 
     @Transactional
@@ -74,6 +90,7 @@ public class PriceBoardProductService {
         PriceBoardProduct entity = repository.findById(id)
                 .orElseThrow(() -> new PriceBoardProductNotFoundException(id));
         repository.delete(entity);
+        getAndSendActiveBoardProducts();
     }
 
     @Transactional

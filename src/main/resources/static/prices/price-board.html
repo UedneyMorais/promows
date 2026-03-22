@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel de preços</title>
     <link rel="stylesheet" href="/css/prices/styles-price-board.css">
+    <link rel="stylesheet" href="/css/menu/styles-nav.css">
+    <link rel="stylesheet" href="/css/menu/styles-display-toolbar.css">
 </head>
 <body>
     <script>
@@ -17,10 +19,7 @@
     <img id="boardLogo" class="board-client-logo" alt="" style="display:none">
     <div class="board-toolbar">
         <button type="button" id="btn-fullscreen" title="Tela cheia">Tela cheia</button>
-        <button type="button" id="btn-slides" title="Preços em slide (tela cheia)">Slides</button>
-        <button type="button" id="btn-tv-kiosk" title="TV: promoções e preços em sequência">TV combo</button>
-        <button type="button" id="btn-company" title="Dados da empresa">Empresa</button>
-        <button type="button" id="btn-admin" title="Cadastro">Cadastro</button>
+        <div id="display-app-nav-mount"></div>
     </div>
     <div class="price-board-root" id="root">
         <div class="board-left">
@@ -56,15 +55,27 @@
         </div>
     </div>
     </div>
+    <div id="ws-status" class="board-ws-status connecting" role="status">Conectando…</div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <script src="/js/menu/nav-dropdowns.js" defer></script>
+    <script src="/js/menu/display-toolbar.js" defer></script>
     <script>
         const SLIDE_MS = 7000;
         const REFRESH_MS = 20000;
         const DEFAULT_IMG = '/images/promows-product-placeholder.svg';
 
+        const socketEndpoint = '/ws-promotions';
+        const priceBoardTopic = '/topic/price-board';
+
         let products = [];
         let slideIndex = 0;
         let slideTimer = null;
         let refreshTimer = null;
+        let boardStompClient = null;
+        /** TVs: timers longos em iframe costumam ser limitados; usar tick curto */
+        let slideAccumMs = 0;
 
         function moneyBR(n) {
             const v = Number(n);
@@ -131,9 +142,34 @@
 
         function startTimers() {
             if (slideTimer) clearInterval(slideTimer);
-            slideTimer = setInterval(nextSlide, SLIDE_MS);
+            slideAccumMs = 0;
+            slideTimer = setInterval(function () {
+                if (!products.length) return;
+                slideAccumMs += 250;
+                if (slideAccumMs >= SLIDE_MS) {
+                    slideAccumMs = 0;
+                    nextSlide();
+                }
+            }, 250);
             if (refreshTimer) clearInterval(refreshTimer);
             refreshTimer = setInterval(loadData, REFRESH_MS);
+        }
+
+        function setWsStatus(kind, text) {
+            const el = document.getElementById('ws-status');
+            if (!el) return;
+            el.textContent = text;
+            el.className = 'board-ws-status' + (kind ? ' ' + kind : '');
+        }
+
+        function applyBoardFromPayload(data) {
+            products = Array.isArray(data) ? data : [];
+            if (products.length) {
+                slideIndex = Math.min(slideIndex, products.length - 1);
+            } else {
+                slideIndex = 0;
+            }
+            render();
         }
 
         async function loadData() {
@@ -141,12 +177,42 @@
                 const r = await fetch('/api/price-products/board');
                 if (!r.ok) throw new Error('API');
                 const data = await r.json();
-                products = Array.isArray(data) ? data : [];
-                render();
+                applyBoardFromPayload(data);
             } catch (e) {
                 console.error(e);
                 document.getElementById('categoryTitle').textContent = 'ERRO AO CARREGAR';
             }
+        }
+
+        function connectPriceBoardWs() {
+            if (boardStompClient && boardStompClient.connected) {
+                boardStompClient.disconnect();
+            }
+            setWsStatus('connecting', 'Conectando…');
+
+            const socket = new SockJS(socketEndpoint);
+            boardStompClient = Stomp.over(socket);
+            boardStompClient.debug = () => {};
+
+            boardStompClient.connect(
+                {},
+                () => {
+                    setWsStatus('connected', 'Conectado - ' + new Date().toLocaleTimeString());
+                    boardStompClient.subscribe(priceBoardTopic, (message) => {
+                        try {
+                            const data = JSON.parse(message.body);
+                            setWsStatus('connected', 'Conectado - ' + new Date().toLocaleTimeString());
+                            applyBoardFromPayload(data);
+                        } catch (err) {
+                            console.error('WebSocket painel de preços:', err);
+                        }
+                    });
+                },
+                () => {
+                    setWsStatus('disconnected', 'Desconectado — reconectando…');
+                    setTimeout(connectPriceBoardWs, 5000);
+                }
+            );
         }
 
         let fullscreenUiHideTimer;
@@ -156,6 +222,7 @@
             const on = Boolean(
                 document.fullscreenElement ||
                 document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
                 document.msFullscreenElement
             );
             const html = document.documentElement;
@@ -177,32 +244,57 @@
 
         document.addEventListener('fullscreenchange', syncFullscreenModeClass);
         document.addEventListener('webkitfullscreenchange', syncFullscreenModeClass);
-        document.addEventListener('mousemove', onFullscreenPointerMove, { passive: true });
+        document.addEventListener('mozfullscreenchange', syncFullscreenModeClass);
+        document.addEventListener('MSFullscreenChange', syncFullscreenModeClass);
+        document.addEventListener('mousemove', onFullscreenPointerMove, false);
         syncFullscreenModeClass();
 
-        document.getElementById('btn-fullscreen').addEventListener('click', () => {
-            const el = document.documentElement;
-            if (!document.fullscreenElement) {
-                const req = el.requestFullscreen || el.webkitRequestFullscreen || el.msRequestFullscreen;
-                if (req) req.call(el).catch(() => {});
+        function isDocFullscreen() {
+            return Boolean(
+                document.fullscreenElement ||
+                document.webkitFullscreenElement ||
+                document.mozFullScreenElement ||
+                document.msFullscreenElement
+            );
+        }
+
+        function pbRequestFs(el) {
+            var fn =
+                el.requestFullscreen ||
+                el.webkitRequestFullscreen ||
+                el.webkitRequestFullScreen ||
+                el.mozRequestFullScreen ||
+                el.msRequestFullscreen;
+            return fn ? fn.call(el) : null;
+        }
+
+        function pbExitFs() {
+            var fn =
+                document.exitFullscreen ||
+                document.webkitExitFullscreen ||
+                document.webkitCancelFullScreen ||
+                document.mozCancelFullScreen ||
+                document.msExitFullscreen;
+            return fn ? fn.call(document) : null;
+        }
+
+        document.getElementById('btn-fullscreen').addEventListener('click', function () {
+            if (!isDocFullscreen()) {
+                var el = document.documentElement;
+                var p = pbRequestFs(el);
+                if (!p && document.body) {
+                    p = pbRequestFs(document.body);
+                }
+                if (p && typeof p.catch === 'function') {
+                    p.catch(function () {});
+                }
             } else {
-                const exit = document.exitFullscreen || document.webkitExitFullscreen || document.msExitFullscreen;
-                if (exit) exit.call(document);
+                var ex = pbExitFs();
+                if (ex && typeof ex.catch === 'function') {
+                    ex.catch(function () {});
+                }
             }
         });
-        document.getElementById('btn-slides').addEventListener('click', () => {
-            window.location.href = '/prices/price-slides.html';
-        });
-        document.getElementById('btn-tv-kiosk').addEventListener('click', () => {
-            window.location.href = '/tv-kiosk.html';
-        });
-        document.getElementById('btn-company').addEventListener('click', () => {
-            window.location.href = '/company/company-settings.html';
-        });
-        document.getElementById('btn-admin').addEventListener('click', () => {
-            window.location.href = '/prices/list-prices.html';
-        });
-
         async function applyCompanyBranding() {
             try {
                 const r = await fetch('/api/company/public');
@@ -231,7 +323,12 @@
             }
         }
 
-        applyCompanyBranding().then(() => loadData().then(startTimers));
+        applyCompanyBranding().then(() =>
+            loadData().then(() => {
+                startTimers();
+                connectPriceBoardWs();
+            })
+        );
     </script>
 </body>
 </html>
